@@ -140,14 +140,14 @@
         });
 
         function saveAppointment(appointment) {
-            const appointment.id = appointmentId;
+            const appointmentId = Date.now();
             appointment.id = appointmentId;
 
             fetch(apiUrl, {
                 method: "POST",
                 mode: "no-cors",
                 body: JSON.stringify({
-                    id: Date.now(),
+                    id: appointmentId,
                     dataEnvio: new Date().toLocaleString("pt-BR"),
                     cliente: appointment.client,
                     servico: appointment.service,
@@ -178,18 +178,19 @@
                 .then(function (data) {
                     appointments.length = 0;
 
-                    appointments.push({
-                        id: item.id,
-                        client: item.cliente,
-                        service: item.servico,
-                        date: item.dataAgendamento,
-                        time: item.horario,
-                        address: item.endereco,
-                        contractType: item.frequencia,
-                        notes: item.observacoes,
-                        status: item.status || "Aguardando confirmação"
+                    data.forEach(function (item) {
+                        appointments.push({
+                            id: item.id,
+                            client: item.cliente,
+                            service: item.servico,
+                            date: item.dataAgendamento,
+                            time: item.horario,
+                            address: item.endereco,
+                            contractType: item.frequencia,
+                            notes: item.observacoes,
+                            status: item.status || "Aguardando confirmação"
+                        });
                     });
-
 
                     render();
                 })
@@ -271,10 +272,6 @@ Status: aguardando confirmação.
         function formatDate(date) {
             if (!date) {
                 return "";
-            }
-
-            if (date instanceof Date) {
-                return date.toLocaleDateString("pt-BR");
             }
 
             const textDate = String(date);
