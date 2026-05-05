@@ -160,70 +160,100 @@
                 };
             });
 
-            saveAppointments(generatedAppointments);
-        });
-
-        function saveAppointments(generatedAppointments) {
-            generatedAppointments.forEach(function (appointment) {
-                fetch(apiUrl, {
-                    method: "POST",
-                    mode: "no-cors",
-                    body: JSON.stringify({
-                        id: appointment.id,
-                        dataEnvio: new Date().toLocaleString("pt-BR"),
-                        cliente: appointment.client,
-                        servico: appointment.service,
-                        dataAgendamento: appointment.date,
-                        horario: appointment.time,
-                        endereco: appointment.address,
-                        frequencia: appointment.contractType,
-                        observacoes: appointment.notes,
-                        status: appointment.status
-                    })
-                });
-            });
-
-            appointments.push(...generatedAppointments);
-            render();
-            sendToWhatsApp(generatedAppointments);
-            form.reset();
-        }
-
-        function loadAppointments() {
-            fetch(apiUrl)
-                .then(function (response) {
-                    return response.json();
-                })
-                .then(function (data) {
-                    appointments.length = 0;
-
-                    data.forEach(function (item) {
-                        appointments.push({
-                            id: item.id,
-                            client: item.cliente,
-                            service: item.servico,
-                            date: item.dataAgendamento,
-                            time: item.horario,
-                            address: item.endereco,
-                            contractType: item.frequencia,
-                            notes: item.observacoes,
-                            status: item.status || "Aguardando confirmação"
+            async function saveAppointments(generatedAppointments) {
+                try {
+                    for (const appointment of generatedAppointments) {
+                        await fetch(apiUrl, {
+                            method: "POST",
+                            mode: "no-cors",
+                            body: JSON.stringify({
+                                id: appointment.id,
+                                dataEnvio: new Date().toLocaleString("pt-BR"),
+                                cliente: appointment.client,
+                                servico: appointment.service,
+                                dataAgendamento: appointment.date,
+                                horario: appointment.time,
+                                endereco: appointment.address,
+                                frequencia: appointment.contractType,
+                                observacoes: appointment.notes,
+                                status: appointment.status
+                            })
                         });
+                    }
+
+                    appointments.push(...generatedAppointments);
+                    render();
+                    sendToWhatsApp(generatedAppointments);
+                    form.reset();
+
+                    alert("Agendamento enviado com sucesso!");
+                } catch (error) {
+                    alert("Não foi possível salvar o agendamento. Tente novamente.");
+                }
+            }
+
+
+            function saveAppointments(generatedAppointments) {
+                generatedAppointments.forEach(function (appointment) {
+                    fetch(apiUrl, {
+                        method: "POST",
+                        mode: "no-cors",
+                        body: JSON.stringify({
+                            id: appointment.id,
+                            dataEnvio: new Date().toLocaleString("pt-BR"),
+                            cliente: appointment.client,
+                            servico: appointment.service,
+                            dataAgendamento: appointment.date,
+                            horario: appointment.time,
+                            endereco: appointment.address,
+                            frequencia: appointment.contractType,
+                            observacoes: appointment.notes,
+                            status: appointment.status
+                        })
                     });
-
-                    render();
-                })
-                .catch(function () {
-                    render();
                 });
-        }
 
-        function render() {
-            calendar.innerHTML = "";
-            appointmentsTable.innerHTML = "";
+                appointments.push(...generatedAppointments);
+                render();
+                sendToWhatsApp(generatedAppointments);
+                form.reset();
+            }
 
-            if (appointments.length === 0) {
-                calendar.innerHTML = `
+            function loadAppointments() {
+                fetch(apiUrl)
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (data) {
+                        appointments.length = 0;
+
+                        data.forEach(function (item) {
+                            appointments.push({
+                                id: item.id,
+                                client: item.cliente,
+                                service: item.servico,
+                                date: item.dataAgendamento,
+                                time: item.horario,
+                                address: item.endereco,
+                                contractType: item.frequencia,
+                                notes: item.observacoes,
+                                status: item.status || "Aguardando confirmação"
+                            });
+                        });
+
+                        render();
+                    })
+                    .catch(function () {
+                        render();
+                    });
+            }
+
+            function render() {
+                calendar.innerHTML = "";
+                appointmentsTable.innerHTML = "";
+
+                if (appointments.length === 0) {
+                    calendar.innerHTML = `
                     <div class="day">
                         <strong>Nenhum agendamento</strong>
                         <div class="event">
@@ -232,7 +262,7 @@
                     </div>
                 `;
 
-                appointmentsTable.innerHTML = `
+                    appointmentsTable.innerHTML = `
                     <tr>
                         <td data-label="Cliente">Nenhum agendamento cadastrado</td>
                         <td data-label="Data">-</td>
@@ -241,16 +271,16 @@
                     </tr>
                 `;
 
-                return;
-            }
+                    return;
+                }
 
-            appointments
-                .slice()
-                .sort(function (a, b) {
-                    return String(a.date).localeCompare(String(b.date));
-                })
-                .forEach(function (item, index) {
-                    calendar.innerHTML += `
+                appointments
+                    .slice()
+                    .sort(function (a, b) {
+                        return String(a.date).localeCompare(String(b.date));
+                    })
+                    .forEach(function (item, index) {
+                        calendar.innerHTML += `
                         <div class="day">
                             <strong>${formatDate(item.date)}</strong>
 
@@ -262,7 +292,7 @@
                         </div>
                     `;
 
-                    appointmentsTable.innerHTML += `
+                        appointmentsTable.innerHTML += `
                         <tr>
                             <td data-label="Cliente">${item.client}</td>
                             <td data-label="Data">${formatDate(item.date)}</td>
@@ -270,107 +300,107 @@
                             <td data-label="Status">
                                 <select class="status-select" onchange="changeStatus(${index}, this.value)">
                                     ${statusOptions.map(function (status) {
-                        return `
+                            return `
                                             <option value="${status}" ${item.status === status ? "selected" : ""}>
                                                 ${status}
                                             </option>
                                         `;
-                    }).join("")}
+                        }).join("")}
                                 </select>
                             </td>
                         </tr>
                     `;
+                    });
+            }
+
+            function changeStatus(index, newStatus) {
+                appointments[index].status = newStatus;
+                render();
+
+                fetch(apiUrl, {
+                    method: "POST",
+                    mode: "no-cors",
+                    body: JSON.stringify({
+                        action: "updateStatus",
+                        id: appointments[index].id,
+                        status: newStatus
+                    })
                 });
-        }
-
-        function changeStatus(index, newStatus) {
-            appointments[index].status = newStatus;
-            render();
-
-            fetch(apiUrl, {
-                method: "POST",
-                mode: "no-cors",
-                body: JSON.stringify({
-                    action: "updateStatus",
-                    id: appointments[index].id,
-                    status: newStatus
-                })
-            });
-        }
-
-        function generateAppointmentDates(startDate, frequency, repeatUntil) {
-            const dates = [];
-            const start = parseLocalDate(startDate);
-
-            if (repeatUntil === "single" || frequency === "Atendimento avulso") {
-                return [formatDateKey(start)];
             }
 
-            let endDate;
+            function generateAppointmentDates(startDate, frequency, repeatUntil) {
+                const dates = [];
+                const start = parseLocalDate(startDate);
 
-            if (repeatUntil === "month") {
-                endDate = new Date(start.getFullYear(), start.getMonth() + 1, 0);
-            } else {
-                endDate = addMonths(start, Number(repeatUntil));
+                if (repeatUntil === "single" || frequency === "Atendimento avulso") {
+                    return [formatDateKey(start)];
+                }
+
+                let endDate;
+
+                if (repeatUntil === "month") {
+                    endDate = new Date(start.getFullYear(), start.getMonth() + 1, 0);
+                } else {
+                    endDate = addMonths(start, Number(repeatUntil));
+                }
+
+                if (frequency === "Semanal") {
+                    addRepeatedDates(dates, start, endDate, 7);
+                }
+
+                if (frequency === "Quinzenal") {
+                    addRepeatedDates(dates, start, endDate, 14);
+                }
+
+                if (frequency === "Mensal") {
+                    let current = new Date(start);
+
+                    while (current <= endDate) {
+                        dates.push(formatDateKey(current));
+                        current = addMonths(current, 1);
+                    }
+                }
+
+                return dates.length ? dates : [formatDateKey(start)];
             }
 
-            if (frequency === "Semanal") {
-                addRepeatedDates(dates, start, endDate, 7);
-            }
-
-            if (frequency === "Quinzenal") {
-                addRepeatedDates(dates, start, endDate, 14);
-            }
-
-            if (frequency === "Mensal") {
+            function addRepeatedDates(dates, start, endDate, intervalDays) {
                 let current = new Date(start);
 
                 while (current <= endDate) {
                     dates.push(formatDateKey(current));
-                    current = addMonths(current, 1);
+                    current.setDate(current.getDate() + intervalDays);
                 }
             }
 
-            return dates.length ? dates : [formatDateKey(start)];
-        }
-
-        function addRepeatedDates(dates, start, endDate, intervalDays) {
-            let current = new Date(start);
-
-            while (current <= endDate) {
-                dates.push(formatDateKey(current));
-                current.setDate(current.getDate() + intervalDays);
+            function parseLocalDate(value) {
+                return new Date(value + "T00:00:00");
             }
-        }
 
-        function parseLocalDate(value) {
-            return new Date(value + "T00:00:00");
-        }
+            function formatDateKey(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, "0");
+                const day = String(date.getDate()).padStart(2, "0");
 
-        function formatDateKey(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, "0");
-            const day = String(date.getDate()).padStart(2, "0");
+                return `${year}-${month}-${day}`;
+            }
 
-            return `${year}-${month}-${day}`;
-        }
+            function addMonths(date, months) {
+                const result = new Date(date);
+                result.setMonth(result.getMonth() + months);
+                return result;
+            }
 
-        function addMonths(date, months) {
-            const result = new Date(date);
-            result.setMonth(result.getMonth() + months);
-            return result;
-        }
+            function sendToWhatsApp(generatedAppointments) {
+                const firstAppointment = generatedAppointments[0];
 
-        function sendToWhatsApp(generatedAppointments) {
-            const firstAppointment = generatedAppointments[0];
+                const datesText = generatedAppointments
+                    .map(function (appointment) {
+                        return `- ${formatDate(appointment.date)} às ${formatTime(appointment.time)}`;
+                    })
+                    .join("\n");
 
-            const datesText = generatedAppointments
-                .map(function (appointment) {
-                    return `- ${formatDate(appointment.date)} às ${formatTime(appointment.time)}`;
-                })
-                .join("\n");
-
-            const message = `
+                const message = `
 Olá! Nova solicitação de agendamento:
 
 Cliente: ${firstAppointment.client}
@@ -386,49 +416,49 @@ Observações: ${firstAppointment.notes || "Nenhuma"}
 Status: aguardando confirmação.
             `;
 
-            const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-            window.open(url, "_blank");
-        }
-
-        function formatDate(date) {
-            if (!date) {
-                return "";
+                const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+                window.open(url, "_blank");
             }
 
-            const textDate = String(date);
+            function formatDate(date) {
+                if (!date) {
+                    return "";
+                }
 
-            if (textDate.includes("T")) {
-                const onlyDate = textDate.split("T")[0];
-                return new Date(onlyDate + "T00:00:00").toLocaleDateString("pt-BR");
+                const textDate = String(date);
+
+                if (textDate.includes("T")) {
+                    const onlyDate = textDate.split("T")[0];
+                    return new Date(onlyDate + "T00:00:00").toLocaleDateString("pt-BR");
+                }
+
+                const parsedDate = new Date(textDate + "T00:00:00");
+
+                if (isNaN(parsedDate.getTime())) {
+                    return textDate;
+                }
+
+                return parsedDate.toLocaleDateString("pt-BR");
             }
 
-            const parsedDate = new Date(textDate + "T00:00:00");
+            function formatTime(time) {
+                if (!time) {
+                    return "";
+                }
 
-            if (isNaN(parsedDate.getTime())) {
-                return textDate;
+                const textTime = String(time);
+
+                if (textTime.includes("T")) {
+                    return new Date(textTime).toLocaleTimeString("pt-BR", {
+                        hour: "2-digit",
+                        minute: "2-digit"
+                    });
+                }
+
+                return textTime;
             }
 
-            return parsedDate.toLocaleDateString("pt-BR");
-        }
-
-        function formatTime(time) {
-            if (!time) {
-                return "";
-            }
-
-            const textTime = String(time);
-
-            if (textTime.includes("T")) {
-                return new Date(textTime).toLocaleTimeString("pt-BR", {
-                    hour: "2-digit",
-                    minute: "2-digit"
-                });
-            }
-
-            return textTime;
-        }
-
-        loadAppointments();
+            loadAppointments();
     </script>
 </body>
 
