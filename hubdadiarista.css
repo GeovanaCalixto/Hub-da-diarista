@@ -1,0 +1,161 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f9ff;
+    color: #1d2a35;
+}
+
+header {
+    background: #8ecae6;
+    color: #123040;
+    padding: 28px;
+}
+
+header h1 {
+    margin: 0 0 8px;
+}
+
+header p {
+    margin: 0 0 16px;
+}
+
+nav {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+nav a {
+    color: #123040;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.45);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+}
+
+main {
+    padding: 24px;
+    display: grid;
+    gap: 24px;
+}
+
+section {
+    background: white;
+    border: 1px solid #d6eaf7;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+h2 {
+    margin-top: 0;
+}
+
+form {
+    display: grid;
+    gap: 14px;
+}
+
+label {
+    display: grid;
+    gap: 6px;
+    font-weight: bold;
+}
+
+input,
+select,
+textarea,
+button {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px;
+    border-radius: 6px;
+    border: 1px solid #bdd7e7;
+    font-size: 15px;
+}
+
+textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+button {
+    margin-top: 8px;
+    background: #219ebc;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:hover {
+    background: #187f99;
+}
+
+.calendar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.day {
+    min-height: 95px;
+    background: #f7fbff;
+    border: 1px solid #d6eaf7;
+    border-radius: 6px;
+    padding: 10px;
+}
+
+.event {
+    margin-top: 8px;
+    padding: 8px;
+    background: #eaf6ff;
+    border-left: 4px solid #219ebc;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 10px;
+    border-bottom: 1px solid #dce3dc;
+    text-align: left;
+}
+
+th {
+    background: #eef8ff;
+}
+
+.status-select {
+    width: 100%;
+    max-width: 240px;
+    padding: 8px 10px;
+    border-radius: 20px;
+    border: 1px solid #bdd7e7;
+    background: #eaf6ff;
+    color: #15566b;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+@media (max-width: 900px) {
+    .calendar {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    main {
+        padding: 14px;
+    }
+
+    .calendar {
+        grid-template-columns: 1fr;
+    }
+}
