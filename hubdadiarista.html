@@ -140,6 +140,9 @@
         });
 
         function saveAppointment(appointment) {
+            const appointment.id = appointmentId;
+            appointment.id = appointmentId;
+
             fetch(apiUrl, {
                 method: "POST",
                 mode: "no-cors",
@@ -175,18 +178,18 @@
                 .then(function (data) {
                     appointments.length = 0;
 
-                    data.forEach(function (item) {
-                        appointments.push({
-                            client: item.cliente,
-                            service: item.servico,
-                            date: item.dataAgendamento,
-                            time: item.horario,
-                            address: item.endereco,
-                            contractType: item.frequencia,
-                            notes: item.observacoes,
-                            status: item.status || "Aguardando confirmação"
-                        });
+                    appointments.push({
+                        id: item.id,
+                        client: item.cliente,
+                        service: item.servico,
+                        date: item.dataAgendamento,
+                        time: item.horario,
+                        address: item.endereco,
+                        contractType: item.frequencia,
+                        notes: item.observacoes,
+                        status: item.status || "Aguardando confirmação"
                     });
+
 
                     render();
                 })
@@ -234,6 +237,16 @@
         function changeStatus(index, newStatus) {
             appointments[index].status = newStatus;
             render();
+
+            fetch(apiUrl, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify({
+                    action: "updateStatus",
+                    id: appointments[index].id,
+                    status: newStatus
+                })
+            });
         }
 
         function sendToWhatsApp(appointment) {
