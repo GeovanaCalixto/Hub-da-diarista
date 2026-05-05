@@ -75,6 +75,16 @@
                 </label>
 
                 <label>
+                    Repetir por
+                    <select id="repeatUntil" required>
+                        <option value="single">Somente este agendamento</option>
+                        <option value="month">Durante este mês</option>
+                        <option value="2">Por 2 meses</option>
+                        <option value="3">Por 3 meses</option>
+                    </select>
+                </label>
+
+                <label>
                     Observações
                     <textarea id="notes"
                         placeholder="Ex: tenho pets, preciso de limpeza na cozinha, preferência de acesso..."></textarea>
@@ -103,8 +113,7 @@
     </main>
 
     <script>
-        const apiUrl = "https://script.google.com/macros/s/AKfycbxW0C3mi8mSG4xrjoE9ZRXjpPhV9mIuwe4xqigztj17E72jXyzA6kYYmO2TXKfk3noQ/exec";
-
+        const apiUrl = "SUA_URL_DO_APPS_SCRIPT_AQUI";
         const whatsappNumber = "5511932118634";
 
         const appointments = [];
@@ -125,49 +134,59 @@
         form.addEventListener("submit", function (event) {
             event.preventDefault();
 
-            const appointment = {
+            const baseAppointment = {
                 client: document.getElementById("client").value,
                 service: document.getElementById("service").value,
                 date: document.getElementById("date").value,
                 time: document.getElementById("time").value,
                 address: document.getElementById("address").value,
                 contractType: document.getElementById("contractType").value,
+                repeatUntil: document.getElementById("repeatUntil").value,
                 notes: document.getElementById("notes").value,
                 status: "Aguardando confirmação"
             };
 
-            saveAppointment(appointment);
+            const dates = generateAppointmentDates(
+                baseAppointment.date,
+                baseAppointment.contractType,
+                baseAppointment.repeatUntil
+            );
+
+            const generatedAppointments = dates.map(function (date, index) {
+                return {
+                    ...baseAppointment,
+                    id: Date.now() + index,
+                    date: date
+                };
+            });
+
+            saveAppointments(generatedAppointments);
         });
 
-        function saveAppointment(appointment) {
-            const appointmentId = Date.now();
-            appointment.id = appointmentId;
-
-            fetch(apiUrl, {
-                method: "POST",
-                mode: "no-cors",
-                body: JSON.stringify({
-                    id: appointmentId,
-                    dataEnvio: new Date().toLocaleString("pt-BR"),
-                    cliente: appointment.client,
-                    servico: appointment.service,
-                    dataAgendamento: appointment.date,
-                    horario: appointment.time,
-                    endereco: appointment.address,
-                    frequencia: appointment.contractType,
-                    observacoes: appointment.notes,
-                    status: appointment.status
-                })
-            })
-                .then(function () {
-                    appointments.push(appointment);
-                    render();
-                    sendToWhatsApp(appointment);
-                    form.reset();
-                })
-                .catch(function () {
-                    alert("Não foi possível salvar o agendamento. Tente novamente.");
+        function saveAppointments(generatedAppointments) {
+            generatedAppointments.forEach(function (appointment) {
+                fetch(apiUrl, {
+                    method: "POST",
+                    mode: "no-cors",
+                    body: JSON.stringify({
+                        id: appointment.id,
+                        dataEnvio: new Date().toLocaleString("pt-BR"),
+                        cliente: appointment.client,
+                        servico: appointment.service,
+                        dataAgendamento: appointment.date,
+                        horario: appointment.time,
+                        endereco: appointment.address,
+                        frequencia: appointment.contractType,
+                        observacoes: appointment.notes,
+                        status: appointment.status
+                    })
                 });
+            });
+
+            appointments.push(...generatedAppointments);
+            render();
+            sendToWhatsApp(generatedAppointments);
+            form.reset();
         }
 
         function loadAppointments() {
@@ -203,36 +222,43 @@
             calendar.innerHTML = "";
             appointmentsTable.innerHTML = "";
 
-            appointments.forEach((item, index) => {
-                calendar.innerHTML += `
-                    <div class="day">
-                        <strong>${formatDate(item.date)}</strong>
+            appointments
+                .slice()
+                .sort(function (a, b) {
+                    return String(a.date).localeCompare(String(b.date));
+                })
+                .forEach(function (item, index) {
+                    calendar.innerHTML += `
+                        <div class="day">
+                            <strong>${formatDate(item.date)}</strong>
 
-                        <div class="event">
-                            ${formatTime(item.time)}<br>
-                            ${item.service}<br>
-                            ${item.status}
+                            <div class="event">
+                                ${formatTime(item.time)}<br>
+                                ${item.service}<br>
+                                ${item.status}
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
 
-                appointmentsTable.innerHTML += `
-                    <tr>
-                        <td>${item.client}</td>
-                        <td>${formatDate(item.date)}</td>
-                        <td>${item.contractType}</td>
-                        <td>
-                            <select class="status-select" onchange="changeStatus(${index}, this.value)">
-                                ${statusOptions.map((status) => `
-                                    <option value="${status}" ${item.status === status ? "selected" : ""}>
-                                        ${status}
-                                    </option>
-                                `).join("")}
-                            </select>
-                        </td>
-                    </tr>
-                `;
-            });
+                    appointmentsTable.innerHTML += `
+                        <tr>
+                            <td data-label="Cliente">${item.client}</td>
+                            <td data-label="Data">${formatDate(item.date)}</td>
+                            <td data-label="Tipo">${item.contractType}</td>
+                            <td data-label="Status">
+                                <select class="status-select" onchange="changeStatus(${index}, this.value)">
+                                    ${statusOptions.map(function (status) {
+                        return `
+                                            <option value="${status}" ${item.status === status ? "selected" : ""}>
+                                                ${status}
+                                            </option>
+                                        `;
+                    }).join("")}
+                                </select>
+                            </td>
+                        </tr>
+                    `;
+                });
         }
 
         function changeStatus(index, newStatus) {
@@ -250,17 +276,90 @@
             });
         }
 
-        function sendToWhatsApp(appointment) {
+        function generateAppointmentDates(startDate, frequency, repeatUntil) {
+            const dates = [];
+            const start = parseLocalDate(startDate);
+
+            if (repeatUntil === "single" || frequency === "Atendimento avulso") {
+                return [formatDateKey(start)];
+            }
+
+            let endDate;
+
+            if (repeatUntil === "month") {
+                endDate = new Date(start.getFullYear(), start.getMonth() + 1, 0);
+            } else {
+                endDate = addMonths(start, Number(repeatUntil));
+            }
+
+            if (frequency === "Semanal") {
+                addRepeatedDates(dates, start, endDate, 7);
+            }
+
+            if (frequency === "Quinzenal") {
+                addRepeatedDates(dates, start, endDate, 14);
+            }
+
+            if (frequency === "Mensal") {
+                let current = new Date(start);
+
+                while (current <= endDate) {
+                    dates.push(formatDateKey(current));
+                    current = addMonths(current, 1);
+                }
+            }
+
+            return dates.length ? dates : [formatDateKey(start)];
+        }
+
+        function addRepeatedDates(dates, start, endDate, intervalDays) {
+            let current = new Date(start);
+
+            while (current <= endDate) {
+                dates.push(formatDateKey(current));
+                current.setDate(current.getDate() + intervalDays);
+            }
+        }
+
+        function parseLocalDate(value) {
+            return new Date(value + "T00:00:00");
+        }
+
+        function formatDateKey(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+
+            return `${year}-${month}-${day}`;
+        }
+
+        function addMonths(date, months) {
+            const result = new Date(date);
+            result.setMonth(result.getMonth() + months);
+            return result;
+        }
+
+        function sendToWhatsApp(generatedAppointments) {
+            const firstAppointment = generatedAppointments[0];
+
+            const datesText = generatedAppointments
+                .map(function (appointment) {
+                    return `- ${formatDate(appointment.date)} às ${formatTime(appointment.time)}`;
+                })
+                .join("\n");
+
             const message = `
 Olá! Nova solicitação de agendamento:
 
-Cliente: ${appointment.client}
-Serviço: ${appointment.service}
-Data: ${formatDate(appointment.date)}
-Horário: ${formatTime(appointment.time)}
-Endereço: ${appointment.address}
-Frequência: ${appointment.contractType}
-Observações: ${appointment.notes || "Nenhuma"}
+Cliente: ${firstAppointment.client}
+Serviço: ${firstAppointment.service}
+Frequência: ${firstAppointment.contractType}
+
+Datas solicitadas:
+${datesText}
+
+Endereço: ${firstAppointment.address}
+Observações: ${firstAppointment.notes || "Nenhuma"}
 
 Status: aguardando confirmação.
             `;
@@ -309,7 +408,7 @@ Status: aguardando confirmação.
 
         loadAppointments();
     </script>
-
+    
 </body>
 
 </html>
