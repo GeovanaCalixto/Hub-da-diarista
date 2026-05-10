@@ -455,4 +455,9 @@ button.calendar-cell {
     .status-select {
         max-width: none;
     }
+
+    .search-box {
+    margin-bottom: 14px;
+    }
+
 }
