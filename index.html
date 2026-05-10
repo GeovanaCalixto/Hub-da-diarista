@@ -119,36 +119,34 @@
         </section>
 
         <section>
-            <h2>Status dos agendamentos</h2>
+            <div class="status-header">
+                <div>
+                    <h2>Status dos agendamentos</h2>
+                    <p class="section-note">Passe para o lado para visualizar os próximos registros.</p>
+                </div>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Cliente</th>
-                        <th>Data</th>
-                        <th>Horário</th>
-                        <th>Serviço</th>
-                        <th>Tipo</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
+                <div class="status-controls">
+                    <button type="button" id="statusPrev">‹</button>
+                    <button type="button" id="statusNext">›</button>
+                </div>
+            </div>
 
-                <tbody id="appointmentsTable"></tbody>
-            </table>
+            <div id="appointmentsTable" class="status-carousel"></div>
         </section>
     </main>
 
     <script>
         const apiUrl = "https://script.google.com/macros/s/AKfycbxW0C3mi8mSG4xrjoE9ZRXjpPhV9mIuwe4xqigztj17E72jXyzA6kYYmO2TXKfk3noQ/exec";
         const whatsappNumber = "5511932118634";
+        const minimumAdvanceDays = 3;
 
         const appointments = [];
 
         const manualBlockedSlots = [
-            // Bloqueio por horário:
+            // Exemplo de bloqueio por horário:
             // { date: "2026-05-25", time: "06:00" },
 
-            // Bloqueio do dia inteiro:
+            // Exemplo de bloqueio do dia inteiro:
             // { date: "2026-05-26", time: "dia-inteiro" }
         ];
 
@@ -158,7 +156,8 @@
             "Serviço em andamento",
             "Serviço concluído",
             "Pago",
-            "Não concluído"
+            "Não concluído",
+            "Indisponível"
         ];
 
         const form = document.getElementById("appointmentForm");
@@ -170,6 +169,8 @@
         const currentMonthLabel = document.getElementById("currentMonthLabel");
         const prevMonthButton = document.getElementById("prevMonth");
         const nextMonthButton = document.getElementById("nextMonth");
+        const statusPrevButton = document.getElementById("statusPrev");
+        const statusNextButton = document.getElementById("statusNext");
 
         let visibleMonth = new Date();
         visibleMonth.setDate(1);
@@ -182,6 +183,20 @@
         nextMonthButton.addEventListener("click", function () {
             visibleMonth.setMonth(visibleMonth.getMonth() + 1);
             render();
+        });
+
+        statusPrevButton.addEventListener("click", function () {
+            appointmentsTable.scrollBy({
+                left: -320,
+                behavior: "smooth"
+            });
+        });
+
+        statusNextButton.addEventListener("click", function () {
+            appointmentsTable.scrollBy({
+                left: 320,
+                behavior: "smooth"
+            });
         });
 
         dateInput.addEventListener("change", updateAvailableTimes);
@@ -201,6 +216,11 @@
                 notes: document.getElementById("notes").value.trim(),
                 status: "Aguardando confirmação"
             };
+
+            if (!isDateAllowed(baseAppointment.date)) {
+                alert("Escolha uma data com pelo menos 3 dias de antecedência.");
+                return;
+            }
 
             const dates = generateAppointmentDates(
                 baseAppointment.date,
@@ -312,9 +332,6 @@
         }
 
         function render() {
-            calendar.innerHTML = "";
-            appointmentsTable.innerHTML = "";
-
             renderMonthlyCalendar();
             renderAppointmentsTable();
         }
@@ -353,33 +370,29 @@
                             ${isOccupied ? "Indisponível" : "Disponível"}
                         </div>
 
-                        ${
-                            isOccupied
-                                ? `<div class="calendar-slots">
+                        ${isOccupied
+                        ? `<div class="calendar-slots">
                                     ${unavailableSlots.map(function (slot) {
-                                        return `<span>${slot}</span>`;
-                                    }).join("")}
+                            return `<span>${slot}</span>`;
+                        }).join("")}
                                 </div>`
-                                : ""
-                        }
+                        : ""
+                    }
                     </div>
                 `;
             }
         }
 
         function renderAppointmentsTable() {
+            appointmentsTable.innerHTML = "";
+
             if (appointments.length === 0) {
                 appointmentsTable.innerHTML = `
-                    <tr>
-                        <td data-label="Cliente">Nenhum agendamento cadastrado</td>
-                        <td data-label="Data">-</td>
-                        <td data-label="Horário">-</td>
-                        <td data-label="Serviço">-</td>
-                        <td data-label="Tipo">-</td>
-                        <td data-label="Status">-</td>
-                    </tr>
+                    <article class="status-card">
+                        <strong>Nenhum agendamento cadastrado</strong>
+                        <p>Ainda não há registros para mostrar.</p>
+                    </article>
                 `;
-
                 return;
             }
 
@@ -390,26 +403,26 @@
                 })
                 .forEach(function (item) {
                     appointmentsTable.innerHTML += `
-                        <tr>
-                            <td data-label="Cliente">
+                        <article class="status-card">
+                            <div class="status-card-top">
                                 <span class="client-badge">${item.client || "Cliente"}</span>
-                            </td>
-                            <td data-label="Data">${formatDate(item.date)}</td>
-                            <td data-label="Horário">${formatTime(item.time)}</td>
-                            <td data-label="Serviço">${item.service || "-"}</td>
-                            <td data-label="Tipo">${item.contractType || "-"}</td>
-                            <td data-label="Status">
-                                <select class="status-select" onchange="changeStatus('${item.id}', this.value)">
-                                    ${statusOptions.map(function (status) {
-                                        return `
-                                            <option value="${status}" ${item.status === status ? "selected" : ""}>
-                                                ${status}
-                                            </option>
-                                        `;
-                                    }).join("")}
-                                </select>
-                            </td>
-                        </tr>
+                                <strong>${formatDate(item.date)}</strong>
+                            </div>
+
+                            <p><b>Horário:</b> ${formatTime(item.time)}</p>
+                            <p><b>Serviço:</b> ${item.service || "-"}</p>
+                            <p><b>Tipo:</b> ${item.contractType || "-"}</p>
+
+                            <select class="status-select" onchange="changeStatus('${item.id}', this.value)">
+                                ${statusOptions.map(function (status) {
+                        return `
+                                        <option value="${status}" ${item.status === status ? "selected" : ""}>
+                                            ${status}
+                                        </option>
+                                    `;
+                    }).join("")}
+                            </select>
+                        </article>
                     `;
                 });
         }
@@ -420,7 +433,13 @@
                     return normalizeDate(appointment.date) === dateKey;
                 })
                 .map(function (appointment) {
-                    return formatTime(appointment.time);
+                    const time = normalizeTime(appointment.time);
+
+                    if (time === "dia-inteiro") {
+                        return "Dia inteiro";
+                    }
+
+                    return `${formatTime(time)} - ${appointment.client || "Cliente"}`;
                 });
 
             const blockedSlots = manualBlockedSlots
@@ -462,9 +481,12 @@
             const normalizedTime = normalizeTime(time);
 
             const alreadyBooked = appointments.some(function (appointment) {
+                const appointmentDate = normalizeDate(appointment.date);
+                const appointmentTime = normalizeTime(appointment.time);
+
                 return (
-                    normalizeDate(appointment.date) === normalizedDate &&
-                    normalizeTime(appointment.time) === normalizedTime
+                    appointmentDate === normalizedDate &&
+                    (appointmentTime === normalizedTime || appointmentTime === "dia-inteiro")
                 );
             });
 
@@ -572,6 +594,22 @@
             }
         }
 
+        function isDateAllowed(date) {
+            const selectedDate = parseLocalDate(date);
+            const minimumDate = new Date();
+            minimumDate.setHours(0, 0, 0, 0);
+            minimumDate.setDate(minimumDate.getDate() + minimumAdvanceDays);
+
+            return selectedDate >= minimumDate;
+        }
+
+        function setMinimumDate() {
+            const today = new Date();
+            today.setDate(today.getDate() + minimumAdvanceDays);
+
+            dateInput.min = formatDateKey(today);
+        }
+
         function parseLocalDate(value) {
             return new Date(value + "T00:00:00");
         }
@@ -609,7 +647,11 @@
                 return "";
             }
 
-            const textTime = String(time);
+            const textTime = String(time).trim();
+
+            if (textTime === "dia-inteiro") {
+                return "dia-inteiro";
+            }
 
             if (textTime.includes("T")) {
                 return new Date(textTime).toLocaleTimeString("pt-BR", {
@@ -681,7 +723,11 @@ Status: aguardando confirmação.
                 return "";
             }
 
-            const textTime = String(time);
+            const textTime = String(time).trim();
+
+            if (textTime === "dia-inteiro") {
+                return "Dia inteiro";
+            }
 
             if (textTime.includes("T")) {
                 return new Date(textTime).toLocaleTimeString("pt-BR", {
@@ -698,6 +744,7 @@ Status: aguardando confirmação.
             return textTime;
         }
 
+        setMinimumDate();
         loadAppointments();
     </script>
 </body>
