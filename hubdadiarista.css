@@ -51,6 +51,12 @@ h2 {
     margin-top: 0;
 }
 
+.section-note {
+    margin-top: -6px;
+    color: #526371;
+    font-size: 14px;
+}
+
 form {
     display: grid;
     gap: 14px;
@@ -93,6 +99,25 @@ button:hover {
     background: #187f99;
 }
 
+.availability-message {
+    margin: -6px 0 4px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.availability-message.available {
+    color: #16875a;
+}
+
+.availability-message.unavailable {
+    color: #c0392b;
+}
+
+select option:disabled {
+    color: #999;
+    background: #eee;
+}
+
 .calendar {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -107,6 +132,16 @@ button:hover {
     padding: 10px;
 }
 
+.day.occupied {
+    background: #fff1f1;
+    border-color: #f1b5b5;
+}
+
+.day.manual-block {
+    background: #f4f4f4;
+    border-color: #cfcfcf;
+}
+
 .event {
     margin-top: 8px;
     padding: 8px;
@@ -115,6 +150,18 @@ button:hover {
     border-radius: 4px;
     font-size: 13px;
     line-height: 1.4;
+}
+
+.day.occupied .event {
+    background: #ffe2e2;
+    border-left-color: #d64545;
+    color: #7a1f1f;
+}
+
+.day.manual-block .event {
+    background: #eeeeee;
+    border-left-color: #777;
+    color: #444;
 }
 
 table {
@@ -127,10 +174,21 @@ td {
     padding: 10px;
     border-bottom: 1px solid #dce3dc;
     text-align: left;
+    vertical-align: middle;
 }
 
 th {
     background: #eef8ff;
+}
+
+.client-badge {
+    display: inline-block;
+    background: #eaf6ff;
+    color: #15566b;
+    border: 1px solid #bdd7e7;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-weight: bold;
 }
 
 .status-select {
