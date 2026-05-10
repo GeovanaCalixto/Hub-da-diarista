@@ -21,9 +21,30 @@
 
     <main>
         <section>
-            <h2>Calendário de agendamentos</h2>
-            <p class="section-note">Horários já preenchidos aparecem como indisponíveis.</p>
-            <div id="calendar" class="calendar"></div>
+            <div class="calendar-header">
+                <div>
+                    <h2>Calendário de agendamentos</h2>
+                    <p class="section-note">Dias e horários preenchidos aparecem como indisponíveis.</p>
+                </div>
+
+                <div class="calendar-controls">
+                    <button type="button" id="prevMonth">‹</button>
+                    <strong id="currentMonthLabel"></strong>
+                    <button type="button" id="nextMonth">›</button>
+                </div>
+            </div>
+
+            <div class="calendar-weekdays">
+                <span>Dom</span>
+                <span>Seg</span>
+                <span>Ter</span>
+                <span>Qua</span>
+                <span>Qui</span>
+                <span>Sex</span>
+                <span>Sáb</span>
+            </div>
+
+            <div id="calendar" class="calendar calendar-month"></div>
         </section>
 
         <section>
@@ -124,8 +145,10 @@
         const appointments = [];
 
         const manualBlockedSlots = [
-            // Use assim quando quiser bloquear manualmente:
+            // Bloqueio por horário:
             // { date: "2026-05-25", time: "06:00" },
+
+            // Bloqueio do dia inteiro:
             // { date: "2026-05-26", time: "dia-inteiro" }
         ];
 
@@ -144,6 +167,22 @@
         const dateInput = document.getElementById("date");
         const timeInput = document.getElementById("time");
         const availabilityMessage = document.getElementById("availabilityMessage");
+        const currentMonthLabel = document.getElementById("currentMonthLabel");
+        const prevMonthButton = document.getElementById("prevMonth");
+        const nextMonthButton = document.getElementById("nextMonth");
+
+        let visibleMonth = new Date();
+        visibleMonth.setDate(1);
+
+        prevMonthButton.addEventListener("click", function () {
+            visibleMonth.setMonth(visibleMonth.getMonth() - 1);
+            render();
+        });
+
+        nextMonthButton.addEventListener("click", function () {
+            visibleMonth.setMonth(visibleMonth.getMonth() + 1);
+            render();
+        });
 
         dateInput.addEventListener("change", updateAvailableTimes);
         timeInput.addEventListener("change", updateAvailabilityMessage);
@@ -169,13 +208,15 @@
                 baseAppointment.repeatUntil
             );
 
-            const generatedAppointments = dates.map(function (date, index) {
-                return {
-                    ...baseAppointment,
-                    id: Date.now() + index,
-                    date: date
-                };
-            });
+            const generatedAppointments = removeDuplicateAppointments(
+                dates.map(function (date, index) {
+                    return {
+                        ...baseAppointment,
+                        id: Date.now() + index,
+                        date: date
+                    };
+                })
+            );
 
             const unavailableAppointments = generatedAppointments.filter(function (appointment) {
                 return isSlotUnavailable(appointment.date, appointment.time);
@@ -236,13 +277,25 @@
                 .then(function (data) {
                     appointments.length = 0;
 
+                    const seenSlots = new Set();
+
                     data.forEach(function (item) {
+                        const normalizedDate = normalizeDate(item.dataAgendamento);
+                        const normalizedTime = normalizeTime(item.horario);
+                        const slotKey = `${normalizedDate}-${normalizedTime}`;
+
+                        if (!normalizedDate || !normalizedTime || seenSlots.has(slotKey)) {
+                            return;
+                        }
+
+                        seenSlots.add(slotKey);
+
                         appointments.push({
                             id: item.id,
                             client: item.cliente,
                             service: item.servico,
-                            date: normalizeDate(item.dataAgendamento),
-                            time: normalizeTime(item.horario),
+                            date: normalizedDate,
+                            time: normalizedTime,
                             address: item.endereco,
                             contractType: item.frequencia,
                             notes: item.observacoes,
@@ -262,14 +315,60 @@
             calendar.innerHTML = "";
             appointmentsTable.innerHTML = "";
 
-            if (appointments.length === 0 && manualBlockedSlots.length === 0) {
-                calendar.innerHTML = `
-                    <div class="day">
-                        <strong>Nenhum agendamento</strong>
-                        <div class="event">Ainda não há agendamentos cadastrados.</div>
+            renderMonthlyCalendar();
+            renderAppointmentsTable();
+        }
+
+        function renderMonthlyCalendar() {
+            calendar.innerHTML = "";
+
+            const year = visibleMonth.getFullYear();
+            const month = visibleMonth.getMonth();
+
+            currentMonthLabel.textContent = visibleMonth.toLocaleDateString("pt-BR", {
+                month: "long",
+                year: "numeric"
+            });
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startWeekday = firstDay.getDay();
+
+            for (let i = 0; i < startWeekday; i++) {
+                calendar.innerHTML += `<div class="calendar-cell empty"></div>`;
+            }
+
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const date = new Date(year, month, day);
+                const dateKey = formatDateKey(date);
+                const unavailableSlots = getUnavailableSlotsByDate(dateKey);
+                const isToday = dateKey === formatDateKey(new Date());
+                const isOccupied = unavailableSlots.length > 0;
+
+                calendar.innerHTML += `
+                    <div class="calendar-cell ${isOccupied ? "occupied" : "available"} ${isToday ? "today" : ""}">
+                        <div class="calendar-day-number">${day}</div>
+
+                        <div class="calendar-day-status">
+                            ${isOccupied ? "Indisponível" : "Disponível"}
+                        </div>
+
+                        ${
+                            isOccupied
+                                ? `<div class="calendar-slots">
+                                    ${unavailableSlots.map(function (slot) {
+                                        return `<span>${slot}</span>`;
+                                    }).join("")}
+                                </div>`
+                                : ""
+                        }
                     </div>
                 `;
+            }
+        }
 
+        function renderAppointmentsTable() {
+            if (appointments.length === 0) {
                 appointmentsTable.innerHTML = `
                     <tr>
                         <td data-label="Cliente">Nenhum agendamento cadastrado</td>
@@ -290,16 +389,6 @@
                     return `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`);
                 })
                 .forEach(function (item) {
-                    calendar.innerHTML += `
-                        <div class="day occupied">
-                            <strong>${formatDate(item.date)}</strong>
-                            <div class="event">
-                                ${formatTime(item.time)}<br>
-                                Indisponível
-                            </div>
-                        </div>
-                    `;
-
                     appointmentsTable.innerHTML += `
                         <tr>
                             <td data-label="Cliente">
@@ -323,18 +412,26 @@
                         </tr>
                     `;
                 });
+        }
 
-            manualBlockedSlots.forEach(function (slot) {
-                calendar.innerHTML += `
-                    <div class="day occupied manual-block">
-                        <strong>${formatDate(slot.date)}</strong>
-                        <div class="event">
-                            ${slot.time === "dia-inteiro" ? "Dia indisponível" : formatTime(slot.time)}<br>
-                            Indisponível
-                        </div>
-                    </div>
-                `;
-            });
+        function getUnavailableSlotsByDate(dateKey) {
+            const bookedSlots = appointments
+                .filter(function (appointment) {
+                    return normalizeDate(appointment.date) === dateKey;
+                })
+                .map(function (appointment) {
+                    return formatTime(appointment.time);
+                });
+
+            const blockedSlots = manualBlockedSlots
+                .filter(function (slot) {
+                    return slot.date === dateKey;
+                })
+                .map(function (slot) {
+                    return slot.time === "dia-inteiro" ? "Dia inteiro" : formatTime(slot.time);
+                });
+
+            return [...new Set([...bookedSlots, ...blockedSlots])].sort();
         }
 
         function changeStatus(id, newStatus) {
@@ -413,6 +510,21 @@
                 availabilityMessage.textContent = "Horário disponível para solicitação.";
                 availabilityMessage.className = "availability-message available";
             }
+        }
+
+        function removeDuplicateAppointments(items) {
+            const seenSlots = new Set();
+
+            return items.filter(function (appointment) {
+                const slotKey = `${normalizeDate(appointment.date)}-${normalizeTime(appointment.time)}`;
+
+                if (seenSlots.has(slotKey)) {
+                    return false;
+                }
+
+                seenSlots.add(slotKey);
+                return true;
+            });
         }
 
         function generateAppointmentDates(startDate, frequency, repeatUntil) {
@@ -497,7 +609,21 @@
                 return "";
             }
 
-            return String(time).slice(0, 5);
+            const textTime = String(time);
+
+            if (textTime.includes("T")) {
+                return new Date(textTime).toLocaleTimeString("pt-BR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    timeZone: "America/Sao_Paulo"
+                });
+            }
+
+            if (textTime.includes(":")) {
+                return textTime.slice(0, 5);
+            }
+
+            return textTime;
         }
 
         function sendToWhatsApp(generatedAppointments) {
@@ -560,11 +686,16 @@ Status: aguardando confirmação.
             if (textTime.includes("T")) {
                 return new Date(textTime).toLocaleTimeString("pt-BR", {
                     hour: "2-digit",
-                    minute: "2-digit"
+                    minute: "2-digit",
+                    timeZone: "America/Sao_Paulo"
                 });
             }
 
-            return textTime.slice(0, 5);
+            if (textTime.includes(":")) {
+                return textTime.slice(0, 5);
+            }
+
+            return textTime;
         }
 
         loadAppointments();
