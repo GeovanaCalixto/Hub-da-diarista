@@ -35,16 +35,10 @@
             </div>
 
             <div class="calendar-weekdays">
-                <span>Dom</span>
-                <span>Seg</span>
-                <span>Ter</span>
-                <span>Qua</span>
-                <span>Qui</span>
-                <span>Sex</span>
-                <span>Sáb</span>
+                <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
             </div>
 
-            <div id="calendar" class="calendar calendar-month"></div>
+            <div id="calendar" class="calendar-month"></div>
         </section>
 
         <section>
@@ -66,11 +60,6 @@
                 </label>
 
                 <label>
-                    Dia desejado
-                    <input id="date" type="date" required />
-                </label>
-
-                <label>
                     Horário de início
                     <select id="time" required>
                         <option value="">Selecione</option>
@@ -78,13 +67,6 @@
                         <option value="07:00">07:00</option>
                         <option value="08:00">08:00</option>
                     </select>
-                </label>
-
-                <p id="availabilityMessage" class="availability-message"></p>
-
-                <label>
-                    Endereço
-                    <input id="address" type="text" placeholder="Rua, número e bairro" required />
                 </label>
 
                 <label>
@@ -99,13 +81,47 @@
                 </label>
 
                 <label>
-                    Repetir por
+                    Sugerir por
                     <select id="repeatUntil" required>
-                        <option value="single">Somente este agendamento</option>
+                        <option value="single">Somente datas selecionadas</option>
                         <option value="month">Durante este mês</option>
                         <option value="2">Por 2 meses</option>
                         <option value="3">Por 3 meses</option>
                     </select>
+                </label>
+
+                <div class="mini-calendar-box">
+                    <div class="calendar-header mini">
+                        <div>
+                            <h3>Escolha as datas</h3>
+                            <p class="section-note">Clique nos dias disponíveis. Dias ocupados ficam bloqueados.</p>
+                        </div>
+
+                        <div class="calendar-controls">
+                            <button type="button" id="prevMiniMonth">‹</button>
+                            <strong id="miniMonthLabel"></strong>
+                            <button type="button" id="nextMiniMonth">›</button>
+                        </div>
+                    </div>
+
+                    <div class="mini-actions">
+                        <button type="button" id="suggestDatesButton">Sugerir pela frequência</button>
+                        <button type="button" id="clearDatesButton" class="secondary-button">Limpar datas</button>
+                    </div>
+
+                    <div class="calendar-weekdays mini-weekdays">
+                        <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+                    </div>
+
+                    <div id="miniCalendar" class="mini-calendar"></div>
+
+                    <p id="selectedDatesText" class="selected-dates-text">Nenhuma data selecionada.</p>
+                    <p id="availabilityMessage" class="availability-message"></p>
+                </div>
+
+                <label>
+                    Endereço
+                    <input id="address" type="text" placeholder="Rua, número e bairro" required />
                 </label>
 
                 <label>
@@ -141,14 +157,7 @@
         const minimumAdvanceDays = 3;
 
         const appointments = [];
-
-        const manualBlockedSlots = [
-            // Exemplo de bloqueio por horário:
-            // { date: "2026-05-25", time: "06:00" },
-
-            // Exemplo de bloqueio do dia inteiro:
-            // { date: "2026-05-26", time: "dia-inteiro" }
-        ];
+        const selectedDates = [];
 
         const statusOptions = [
             "Aguardando confirmação",
@@ -163,95 +172,116 @@
         const form = document.getElementById("appointmentForm");
         const calendar = document.getElementById("calendar");
         const appointmentsTable = document.getElementById("appointmentsTable");
-        const dateInput = document.getElementById("date");
         const timeInput = document.getElementById("time");
+        const contractTypeInput = document.getElementById("contractType");
+        const repeatUntilInput = document.getElementById("repeatUntil");
         const availabilityMessage = document.getElementById("availabilityMessage");
+        const selectedDatesText = document.getElementById("selectedDatesText");
+
         const currentMonthLabel = document.getElementById("currentMonthLabel");
         const prevMonthButton = document.getElementById("prevMonth");
         const nextMonthButton = document.getElementById("nextMonth");
+
+        const miniCalendar = document.getElementById("miniCalendar");
+        const miniMonthLabel = document.getElementById("miniMonthLabel");
+        const prevMiniMonthButton = document.getElementById("prevMiniMonth");
+        const nextMiniMonthButton = document.getElementById("nextMiniMonth");
+        const suggestDatesButton = document.getElementById("suggestDatesButton");
+        const clearDatesButton = document.getElementById("clearDatesButton");
+
         const statusPrevButton = document.getElementById("statusPrev");
         const statusNextButton = document.getElementById("statusNext");
 
         let visibleMonth = new Date();
         visibleMonth.setDate(1);
 
+        let miniVisibleMonth = new Date();
+        miniVisibleMonth.setDate(1);
+
         prevMonthButton.addEventListener("click", function () {
             visibleMonth.setMonth(visibleMonth.getMonth() - 1);
-            render();
+            renderMonthlyCalendar();
         });
 
         nextMonthButton.addEventListener("click", function () {
             visibleMonth.setMonth(visibleMonth.getMonth() + 1);
-            render();
+            renderMonthlyCalendar();
+        });
+
+        prevMiniMonthButton.addEventListener("click", function () {
+            miniVisibleMonth.setMonth(miniVisibleMonth.getMonth() - 1);
+            renderMiniCalendar();
+        });
+
+        nextMiniMonthButton.addEventListener("click", function () {
+            miniVisibleMonth.setMonth(miniVisibleMonth.getMonth() + 1);
+            renderMiniCalendar();
         });
 
         statusPrevButton.addEventListener("click", function () {
-            appointmentsTable.scrollBy({
-                left: -320,
-                behavior: "smooth"
-            });
+            appointmentsTable.scrollBy({ left: -320, behavior: "smooth" });
         });
 
         statusNextButton.addEventListener("click", function () {
-            appointmentsTable.scrollBy({
-                left: 320,
-                behavior: "smooth"
-            });
+            appointmentsTable.scrollBy({ left: 320, behavior: "smooth" });
         });
 
-        dateInput.addEventListener("change", updateAvailableTimes);
-        timeInput.addEventListener("change", updateAvailabilityMessage);
+        timeInput.addEventListener("change", function () {
+            renderMiniCalendar();
+            updateSelectedDatesText();
+        });
+
+        suggestDatesButton.addEventListener("click", suggestDatesByFrequency);
+
+        clearDatesButton.addEventListener("click", function () {
+            selectedDates.length = 0;
+            renderMiniCalendar();
+            updateSelectedDatesText();
+        });
 
         form.addEventListener("submit", function (event) {
             event.preventDefault();
 
+            if (!timeInput.value) {
+                alert("Selecione um horário.");
+                return;
+            }
+
+            if (selectedDates.length === 0) {
+                alert("Selecione pelo menos uma data disponível na agenda.");
+                return;
+            }
+
             const baseAppointment = {
                 client: document.getElementById("client").value.trim(),
                 service: document.getElementById("service").value,
-                date: document.getElementById("date").value,
-                time: document.getElementById("time").value,
+                time: timeInput.value,
                 address: document.getElementById("address").value.trim(),
-                contractType: document.getElementById("contractType").value,
-                repeatUntil: document.getElementById("repeatUntil").value,
+                contractType: contractTypeInput.value,
                 notes: document.getElementById("notes").value.trim(),
                 status: "Aguardando confirmação"
             };
 
-            if (!isDateAllowed(baseAppointment.date)) {
-                alert("Escolha uma data com pelo menos 3 dias de antecedência.");
+            const unavailableDates = selectedDates.filter(function (date) {
+                return isSlotUnavailable(date, baseAppointment.time) || !isDateAllowed(date);
+            });
+
+            if (unavailableDates.length > 0) {
+                alert("Alguma data selecionada ficou indisponível. Atualize a seleção e tente novamente.");
+                renderMiniCalendar();
                 return;
             }
 
-            const dates = generateAppointmentDates(
-                baseAppointment.date,
-                baseAppointment.contractType,
-                baseAppointment.repeatUntil
-            );
-
-            const generatedAppointments = removeDuplicateAppointments(
-                dates.map(function (date, index) {
+            const generatedAppointments = selectedDates
+                .slice()
+                .sort()
+                .map(function (date, index) {
                     return {
                         ...baseAppointment,
                         id: Date.now() + index,
                         date: date
                     };
-                })
-            );
-
-            const unavailableAppointments = generatedAppointments.filter(function (appointment) {
-                return isSlotUnavailable(appointment.date, appointment.time);
-            });
-
-            if (unavailableAppointments.length > 0) {
-                const unavailableText = unavailableAppointments
-                    .map(function (appointment) {
-                        return `${formatDate(appointment.date)} às ${formatTime(appointment.time)}`;
-                    })
-                    .join("\n");
-
-                alert(`Esse horário já está indisponível:\n\n${unavailableText}\n\nEscolha outro dia ou horário.`);
-                return;
-            }
+                });
 
             saveAppointments(generatedAppointments);
         });
@@ -278,10 +308,12 @@
                 }
 
                 appointments.push(...generatedAppointments);
+                selectedDates.length = 0;
+
                 render();
                 sendToWhatsApp(generatedAppointments);
                 form.reset();
-                updateAvailableTimes();
+                updateSelectedDatesText();
 
                 alert("Agendamento enviado com sucesso!");
             } catch (error) {
@@ -324,7 +356,6 @@
                     });
 
                     render();
-                    updateAvailableTimes();
                 })
                 .catch(function () {
                     render();
@@ -333,7 +364,9 @@
 
         function render() {
             renderMonthlyCalendar();
+            renderMiniCalendar();
             renderAppointmentsTable();
+            updateSelectedDatesText();
         }
 
         function renderMonthlyCalendar() {
@@ -347,12 +380,30 @@
                 year: "numeric"
             });
 
+            renderCalendarGrid(calendar, year, month, false);
+        }
+
+        function renderMiniCalendar() {
+            miniCalendar.innerHTML = "";
+
+            const year = miniVisibleMonth.getFullYear();
+            const month = miniVisibleMonth.getMonth();
+
+            miniMonthLabel.textContent = miniVisibleMonth.toLocaleDateString("pt-BR", {
+                month: "long",
+                year: "numeric"
+            });
+
+            renderCalendarGrid(miniCalendar, year, month, true);
+        }
+
+        function renderCalendarGrid(target, year, month, isSelectable) {
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
             const startWeekday = firstDay.getDay();
 
             for (let i = 0; i < startWeekday; i++) {
-                calendar.innerHTML += `<div class="calendar-cell empty"></div>`;
+                target.innerHTML += `<div class="calendar-cell empty"></div>`;
             }
 
             for (let day = 1; day <= lastDay.getDate(); day++) {
@@ -360,27 +411,99 @@
                 const dateKey = formatDateKey(date);
                 const unavailableSlots = getUnavailableSlotsByDate(dateKey);
                 const isToday = dateKey === formatDateKey(new Date());
-                const isOccupied = unavailableSlots.length > 0;
+                const selected = selectedDates.includes(dateKey);
+                const dateAllowed = isDateAllowed(dateKey);
+                const selectedTime = timeInput.value;
+                const occupiedForSelectedTime = selectedTime && isSlotUnavailable(dateKey, selectedTime);
+                const unavailable = !dateAllowed || occupiedForSelectedTime;
 
-                calendar.innerHTML += `
-                    <div class="calendar-cell ${isOccupied ? "occupied" : "available"} ${isToday ? "today" : ""}">
+                const cellClass = [
+                    "calendar-cell",
+                    unavailableSlots.length > 0 ? "occupied" : "available",
+                    isToday ? "today" : "",
+                    selected ? "selected" : "",
+                    isSelectable && unavailable ? "blocked" : ""
+                ].join(" ");
+
+                const buttonAttribute = isSelectable ? `type="button"` : "";
+                const clickAttribute = isSelectable && !unavailable ? `onclick="toggleSelectedDate('${dateKey}')"` : "";
+
+                target.innerHTML += `
+                    <button class="${cellClass}" ${buttonAttribute} ${clickAttribute}>
                         <div class="calendar-day-number">${day}</div>
 
                         <div class="calendar-day-status">
-                            ${isOccupied ? "Indisponível" : "Disponível"}
+                            ${selected ? "Selecionado" : unavailableSlots.length > 0 ? "Ocupado" : "Livre"}
                         </div>
 
-                        ${isOccupied
-                        ? `<div class="calendar-slots">
-                                    ${unavailableSlots.map(function (slot) {
-                            return `<span>${slot}</span>`;
-                        }).join("")}
-                                </div>`
-                        : ""
-                    }
-                    </div>
+                        ${unavailableSlots.length > 0
+                            ? `<div class="calendar-slots">
+                                ${unavailableSlots.map(function (slot) {
+                                    return `<span>${slot}</span>`;
+                                }).join("")}
+                            </div>`
+                            : ""
+                        }
+                    </button>
                 `;
             }
+        }
+
+        function toggleSelectedDate(dateKey) {
+            if (!timeInput.value) {
+                alert("Selecione primeiro o horário de início.");
+                return;
+            }
+
+            if (!isDateAllowed(dateKey)) {
+                alert("Escolha uma data com pelo menos 3 dias de antecedência.");
+                return;
+            }
+
+            if (isSlotUnavailable(dateKey, timeInput.value)) {
+                alert("Esse dia e horário já estão indisponíveis.");
+                return;
+            }
+
+            const index = selectedDates.indexOf(dateKey);
+
+            if (index >= 0) {
+                selectedDates.splice(index, 1);
+            } else {
+                selectedDates.push(dateKey);
+            }
+
+            renderMiniCalendar();
+            updateSelectedDatesText();
+        }
+
+        function suggestDatesByFrequency() {
+            if (!timeInput.value) {
+                alert("Selecione primeiro o horário de início.");
+                return;
+            }
+
+            if (!contractTypeInput.value) {
+                alert("Selecione a frequência do atendimento.");
+                return;
+            }
+
+            if (selectedDates.length === 0) {
+                alert("Selecione primeiro a primeira data desejada.");
+                return;
+            }
+
+            const firstDate = selectedDates.slice().sort()[0];
+            const suggested = generateAppointmentDates(firstDate, contractTypeInput.value, repeatUntilInput.value);
+
+            suggested.forEach(function (date) {
+                if (isDateAllowed(date) && !isSlotUnavailable(date, timeInput.value) && !selectedDates.includes(date)) {
+                    selectedDates.push(date);
+                }
+            });
+
+            renderMiniCalendar();
+            updateSelectedDatesText();
         }
 
         function renderAppointmentsTable() {
@@ -415,12 +538,12 @@
 
                             <select class="status-select" onchange="changeStatus('${item.id}', this.value)">
                                 ${statusOptions.map(function (status) {
-                        return `
+                                    return `
                                         <option value="${status}" ${item.status === status ? "selected" : ""}>
                                             ${status}
                                         </option>
                                     `;
-                    }).join("")}
+                                }).join("")}
                             </select>
                         </article>
                     `;
@@ -436,21 +559,13 @@
                     const time = normalizeTime(appointment.time);
 
                     if (time === "dia-inteiro") {
-                        return "Dia inteiro";
+                        return `Dia inteiro - ${appointment.client || "Bloqueio"}`;
                     }
 
                     return `${formatTime(time)} - ${appointment.client || "Cliente"}`;
                 });
 
-            const blockedSlots = manualBlockedSlots
-                .filter(function (slot) {
-                    return slot.date === dateKey;
-                })
-                .map(function (slot) {
-                    return slot.time === "dia-inteiro" ? "Dia inteiro" : formatTime(slot.time);
-                });
-
-            return [...new Set([...bookedSlots, ...blockedSlots])].sort();
+            return [...new Set(bookedSlots)].sort();
         }
 
         function changeStatus(id, newStatus) {
@@ -480,7 +595,7 @@
             const normalizedDate = normalizeDate(date);
             const normalizedTime = normalizeTime(time);
 
-            const alreadyBooked = appointments.some(function (appointment) {
+            return appointments.some(function (appointment) {
                 const appointmentDate = normalizeDate(appointment.date);
                 const appointmentTime = normalizeTime(appointment.time);
 
@@ -489,264 +604,26 @@
                     (appointmentTime === normalizedTime || appointmentTime === "dia-inteiro")
                 );
             });
-
-            const manuallyBlocked = manualBlockedSlots.some(function (slot) {
-                return (
-                    slot.date === normalizedDate &&
-                    (slot.time === normalizedTime || slot.time === "dia-inteiro")
-                );
-            });
-
-            return alreadyBooked || manuallyBlocked;
         }
 
-        function updateAvailableTimes() {
-            const selectedDate = dateInput.value;
-
-            Array.from(timeInput.options).forEach(function (option) {
-                if (!option.value) {
-                    return;
-                }
-
-                option.disabled = selectedDate && isSlotUnavailable(selectedDate, option.value);
-            });
-
-            if (timeInput.value && isSlotUnavailable(selectedDate, timeInput.value)) {
-                timeInput.value = "";
-            }
-
-            updateAvailabilityMessage();
-        }
-
-        function updateAvailabilityMessage() {
-            if (!dateInput.value || !timeInput.value) {
+        function updateSelectedDatesText() {
+            if (selectedDates.length === 0) {
+                selectedDatesText.textContent = "Nenhuma data selecionada.";
                 availabilityMessage.textContent = "";
                 availabilityMessage.className = "availability-message";
                 return;
             }
 
-            if (isSlotUnavailable(dateInput.value, timeInput.value)) {
-                availabilityMessage.textContent = "Esse horário já está indisponível. Escolha outro.";
-                availabilityMessage.className = "availability-message unavailable";
-            } else {
-                availabilityMessage.textContent = "Horário disponível para solicitação.";
-                availabilityMessage.className = "availability-message available";
-            }
-        }
-
-        function removeDuplicateAppointments(items) {
-            const seenSlots = new Set();
-
-            return items.filter(function (appointment) {
-                const slotKey = `${normalizeDate(appointment.date)}-${normalizeTime(appointment.time)}`;
-
-                if (seenSlots.has(slotKey)) {
-                    return false;
-                }
-
-                seenSlots.add(slotKey);
-                return true;
-            });
-        }
-
-        function generateAppointmentDates(startDate, frequency, repeatUntil) {
-            const dates = [];
-            const start = parseLocalDate(startDate);
-
-            if (repeatUntil === "single" || frequency === "Atendimento avulso") {
-                return [formatDateKey(start)];
-            }
-
-            let endDate;
-
-            if (repeatUntil === "month") {
-                endDate = new Date(start.getFullYear(), start.getMonth() + 1, 0);
-            } else {
-                endDate = addMonths(start, Number(repeatUntil));
-            }
-
-            if (frequency === "Semanal") {
-                addRepeatedDates(dates, start, endDate, 7);
-            }
-
-            if (frequency === "Quinzenal") {
-                addRepeatedDates(dates, start, endDate, 14);
-            }
-
-            if (frequency === "Mensal") {
-                let current = new Date(start);
-
-                while (current <= endDate) {
-                    dates.push(formatDateKey(current));
-                    current = addMonths(current, 1);
-                }
-            }
-
-            return dates.length ? dates : [formatDateKey(start)];
-        }
-
-        function addRepeatedDates(dates, start, endDate, intervalDays) {
-            let current = new Date(start);
-
-            while (current <= endDate) {
-                dates.push(formatDateKey(current));
-                current.setDate(current.getDate() + intervalDays);
-            }
-        }
-
-        function isDateAllowed(date) {
-            const selectedDate = parseLocalDate(date);
-            const minimumDate = new Date();
-            minimumDate.setHours(0, 0, 0, 0);
-            minimumDate.setDate(minimumDate.getDate() + minimumAdvanceDays);
-
-            return selectedDate >= minimumDate;
-        }
-
-        function setMinimumDate() {
-            const today = new Date();
-            today.setDate(today.getDate() + minimumAdvanceDays);
-
-            dateInput.min = formatDateKey(today);
-        }
-
-        function parseLocalDate(value) {
-            return new Date(value + "T00:00:00");
-        }
-
-        function formatDateKey(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, "0");
-            const day = String(date.getDate()).padStart(2, "0");
-
-            return `${year}-${month}-${day}`;
-        }
-
-        function addMonths(date, months) {
-            const result = new Date(date);
-            result.setMonth(result.getMonth() + months);
-            return result;
-        }
-
-        function normalizeDate(date) {
-            if (!date) {
-                return "";
-            }
-
-            const textDate = String(date);
-
-            if (textDate.includes("T")) {
-                return textDate.split("T")[0];
-            }
-
-            return textDate;
-        }
-
-        function normalizeTime(time) {
-            if (!time) {
-                return "";
-            }
-
-            const textTime = String(time).trim();
-
-            if (textTime === "dia-inteiro") {
-                return "dia-inteiro";
-            }
-
-            if (textTime.includes("T")) {
-                return new Date(textTime).toLocaleTimeString("pt-BR", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    timeZone: "America/Sao_Paulo"
-                });
-            }
-
-            if (textTime.includes(":")) {
-                return textTime.slice(0, 5);
-            }
-
-            return textTime;
-        }
-
-        function sendToWhatsApp(generatedAppointments) {
-            const firstAppointment = generatedAppointments[0];
-
-            const datesText = generatedAppointments
-                .map(function (appointment) {
-                    return `- ${formatDate(appointment.date)} às ${formatTime(appointment.time)}`;
+            selectedDatesText.textContent = selectedDates
+                .slice()
+                .sort()
+                .map(function (date) {
+                    return formatDate(date);
                 })
-                .join("\n");
+                .join(", ");
 
-            const message = `
-Olá! Nova solicitação de agendamento:
-
-Cliente: ${firstAppointment.client}
-Serviço: ${firstAppointment.service}
-Frequência: ${firstAppointment.contractType}
-
-Datas solicitadas:
-${datesText}
-
-Endereço: ${firstAppointment.address}
-Observações: ${firstAppointment.notes || "Nenhuma"}
-
-Status: aguardando confirmação.
-            `;
-
-            const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-            window.open(url, "_blank");
+            availabilityMessage.textContent = `${selectedDates.length} data(s) selecionada(s).`;
+            availabilityMessage.className = "availability-message available";
         }
 
-        function formatDate(date) {
-            if (!date) {
-                return "";
-            }
-
-            const textDate = String(date);
-
-            if (textDate.includes("T")) {
-                const onlyDate = textDate.split("T")[0];
-                return new Date(onlyDate + "T00:00:00").toLocaleDateString("pt-BR");
-            }
-
-            const parsedDate = new Date(textDate + "T00:00:00");
-
-            if (isNaN(parsedDate.getTime())) {
-                return textDate;
-            }
-
-            return parsedDate.toLocaleDateString("pt-BR");
-        }
-
-        function formatTime(time) {
-            if (!time) {
-                return "";
-            }
-
-            const textTime = String(time).trim();
-
-            if (textTime === "dia-inteiro") {
-                return "Dia inteiro";
-            }
-
-            if (textTime.includes("T")) {
-                return new Date(textTime).toLocaleTimeString("pt-BR", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    timeZone: "America/Sao_Paulo"
-                });
-            }
-
-            if (textTime.includes(":")) {
-                return textTime.slice(0, 5);
-            }
-
-            return textTime;
-        }
-
-        setMinimumDate();
-        loadAppointments();
-    </script>
-</body>
-
-</html>
+        function generateAppointmentDates(startDate, frequency, repeatUntil)
