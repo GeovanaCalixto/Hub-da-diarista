@@ -132,7 +132,8 @@ select option:disabled {
     gap: 12px;
 }
 
-.calendar-controls button {
+.calendar-controls button,
+.status-controls button {
     width: 42px;
     height: 42px;
     padding: 0;
@@ -228,21 +229,48 @@ select option:disabled {
     font-weight: bold;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
+.status-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 16px;
 }
 
-th,
-td {
-    padding: 10px;
-    border-bottom: 1px solid #dce3dc;
-    text-align: left;
-    vertical-align: middle;
+.status-controls {
+    display: flex;
+    gap: 8px;
 }
 
-th {
-    background: #eef8ff;
+.status-carousel {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 8px;
+}
+
+.status-card {
+    min-width: 300px;
+    max-width: 340px;
+    flex: 0 0 300px;
+    scroll-snap-align: start;
+    background: #f7fbff;
+    border: 1px solid #d6eaf7;
+    border-radius: 10px;
+    padding: 14px;
+}
+
+.status-card-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.status-card p {
+    margin: 8px 0;
 }
 
 .client-badge {
@@ -311,44 +339,32 @@ th {
         min-width: 680px;
     }
 
-    table,
-    thead,
-    tbody,
-    tr,
-    th,
-    td {
-        display: block;
-        width: 100%;
+    .calendar-cell {
+        min-height: 78px;
+        padding: 7px;
     }
 
-    thead {
-        display: none;
+    .calendar-day-number {
+        font-size: 16px;
     }
 
-    tr {
-        margin-bottom: 14px;
-        border: 1px solid #d6eaf7;
-        border-radius: 8px;
-        padding: 12px;
-        background: #f7fbff;
+    .calendar-day-status {
+        font-size: 11px;
     }
 
-    td {
-        display: grid;
-        grid-template-columns: 90px 1fr;
-        gap: 10px;
-        padding: 8px 0;
-        border-bottom: 1px solid #d6eaf7;
+    .calendar-slots span {
+        font-size: 10px;
+        padding: 3px 5px;
     }
 
-    td:last-child {
-        border-bottom: none;
+    .status-header {
+        align-items: flex-start;
+        flex-direction: column;
     }
 
-    td::before {
-        content: attr(data-label);
-        font-weight: bold;
-        color: #15566b;
+    .status-card {
+        min-width: 260px;
+        flex-basis: 260px;
     }
 
     .status-select {
