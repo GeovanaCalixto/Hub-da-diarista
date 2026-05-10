@@ -431,7 +431,7 @@
             }
 
             if (!isDateAllowed(dateKey)) {
-                alert("Escolha uma data com pelo menos 3 dias de antecedência.");
+                alert("Escolha uma data de segunda a sexta com pelo menos 3 dias de antecedência.");
                 return;
             }
 
@@ -511,6 +511,10 @@
                     return `${formatTime(time)} - ${appointment.client || "Cliente"}`;
                 });
 
+            if (isWeekend(dateKey)) {
+                bookedSlots.push("Fim de semana");
+            }
+
             return [...new Set(bookedSlots)].sort();
         }
 
@@ -540,6 +544,10 @@
         function isSlotUnavailable(date, time) {
             const normalizedDate = normalizeDate(date);
             const normalizedTime = normalizeTime(time);
+
+            if (isWeekend(normalizedDate)) {
+                return true;
+            }
 
             return appointments.some(function (appointment) {
                 const appointmentDate = normalizeDate(appointment.date);
@@ -578,7 +586,14 @@
             minimumDate.setHours(0, 0, 0, 0);
             minimumDate.setDate(minimumDate.getDate() + minimumAdvanceDays);
 
-            return selectedDate >= minimumDate;
+            return selectedDate >= minimumDate && !isWeekend(date);
+        }
+
+        function isWeekend(date) {
+            const selectedDate = parseLocalDate(date);
+            const day = selectedDate.getDay();
+
+            return day === 0 || day === 6;
         }
 
         function parseLocalDate(value) {
