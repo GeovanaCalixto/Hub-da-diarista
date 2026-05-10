@@ -22,6 +22,7 @@
     <main>
         <section>
             <h2>Calendário de agendamentos</h2>
+            <p class="section-note">Horários já preenchidos aparecem como indisponíveis.</p>
             <div id="calendar" class="calendar"></div>
         </section>
 
@@ -57,6 +58,8 @@
                         <option value="08:00">08:00</option>
                     </select>
                 </label>
+
+                <p id="availabilityMessage" class="availability-message"></p>
 
                 <label>
                     Endereço
@@ -102,6 +105,8 @@
                     <tr>
                         <th>Cliente</th>
                         <th>Data</th>
+                        <th>Horário</th>
+                        <th>Serviço</th>
                         <th>Tipo</th>
                         <th>Status</th>
                     </tr>
@@ -118,6 +123,12 @@
 
         const appointments = [];
 
+        const manualBlockedSlots = [
+            // Use assim quando quiser bloquear manualmente:
+            // { date: "2026-05-25", time: "06:00" },
+            // { date: "2026-05-26", time: "dia-inteiro" }
+        ];
+
         const statusOptions = [
             "Aguardando confirmação",
             "Serviço agendado",
@@ -130,19 +141,25 @@
         const form = document.getElementById("appointmentForm");
         const calendar = document.getElementById("calendar");
         const appointmentsTable = document.getElementById("appointmentsTable");
+        const dateInput = document.getElementById("date");
+        const timeInput = document.getElementById("time");
+        const availabilityMessage = document.getElementById("availabilityMessage");
+
+        dateInput.addEventListener("change", updateAvailableTimes);
+        timeInput.addEventListener("change", updateAvailabilityMessage);
 
         form.addEventListener("submit", function (event) {
             event.preventDefault();
 
             const baseAppointment = {
-                client: document.getElementById("client").value,
+                client: document.getElementById("client").value.trim(),
                 service: document.getElementById("service").value,
                 date: document.getElementById("date").value,
                 time: document.getElementById("time").value,
-                address: document.getElementById("address").value,
+                address: document.getElementById("address").value.trim(),
                 contractType: document.getElementById("contractType").value,
                 repeatUntil: document.getElementById("repeatUntil").value,
-                notes: document.getElementById("notes").value,
+                notes: document.getElementById("notes").value.trim(),
                 status: "Aguardando confirmação"
             };
 
@@ -159,6 +176,21 @@
                     date: date
                 };
             });
+
+            const unavailableAppointments = generatedAppointments.filter(function (appointment) {
+                return isSlotUnavailable(appointment.date, appointment.time);
+            });
+
+            if (unavailableAppointments.length > 0) {
+                const unavailableText = unavailableAppointments
+                    .map(function (appointment) {
+                        return `${formatDate(appointment.date)} às ${formatTime(appointment.time)}`;
+                    })
+                    .join("\n");
+
+                alert(`Esse horário já está indisponível:\n\n${unavailableText}\n\nEscolha outro dia ou horário.`);
+                return;
+            }
 
             saveAppointments(generatedAppointments);
         });
@@ -188,6 +220,7 @@
                 render();
                 sendToWhatsApp(generatedAppointments);
                 form.reset();
+                updateAvailableTimes();
 
                 alert("Agendamento enviado com sucesso!");
             } catch (error) {
@@ -208,8 +241,8 @@
                             id: item.id,
                             client: item.cliente,
                             service: item.servico,
-                            date: item.dataAgendamento,
-                            time: item.horario,
+                            date: normalizeDate(item.dataAgendamento),
+                            time: normalizeTime(item.horario),
                             address: item.endereco,
                             contractType: item.frequencia,
                             notes: item.observacoes,
@@ -218,6 +251,7 @@
                     });
 
                     render();
+                    updateAvailableTimes();
                 })
                 .catch(function () {
                     render();
@@ -228,7 +262,7 @@
             calendar.innerHTML = "";
             appointmentsTable.innerHTML = "";
 
-            if (appointments.length === 0) {
+            if (appointments.length === 0 && manualBlockedSlots.length === 0) {
                 calendar.innerHTML = `
                     <div class="day">
                         <strong>Nenhum agendamento</strong>
@@ -240,6 +274,8 @@
                     <tr>
                         <td data-label="Cliente">Nenhum agendamento cadastrado</td>
                         <td data-label="Data">-</td>
+                        <td data-label="Horário">-</td>
+                        <td data-label="Serviço">-</td>
                         <td data-label="Tipo">-</td>
                         <td data-label="Status">-</td>
                     </tr>
@@ -251,39 +287,54 @@
             appointments
                 .slice()
                 .sort(function (a, b) {
-                    return String(a.date).localeCompare(String(b.date));
+                    return `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`);
                 })
                 .forEach(function (item) {
                     calendar.innerHTML += `
-                        <div class="day">
+                        <div class="day occupied">
                             <strong>${formatDate(item.date)}</strong>
                             <div class="event">
                                 ${formatTime(item.time)}<br>
-                                ${item.service}<br>
-                                ${item.status}
+                                Indisponível
                             </div>
                         </div>
                     `;
 
                     appointmentsTable.innerHTML += `
                         <tr>
-                            <td data-label="Cliente">${item.client}</td>
+                            <td data-label="Cliente">
+                                <span class="client-badge">${item.client || "Cliente"}</span>
+                            </td>
                             <td data-label="Data">${formatDate(item.date)}</td>
-                            <td data-label="Tipo">${item.contractType}</td>
+                            <td data-label="Horário">${formatTime(item.time)}</td>
+                            <td data-label="Serviço">${item.service || "-"}</td>
+                            <td data-label="Tipo">${item.contractType || "-"}</td>
                             <td data-label="Status">
                                 <select class="status-select" onchange="changeStatus('${item.id}', this.value)">
                                     ${statusOptions.map(function (status) {
-                        return `
+                                        return `
                                             <option value="${status}" ${item.status === status ? "selected" : ""}>
                                                 ${status}
                                             </option>
                                         `;
-                    }).join("")}
+                                    }).join("")}
                                 </select>
                             </td>
                         </tr>
                     `;
                 });
+
+            manualBlockedSlots.forEach(function (slot) {
+                calendar.innerHTML += `
+                    <div class="day occupied manual-block">
+                        <strong>${formatDate(slot.date)}</strong>
+                        <div class="event">
+                            ${slot.time === "dia-inteiro" ? "Dia indisponível" : formatTime(slot.time)}<br>
+                            Indisponível
+                        </div>
+                    </div>
+                `;
+            });
         }
 
         function changeStatus(id, newStatus) {
@@ -307,6 +358,61 @@
                     status: newStatus
                 })
             });
+        }
+
+        function isSlotUnavailable(date, time) {
+            const normalizedDate = normalizeDate(date);
+            const normalizedTime = normalizeTime(time);
+
+            const alreadyBooked = appointments.some(function (appointment) {
+                return (
+                    normalizeDate(appointment.date) === normalizedDate &&
+                    normalizeTime(appointment.time) === normalizedTime
+                );
+            });
+
+            const manuallyBlocked = manualBlockedSlots.some(function (slot) {
+                return (
+                    slot.date === normalizedDate &&
+                    (slot.time === normalizedTime || slot.time === "dia-inteiro")
+                );
+            });
+
+            return alreadyBooked || manuallyBlocked;
+        }
+
+        function updateAvailableTimes() {
+            const selectedDate = dateInput.value;
+
+            Array.from(timeInput.options).forEach(function (option) {
+                if (!option.value) {
+                    return;
+                }
+
+                option.disabled = selectedDate && isSlotUnavailable(selectedDate, option.value);
+            });
+
+            if (timeInput.value && isSlotUnavailable(selectedDate, timeInput.value)) {
+                timeInput.value = "";
+            }
+
+            updateAvailabilityMessage();
+        }
+
+        function updateAvailabilityMessage() {
+            if (!dateInput.value || !timeInput.value) {
+                availabilityMessage.textContent = "";
+                availabilityMessage.className = "availability-message";
+                return;
+            }
+
+            if (isSlotUnavailable(dateInput.value, timeInput.value)) {
+                availabilityMessage.textContent = "Esse horário já está indisponível. Escolha outro.";
+                availabilityMessage.className = "availability-message unavailable";
+            } else {
+                availabilityMessage.textContent = "Horário disponível para solicitação.";
+                availabilityMessage.className = "availability-message available";
+            }
         }
 
         function generateAppointmentDates(startDate, frequency, repeatUntil) {
@@ -370,6 +476,28 @@
             const result = new Date(date);
             result.setMonth(result.getMonth() + months);
             return result;
+        }
+
+        function normalizeDate(date) {
+            if (!date) {
+                return "";
+            }
+
+            const textDate = String(date);
+
+            if (textDate.includes("T")) {
+                return textDate.split("T")[0];
+            }
+
+            return textDate;
+        }
+
+        function normalizeTime(time) {
+            if (!time) {
+                return "";
+            }
+
+            return String(time).slice(0, 5);
         }
 
         function sendToWhatsApp(generatedAppointments) {
@@ -436,7 +564,7 @@ Status: aguardando confirmação.
                 });
             }
 
-            return textTime;
+            return textTime.slice(0, 5);
         }
 
         loadAppointments();
