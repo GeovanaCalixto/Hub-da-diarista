@@ -124,7 +124,7 @@
             <div class="status-header">
                 <div>
                     <h2>Status dos agendamentos</h2>
-                    <p class="section-note">Passe para o lado para visualizar os próximos registros.</p>
+                    <p class="section-note">Por padrão, aparecem os agendamentos mais recentes. Use a busca para encontrar qualquer registro.</p>
                 </div>
 
                 <div class="status-controls">
@@ -132,6 +132,11 @@
                     <button type="button" id="statusNext">›</button>
                 </div>
             </div>
+
+            <label class="search-box">
+                Buscar agendamento
+                <input id="statusSearch" type="search" placeholder="Digite nome, data, serviço, endereço ou status" />
+            </label>
 
             <div id="appointmentsTable" class="status-carousel"></div>
         </section>
@@ -161,6 +166,7 @@
         const timeInput = document.getElementById("time");
         const availabilityMessage = document.getElementById("availabilityMessage");
         const selectedDatesText = document.getElementById("selectedDatesText");
+        const statusSearchInput = document.getElementById("statusSearch");
 
         const currentMonthLabel = document.getElementById("currentMonthLabel");
         const prevMonthButton = document.getElementById("prevMonth");
@@ -207,6 +213,8 @@
         statusNextButton.addEventListener("click", function () {
             appointmentsTable.scrollBy({ left: 320, behavior: "smooth" });
         });
+
+        statusSearchInput.addEventListener("input", renderAppointmentsTable);
 
         timeInput.addEventListener("change", function () {
             renderMiniCalendar();
@@ -455,45 +463,87 @@
         function renderAppointmentsTable() {
             appointmentsTable.innerHTML = "";
 
-            if (appointments.length === 0) {
+            const searchTerm = statusSearchInput.value.trim().toLowerCase();
+
+            const filteredAppointments = appointments
+                .filter(function (item) {
+                    if (searchTerm) {
+                        return appointmentMatchesSearch(item, searchTerm);
+                    }
+
+                    return isWithinStatusWindow(item.date);
+                })
+                .slice()
+                .sort(function (a, b) {
+                    return `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`);
+                });
+
+            if (filteredAppointments.length === 0) {
                 appointmentsTable.innerHTML = `
                     <article class="status-card">
-                        <strong>Nenhum agendamento cadastrado</strong>
-                        <p>Ainda não há registros para mostrar.</p>
+                        <strong>Nenhum agendamento encontrado</strong>
+                        <p>Tente buscar por outro nome, data ou informação.</p>
                     </article>
                 `;
                 return;
             }
 
-            appointments
-                .slice()
-                .sort(function (a, b) {
-                    return `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`);
-                })
-                .forEach(function (item) {
-                    appointmentsTable.innerHTML += `
-                        <article class="status-card">
-                            <div class="status-card-top">
-                                <span class="client-badge">${item.client || "Cliente"}</span>
-                                <strong>${formatDate(item.date)}</strong>
-                            </div>
+            filteredAppointments.forEach(function (item) {
+                appointmentsTable.innerHTML += `
+                    <article class="status-card">
+                        <div class="status-card-top">
+                            <span class="client-badge">${item.client || "Cliente"}</span>
+                            <strong>${formatDate(item.date)}</strong>
+                        </div>
 
-                            <p><b>Horário:</b> ${formatTime(item.time)}</p>
-                            <p><b>Serviço:</b> ${item.service || "-"}</p>
-                            <p><b>Tipo:</b> ${item.contractType || "-"}</p>
+                        <p><b>Horário:</b> ${formatTime(item.time)}</p>
+                        <p><b>Serviço:</b> ${item.service || "-"}</p>
+                        <p><b>Tipo:</b> ${item.contractType || "-"}</p>
 
-                            <select class="status-select" onchange="changeStatus('${item.id}', this.value)">
-                                ${statusOptions.map(function (status) {
-                                    return `
-                                        <option value="${status}" ${item.status === status ? "selected" : ""}>
-                                            ${status}
-                                        </option>
-                                    `;
-                                }).join("")}
-                            </select>
-                        </article>
-                    `;
-                });
+                        <select class="status-select" onchange="changeStatus('${item.id}', this.value)">
+                            ${statusOptions.map(function (status) {
+                                return `
+                                    <option value="${status}" ${item.status === status ? "selected" : ""}>
+                                        ${status}
+                                    </option>
+                                `;
+                            }).join("")}
+                        </select>
+                    </article>
+                `;
+            });
+        }
+
+        function isWithinStatusWindow(date) {
+            const appointmentDate = parseLocalDate(normalizeDate(date));
+
+            const start = new Date();
+            start.setDate(1);
+            start.setHours(0, 0, 0, 0);
+
+            const end = new Date(start);
+            end.setMonth(end.getMonth() + 3);
+            end.setDate(0);
+            end.setHours(23, 59, 59, 999);
+
+            return appointmentDate >= start && appointmentDate <= end;
+        }
+
+        function appointmentMatchesSearch(item, searchTerm) {
+            const searchableText = [
+                item.client,
+                item.service,
+                item.date,
+                formatDate(item.date),
+                item.time,
+                formatTime(item.time),
+                item.address,
+                item.contractType,
+                item.notes,
+                item.status
+            ].join(" ").toLowerCase();
+
+            return searchableText.includes(searchTerm);
         }
 
         function getUnavailableSlotsByDate(dateKey) {
