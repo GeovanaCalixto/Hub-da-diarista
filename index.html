@@ -57,6 +57,11 @@
                 </label>
 
                 <label>
+                    WhatsApp da cliente
+                    <input id="whatsapp" type="tel" placeholder="Ex: 11999999999" required />
+                </label>
+
+                <label>
                     Tipo de limpeza
                     <select id="service" required>
                         <option value="">Selecione</option>
@@ -145,7 +150,6 @@
     <script>
         const apiUrl = "https://script.google.com/macros/s/AKfycbxW0C3mi8mSG4xrjoE9ZRXjpPhV9mIuwe4xqigztj17E72jXyzA6kYYmO2TXKfk3noQ/exec";
         const whatsappNumber = "5511932118634";
-        const minimumAdvanceDays = 3;
 
         const appointments = [];
         const selectedDates = [];
@@ -157,7 +161,8 @@
             "Serviço concluído",
             "Pago",
             "Não concluído",
-            "Indisponível"
+            "Indisponível",
+            "Cancelado"
         ];
 
         const form = document.getElementById("appointmentForm");
@@ -236,6 +241,7 @@
 
             const baseAppointment = {
                 client: document.getElementById("client").value.trim(),
+                whatsapp: document.getElementById("whatsapp").value.trim(),
                 service: document.getElementById("service").value,
                 time: timeInput.value,
                 address: document.getElementById("address").value.trim(),
@@ -245,7 +251,7 @@
             };
 
             const unavailableDates = selectedDates.filter(function (date) {
-                return isSlotUnavailable(date, baseAppointment.time) || !isDateAllowed(date);
+                return isSlotUnavailable(date, baseAppointment.time);
             });
 
             if (unavailableDates.length > 0) {
@@ -284,6 +290,7 @@
                             endereco: appointment.address,
                             frequencia: appointment.contractType,
                             observacoes: appointment.notes,
+                            whatsapp: appointment.whatsapp,
                             status: appointment.status
                         })
                     });
@@ -327,6 +334,7 @@
                         appointments.push({
                             id: item.id,
                             client: item.cliente,
+                            whatsapp: item.whatsapp || "",
                             service: item.servico,
                             date: normalizedDate,
                             time: normalizedTime,
@@ -394,10 +402,9 @@
                 const unavailableSlots = getUnavailableSlotsByDate(dateKey);
                 const isToday = dateKey === formatDateKey(new Date());
                 const selected = selectedDates.includes(dateKey);
-                const dateAllowed = isDateAllowed(dateKey);
                 const selectedTime = timeInput.value;
                 const occupiedForSelectedTime = selectedTime && isSlotUnavailable(dateKey, selectedTime);
-                const unavailable = !dateAllowed || occupiedForSelectedTime;
+                const unavailable = occupiedForSelectedTime;
 
                 const cellClass = [
                     "calendar-cell",
@@ -435,11 +442,6 @@
         function toggleSelectedDate(dateKey) {
             if (!timeInput.value) {
                 alert("Selecione primeiro o horário de início.");
-                return;
-            }
-
-            if (!isDateAllowed(dateKey)) {
-                alert("Escolha uma data de segunda a sexta com pelo menos 3 dias de antecedência.");
                 return;
             }
 
@@ -498,6 +500,7 @@
 
                         <p><b>Horário:</b> ${formatTime(item.time)}</p>
                         <p><b>Serviço:</b> ${item.service || "-"}</p>
+                        <p><b>WhatsApp:</b> ${item.whatsapp || "-"}</p>
                         <p><b>Tipo:</b> ${item.contractType || "-"}</p>
 
                         <select class="status-select" onchange="changeStatus('${item.id}', this.value)">
@@ -532,6 +535,7 @@
         function appointmentMatchesSearch(item, searchTerm) {
             const searchableText = [
                 item.client,
+                item.whatsapp,
                 item.service,
                 item.date,
                 formatDate(item.date),
@@ -589,6 +593,8 @@
                     status: newStatus
                 })
             });
+
+            sendStatusToClientWhatsApp(appointment, newStatus);
         }
 
         function isSlotUnavailable(date, time) {
@@ -628,15 +634,6 @@
 
             availabilityMessage.textContent = `${selectedDates.length} data(s) selecionada(s).`;
             availabilityMessage.className = "availability-message available";
-        }
-
-        function isDateAllowed(date) {
-            const selectedDate = parseLocalDate(date);
-            const minimumDate = new Date();
-            minimumDate.setHours(0, 0, 0, 0);
-            minimumDate.setDate(minimumDate.getDate() + minimumAdvanceDays);
-
-            return selectedDate >= minimumDate && !isWeekend(date);
         }
 
         function isWeekend(date) {
@@ -711,6 +708,7 @@
 Olá! Nova solicitação de agendamento:
 
 Cliente: ${firstAppointment.client}
+WhatsApp da cliente: ${firstAppointment.whatsapp || "Não informado"}
 Serviço: ${firstAppointment.service}
 
 Datas solicitadas:
@@ -724,6 +722,44 @@ Status: aguardando confirmação.
 
             const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
             window.open(url, "_blank");
+        }
+
+        function sendStatusToClientWhatsApp(appointment, newStatus) {
+            const phone = formatWhatsAppNumber(appointment.whatsapp);
+
+            if (!phone) {
+                return;
+            }
+
+            const message = `
+Olá, ${appointment.client}!
+
+Seu agendamento foi atualizado.
+
+Data: ${formatDate(appointment.date)}
+Horário: ${formatTime(appointment.time)}
+Serviço: ${appointment.service}
+Status: ${newStatus}
+
+Obrigada!
+            `;
+
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+            window.open(url, "_blank");
+        }
+
+        function formatWhatsAppNumber(value) {
+            if (!value) {
+                return "";
+            }
+
+            let phone = String(value).replace(/\D/g, "");
+
+            if (phone.length === 10 || phone.length === 11) {
+                phone = "55" + phone;
+            }
+
+            return phone;
         }
 
         function formatDate(date) {
@@ -778,3 +814,4 @@ Status: aguardando confirmação.
 </body>
 
 </html>
+
