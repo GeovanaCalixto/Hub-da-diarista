@@ -24,13 +24,13 @@
             <div class="calendar-header">
                 <div>
                     <h2>Calendário de agendamentos</h2>
-                    <p class="section-note">Dias e horários preenchidos aparecem como indisponíveis.</p>
+                    <p class="section-note">Dias preenchidos aparecem como indisponíveis.</p>
                 </div>
 
                 <div class="calendar-controls">
-                    <button type="button" id="prevMonth">‹</button>
+                    <button type="button" id="prevMonth">&lsaquo;</button>
                     <strong id="currentMonthLabel"></strong>
-                    <button type="button" id="nextMonth">›</button>
+                    <button type="button" id="nextMonth">&rsaquo;</button>
                 </div>
             </div>
 
@@ -88,9 +88,9 @@
                         </div>
 
                         <div class="calendar-controls">
-                            <button type="button" id="prevMiniMonth">‹</button>
+                            <button type="button" id="prevMiniMonth">&lsaquo;</button>
                             <strong id="miniMonthLabel"></strong>
-                            <button type="button" id="nextMiniMonth">›</button>
+                            <button type="button" id="nextMiniMonth">&rsaquo;</button>
                         </div>
                     </div>
 
@@ -133,8 +133,8 @@
                 </div>
 
                 <div class="status-controls">
-                    <button type="button" id="statusPrev">‹</button>
-                    <button type="button" id="statusNext">›</button>
+                    <button type="button" id="statusPrev">&lsaquo;</button>
+                    <button type="button" id="statusNext">&rsaquo;</button>
                 </div>
             </div>
 
@@ -251,7 +251,7 @@
             };
 
             const unavailableDates = selectedDates.filter(function (date) {
-                return isSlotUnavailable(date, baseAppointment.time);
+                return isDateUnavailable(date);
             });
 
             if (unavailableDates.length > 0) {
@@ -402,9 +402,7 @@
                 const unavailableSlots = getUnavailableSlotsByDate(dateKey);
                 const isToday = dateKey === formatDateKey(new Date());
                 const selected = selectedDates.includes(dateKey);
-                const selectedTime = timeInput.value;
-                const occupiedForSelectedTime = selectedTime && isSlotUnavailable(dateKey, selectedTime);
-                const unavailable = occupiedForSelectedTime;
+                const unavailable = isDateUnavailable(dateKey);
 
                 const cellClass = [
                     "calendar-cell",
@@ -445,8 +443,8 @@
                 return;
             }
 
-            if (isSlotUnavailable(dateKey, timeInput.value)) {
-                alert("Esse dia e horário já estão indisponíveis.");
+            if (isDateUnavailable(dateKey)) {
+                alert("Esse dia já está indisponível.");
                 return;
             }
 
@@ -597,22 +595,15 @@
             sendStatusToClientWhatsApp(appointment, newStatus);
         }
 
-        function isSlotUnavailable(date, time) {
+        function isDateUnavailable(date) {
             const normalizedDate = normalizeDate(date);
-            const normalizedTime = normalizeTime(time);
 
             if (isWeekend(normalizedDate)) {
                 return true;
             }
 
             return appointments.some(function (appointment) {
-                const appointmentDate = normalizeDate(appointment.date);
-                const appointmentTime = normalizeTime(appointment.time);
-
-                return (
-                    appointmentDate === normalizedDate &&
-                    (appointmentTime === normalizedTime || appointmentTime === "dia-inteiro")
-                );
+                return normalizeDate(appointment.date) === normalizedDate;
             });
         }
 
@@ -814,4 +805,3 @@ Obrigada!
 </body>
 
 </html>
-
