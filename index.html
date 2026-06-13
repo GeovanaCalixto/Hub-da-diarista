@@ -121,7 +121,7 @@
                         placeholder="Ex: tenho pets, preciso de limpeza na cozinha, preferência de acesso..."></textarea>
                 </label>
 
-                <button type="submit">Enviar solicitação de agendamento</button>
+                <button id="submitButton" type="submit">Enviar solicitação de agendamento</button>
             </form>
         </section>
 
@@ -166,6 +166,7 @@
         ];
 
         const form = document.getElementById("appointmentForm");
+        const submitButton = document.getElementById("submitButton");
         const calendar = document.getElementById("calendar");
         const appointmentsTable = document.getElementById("appointmentsTable");
         const timeInput = document.getElementById("time");
@@ -190,6 +191,8 @@
 
         let miniVisibleMonth = new Date();
         miniVisibleMonth.setDate(1);
+
+        let isSubmitting = false;
 
         prevMonthButton.addEventListener("click", function () {
             visibleMonth.setMonth(visibleMonth.getMonth() - 1);
@@ -228,6 +231,10 @@
 
         form.addEventListener("submit", function (event) {
             event.preventDefault();
+
+            if (isSubmitting) {
+                return;
+            }
 
             if (!timeInput.value) {
                 alert("Selecione um horário.");
@@ -275,6 +282,14 @@
         });
 
         async function saveAppointments(generatedAppointments) {
+            if (isSubmitting) {
+                return;
+            }
+
+            isSubmitting = true;
+            submitButton.disabled = true;
+            submitButton.textContent = "Enviando agendamento...";
+
             try {
                 for (const appointment of generatedAppointments) {
                     await fetch(apiUrl, {
@@ -307,6 +322,10 @@
                 alert("Agendamento enviado com sucesso!");
             } catch (error) {
                 alert("Não foi possível salvar o agendamento. Tente novamente.");
+            } finally {
+                isSubmitting = false;
+                submitButton.disabled = false;
+                submitButton.textContent = "Enviar solicitação de agendamento";
             }
         }
 
