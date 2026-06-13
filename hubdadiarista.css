@@ -459,5 +459,10 @@ button.calendar-cell {
     .search-box {
     margin-bottom: 14px;
     }
+    
+    .button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    }
 
 }
