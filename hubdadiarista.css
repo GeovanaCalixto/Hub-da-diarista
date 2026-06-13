@@ -9,7 +9,12 @@ body {
 header {
     background: #8ecae6;
     color: #123040;
-    padding: 28px;
+}
+
+.header-content {
+    width: min(100% - 28px, 1180px);
+    margin: 0 auto;
+    padding: 28px 0;
 }
 
 header h1 {
@@ -107,10 +112,19 @@ button:hover {
     background: #187f99;
 }
 
+button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
 .secondary-button {
     background: #eaf6ff;
     color: #15566b;
     border: 1px solid #bdd7e7;
+}
+
+.search-box {
+    margin-bottom: 14px;
 }
 
 .availability-message,
@@ -349,8 +363,12 @@ button.calendar-cell {
 }
 
 @media (max-width: 900px) {
-    main {
+    main,
+    .header-content {
         width: min(100% - 24px, 760px);
+    }
+
+    main {
         padding: 18px 0;
     }
 
@@ -370,8 +388,9 @@ button.calendar-cell {
 }
 
 @media (max-width: 600px) {
-    header {
-        padding: 22px 16px;
+    .header-content {
+        width: min(100% - 20px, 420px);
+        padding: 22px 0;
     }
 
     header h1 {
@@ -455,14 +474,4 @@ button.calendar-cell {
     .status-select {
         max-width: none;
     }
-
-    .search-box {
-    margin-bottom: 14px;
-    }
-    
-    .button:disabled {
-    opacity: 0.65;
-    cursor: not-allowed;
-    }
-
 }
