@@ -1,84 +1,162 @@
+:root {
+    --azul: #0f1d2d;
+    --azul-2: #172b42;
+    --coral: #e8a7ae;
+    --coral-forte: #e87a8a;
+    --fundo: #f6f2ee;
+    --branco: #ffffff;
+    --texto: #0f1d2d;
+    --cinza: #6b7280;
+    --linha: #eadfe0;
+    --erro-bg: #fff0f1;
+    --erro-borda: #f3b6bd;
+    --ok-bg: #fffdfb;
+    --ok-borda: #f0e4e1;
+    --sombra: 0 18px 45px rgba(15, 29, 45, 0.08);
+}
+
+* {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background: #f4f9ff;
-    color: #1d2a35;
+    background: var(--fundo);
+    color: var(--texto);
     overflow-x: hidden;
 }
 
-header {
-    background: #8ecae6;
-    color: #123040;
+.site-header {
+    width: min(100% - 32px, 1180px);
+    margin: 18px auto 0;
+    background: var(--azul);
+    border-radius: 14px 14px 0 0;
+    box-shadow: var(--sombra);
 }
 
 .header-content {
-    width: min(100% - 28px, 1180px);
-    margin: 0 auto;
-    padding: 28px 0;
+    min-height: 76px;
+    padding: 0 22px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 26px;
 }
 
-header h1 {
-    margin: 0 0 8px;
+.brand img {
+    width: 122px;
+    display: block;
 }
 
-header p {
-    margin: 0 0 16px;
-}
-
-nav {
+.main-nav {
     display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
 }
 
-nav a {
-    color: #123040;
+.main-nav a,
+.header-button,
+.checkout-nav a {
     text-decoration: none;
-    background: rgba(255, 255, 255, 0.45);
-    padding: 8px 12px;
-    border-radius: 6px;
     font-weight: bold;
+    border-radius: 8px;
+}
+
+.main-nav a {
+    color: white;
+    padding: 27px 14px 22px;
+    border-bottom: 3px solid transparent;
+}
+
+.main-nav a:hover {
+    border-bottom-color: var(--coral);
+    color: #fff6f7;
+}
+
+.header-button {
+    background: linear-gradient(135deg, var(--coral-forte), var(--coral));
+    color: white;
+    padding: 13px 18px;
 }
 
 main {
-    width: min(100% - 28px, 1180px);
-    margin: 0 auto;
-    padding: 24px 0;
+    width: min(100% - 32px, 1180px);
+    margin: 0 auto 28px;
+    padding: 22px;
     display: grid;
-    gap: 24px;
+    gap: 18px;
+    background: white;
+    border: 1px solid var(--linha);
+    border-radius: 0 0 14px 14px;
+    box-shadow: var(--sombra);
+}
+
+body:has(#appointmentForm) main {
+    grid-template-columns: minmax(0, 1.1fr) 360px;
+    align-items: start;
+}
+
+body:has(#appointmentForm) main section:nth-of-type(1),
+body:has(#appointmentForm) main section:nth-of-type(3) {
+    grid-column: 1;
+}
+
+body:has(#appointmentForm) main section:nth-of-type(2) {
+    grid-column: 2;
+    grid-row: 1 / span 2;
 }
 
 section {
-    background: white;
-    border: 1px solid #d6eaf7;
-    border-radius: 8px;
-    padding: 20px;
+    background: var(--branco);
+    border: 1px solid var(--linha);
+    border-radius: 12px;
+    padding: 18px;
     overflow: hidden;
 }
 
+h1,
+h2,
+h3 {
+    color: var(--azul);
+}
+
+h1 {
+    margin: 0 0 8px;
+    font-size: 30px;
+}
+
 h2 {
-    margin-top: 0;
+    margin: 0 0 8px;
+    font-size: 21px;
 }
 
 h3 {
     margin: 0;
+    font-size: 17px;
+}
+
+p {
+    line-height: 1.55;
 }
 
 .section-note {
-    margin-top: -6px;
-    color: #526371;
-    font-size: 14px;
+    margin: 0;
+    color: var(--cinza);
+    font-size: 13px;
 }
 
 form {
     display: grid;
-    gap: 14px;
+    gap: 12px;
 }
 
 label {
     display: grid;
     gap: 6px;
     font-weight: bold;
+    color: var(--azul);
+    font-size: 13px;
 }
 
 input,
@@ -87,20 +165,35 @@ textarea,
 button {
     width: 100%;
     box-sizing: border-box;
-    padding: 12px;
-    border-radius: 6px;
-    border: 1px solid #bdd7e7;
-    font-size: 16px;
+    padding: 11px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--linha);
+    font-size: 14px;
+    font-family: inherit;
+}
+
+input,
+select,
+textarea {
+    background: white;
+    color: var(--azul);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: 3px solid rgba(232, 167, 174, 0.25);
+    border-color: var(--coral-forte);
 }
 
 textarea {
-    min-height: 100px;
+    min-height: 94px;
     resize: vertical;
 }
 
 button {
     margin-top: 8px;
-    background: #219ebc;
+    background: linear-gradient(135deg, var(--coral-forte), var(--coral));
     color: white;
     border: none;
     cursor: pointer;
@@ -108,53 +201,26 @@ button {
     min-height: 48px;
 }
 
-button:hover {
-    background: #187f99;
-}
-
 button:disabled {
     opacity: 0.65;
     cursor: not-allowed;
 }
 
-.secondary-button {
-    background: #eaf6ff;
-    color: #15566b;
-    border: 1px solid #bdd7e7;
-}
-
-.search-box {
-    margin-bottom: 14px;
-}
-
-.availability-message,
-.selected-dates-text {
-    margin: 4px 0;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.availability-message.available {
-    color: #16875a;
-}
-
-.availability-message.unavailable {
-    color: #c0392b;
-}
-
-.calendar-header {
+.calendar-header,
+.status-header {
     display: flex;
     justify-content: space-between;
-    gap: 16px;
+    gap: 14px;
     align-items: center;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
 }
 
 .calendar-header.mini {
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
-.calendar-controls {
+.calendar-controls,
+.status-controls {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -162,11 +228,15 @@ button:disabled {
 
 .calendar-controls button,
 .status-controls button {
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
     padding: 0;
     margin: 0;
-    border-radius: 50%;
+    border-radius: 10px;
+    background: white;
+    color: var(--azul);
+    border: 1px solid var(--linha);
+    box-shadow: none;
     font-size: 22px;
 }
 
@@ -174,16 +244,17 @@ button:disabled {
     min-width: 150px;
     text-align: center;
     text-transform: capitalize;
-    color: #15566b;
+    color: var(--azul);
+    font-size: 17px;
 }
 
 .calendar-weekdays {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 6px;
+    gap: 5px;
     margin-bottom: 8px;
-    color: #526371;
-    font-size: 12px;
+    color: var(--azul);
+    font-size: 11px;
     font-weight: bold;
     text-align: center;
 }
@@ -192,22 +263,23 @@ button:disabled {
 .mini-calendar {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 6px;
+    gap: 5px;
 }
 
 .calendar-cell {
-    min-height: 86px;
-    border: 1px solid #d6eaf7;
+    min-height: 78px;
+    border: 1px solid var(--linha);
     border-radius: 8px;
-    padding: 8px;
-    background: #f7fbff;
-    text-align: left;
+    padding: 7px;
+    background: #fffdfb;
+    text-align: center;
     color: inherit;
 }
 
 button.calendar-cell {
-    min-height: 74px;
+    min-height: 66px;
     cursor: pointer;
+    box-shadow: none;
 }
 
 .calendar-cell.empty {
@@ -217,28 +289,28 @@ button.calendar-cell {
 }
 
 .calendar-cell.available {
-    background: #f3fff9;
-    border-color: #bfe8d3;
+    background: var(--ok-bg);
+    border-color: var(--ok-borda);
 }
 
 .calendar-cell.occupied,
 .calendar-cell.blocked {
-    background: #fff1f1;
-    border-color: #f1b5b5;
+    background: var(--erro-bg);
+    border-color: var(--erro-borda);
 }
 
 .calendar-cell.selected {
-    background: #eaf6ff;
-    border-color: #219ebc;
-    outline: 2px solid rgba(33, 158, 188, 0.35);
+    background: var(--azul);
+    border-color: var(--azul);
+    color: white;
 }
 
 .calendar-cell.today {
-    outline: 2px solid rgba(33, 158, 188, 0.25);
+    outline: 2px solid rgba(15, 29, 45, 0.14);
 }
 
 .calendar-day-number {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: bold;
 }
 
@@ -248,65 +320,61 @@ button.calendar-cell {
     font-weight: bold;
 }
 
-.calendar-cell.available .calendar-day-status {
-    color: #16875a;
-}
-
 .calendar-cell.occupied .calendar-day-status,
 .calendar-cell.blocked .calendar-day-status {
-    color: #c0392b;
+    color: #ba3344;
 }
 
 .calendar-cell.selected .calendar-day-status {
-    color: #15566b;
+    color: white;
 }
 
 .calendar-slots {
     display: grid;
-    gap: 4px;
-    margin-top: 6px;
+    gap: 3px;
+    margin-top: 5px;
 }
 
 .calendar-slots span {
     display: block;
-    padding: 3px 5px;
+    padding: 3px 4px;
     border-radius: 6px;
-    background: #ffe2e2;
-    color: #7a1f1f;
-    font-size: 10px;
+    background: rgba(232, 167, 174, 0.24);
+    color: #7f1f2d;
+    font-size: 9px;
     font-weight: bold;
     line-height: 1.2;
 }
 
+.calendar-cell.selected .calendar-slots span {
+    background: rgba(255, 255, 255, 0.16);
+    color: white;
+}
+
 .mini-calendar-box {
-    border: 1px solid #d6eaf7;
-    background: #f7fbff;
+    border-top: 1px solid var(--linha);
+    padding-top: 14px;
+}
+
+.selected-dates-text,
+.availability-message {
+    margin: 8px 0 0;
+    padding: 12px;
     border-radius: 8px;
-    padding: 14px;
+    background: var(--erro-bg);
+    color: var(--coral-forte);
+    font-weight: bold;
+    font-size: 14px;
 }
 
-.mini-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 12px;
+.availability-message.available {
+    background: #f8fbf8;
+    color: #16784d;
 }
 
-.mini-actions button {
-    margin: 0;
-}
-
-.status-header {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    align-items: center;
-    margin-bottom: 16px;
-}
-
-.status-controls {
-    display: flex;
-    gap: 8px;
+.search-box {
+    max-width: 420px;
+    margin-bottom: 14px;
 }
 
 .status-carousel {
@@ -318,14 +386,13 @@ button.calendar-cell {
 }
 
 .status-card {
-    min-width: 280px;
-    max-width: 320px;
-    flex: 0 0 280px;
+    min-width: 292px;
+    flex: 0 0 292px;
     scroll-snap-align: start;
-    background: #f7fbff;
-    border: 1px solid #d6eaf7;
-    border-radius: 10px;
-    padding: 14px;
+    background: #fffdfb;
+    border: 1px solid var(--linha);
+    border-radius: 12px;
+    padding: 16px;
 }
 
 .status-card-top {
@@ -337,74 +404,248 @@ button.calendar-cell {
 }
 
 .status-card p {
-    margin: 8px 0;
+    margin: 7px 0;
+    color: #263547;
+    font-size: 14px;
 }
 
 .client-badge {
     display: inline-block;
-    background: #eaf6ff;
-    color: #15566b;
-    border: 1px solid #bdd7e7;
-    border-radius: 999px;
-    padding: 6px 10px;
+    color: var(--azul);
     font-weight: bold;
 }
 
 .status-select {
     width: 100%;
-    max-width: 240px;
-    padding: 8px 10px;
-    border-radius: 20px;
-    border: 1px solid #bdd7e7;
-    background: #eaf6ff;
-    color: #15566b;
+    margin-top: 8px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--linha);
+    background: var(--erro-bg);
+    color: var(--coral-forte);
     font-weight: bold;
     cursor: pointer;
 }
 
-@media (max-width: 900px) {
-    main,
-    .header-content {
-        width: min(100% - 24px, 760px);
+.hidden {
+    display: none;
+}
+
+/* Checkout */
+.checkout-top {
+    background: transparent;
+}
+
+.checkout-nav {
+    width: min(100% - 32px, 1180px);
+    margin: 18px auto 0;
+    padding: 22px 0 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.checkout-nav a {
+    color: var(--azul);
+}
+
+.checkout-title {
+    grid-column: 1 / -1;
+}
+
+.checkout-title p {
+    margin-top: 0;
+    color: var(--cinza);
+}
+
+body:has(#checkoutSummary) main {
+    display: grid;
+    grid-template-columns: 1fr;
+    background: white;
+    border-radius: 14px;
+    margin-top: 8px;
+}
+
+.checkout-box {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) 390px;
+    gap: 28px;
+    align-items: start;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+}
+
+.checkout-highlight {
+    grid-column: 1;
+    padding: 0;
+    background: transparent;
+    color: var(--azul);
+}
+
+.checkout-highlight h2 {
+    margin: 0 0 8px;
+}
+
+.checkout-highlight p {
+    margin: 0;
+    color: var(--azul);
+}
+
+.pix-area {
+    grid-column: 1;
+    display: grid;
+    grid-template-columns: 170px 1fr;
+    gap: 16px;
+    align-items: start;
+    padding: 18px;
+    border: 1px solid var(--linha);
+    border-radius: 12px;
+    background: white;
+}
+
+.pix-qrcode {
+    width: 170px;
+    border-radius: 10px;
+    border: 1px solid var(--linha);
+    background: white;
+}
+
+#pixCode {
+    min-height: 118px;
+    font-size: 12px;
+}
+
+#copyPixButton {
+    grid-column: 2;
+    background: white;
+    color: var(--coral-forte);
+    border: 1px solid var(--coral);
+    box-shadow: none;
+}
+
+.checkout-box>h2,
+.checkout-summary-list {
+    grid-column: 2;
+}
+
+.checkout-box>h2 {
+    margin-bottom: -12px;
+}
+
+.checkout-summary-list {
+    display: grid;
+    gap: 10px;
+    padding: 22px;
+    border: 1px solid var(--linha);
+    border-radius: 12px;
+    background: white;
+}
+
+.checkout-summary-list p {
+    margin: 0;
+}
+
+.checkout-summary-list p:nth-last-of-type(3),
+.checkout-summary-list p:nth-last-of-type(2) {
+    padding: 12px;
+    border-radius: 8px;
+    background: rgba(232, 167, 174, 0.28);
+}
+
+.checkout-policy {
+    grid-column: 1;
+    padding: 18px;
+    border-radius: 12px;
+    background: #fff7f4;
+    border: 1px solid rgba(232, 167, 174, 0.5);
+    color: #6f3340;
+}
+
+.checkout-policy p {
+    margin: 0 0 8px;
+}
+
+.checkout-policy p:last-child {
+    margin-bottom: 0;
+}
+
+#confirmPaymentButton {
+    grid-column: 1 / -1;
+    background: var(--azul);
+    box-shadow: 0 16px 28px rgba(15, 29, 45, 0.18);
+}
+
+@media (max-width: 980px) {
+
+    body:has(#appointmentForm) main,
+    .checkout-box {
+        grid-template-columns: 1fr;
+    }
+
+    body:has(#appointmentForm) main section:nth-of-type(1),
+    body:has(#appointmentForm) main section:nth-of-type(2),
+    body:has(#appointmentForm) main section:nth-of-type(3),
+    .checkout-highlight,
+    .pix-area,
+    .checkout-box>h2,
+    .checkout-summary-list,
+    .checkout-policy {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    .site-header {
+        border-radius: 0;
+        width: 100%;
+        margin-top: 0;
     }
 
     main {
-        padding: 18px 0;
-    }
-
-    .calendar-header {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .calendar-cell {
-        min-height: 74px;
-        padding: 6px;
-    }
-
-    .calendar-day-number {
-        font-size: 15px;
+        border-radius: 0 0 14px 14px;
     }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 700px) {
     .header-content {
-        width: min(100% - 20px, 420px);
-        padding: 22px 0;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 18px;
     }
 
-    header h1 {
-        font-size: 26px;
+    .brand img {
+        width: 118px;
+    }
+
+    .main-nav {
+        justify-content: flex-start;
+    }
+
+    .main-nav a {
+        padding: 10px 0;
+    }
+
+    .header-button {
+        text-align: center;
+    }
+
+    main,
+    .checkout-nav {
+        width: min(100% - 22px, 430px);
     }
 
     main {
-        width: min(100% - 20px, 420px);
-        padding: 14px 0;
+        padding: 14px;
         gap: 16px;
     }
 
     section {
         padding: 14px;
+    }
+
+    .calendar-header,
+    .status-header {
+        align-items: flex-start;
+        flex-direction: column;
     }
 
     .calendar-controls {
@@ -415,6 +656,7 @@ button.calendar-cell {
     .calendar-controls strong {
         min-width: auto;
         flex: 1;
+        font-size: 15px;
     }
 
     .calendar-weekdays {
@@ -430,7 +672,7 @@ button.calendar-cell {
     .calendar-cell {
         min-height: 58px;
         padding: 5px;
-        border-radius: 6px;
+        border-radius: 7px;
     }
 
     button.calendar-cell {
@@ -445,10 +687,6 @@ button.calendar-cell {
         display: none;
     }
 
-    .calendar-slots {
-        margin-top: 4px;
-    }
-
     .calendar-slots span {
         font-size: 8px;
         padding: 2px 3px;
@@ -457,21 +695,229 @@ button.calendar-cell {
         text-overflow: ellipsis;
     }
 
-    .mini-actions {
-        grid-template-columns: 1fr;
-    }
-
-    .status-header {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
     .status-card {
         min-width: 250px;
         flex-basis: 250px;
     }
 
-    .status-select {
+    .pix-area {
+        grid-template-columns: 1fr;
+    }
+
+    .pix-qrcode {
+        width: min(100%, 240px);
+        justify-self: center;
+    }
+
+    #copyPixButton {
+        grid-column: 1;
+    }
+
+}
+
+/* Ajuste de largura geral da página */
+.site-header,
+main {
+    width: min(100% - 32px, 1500px);
+}
+
+body:has(#appointmentForm) main {
+    grid-template-columns: minmax(720px, 1fr) minmax(460px, 520px);
+    gap: 22px;
+}
+
+/* Calendário principal mais cheio e equilibrado */
+.calendar-month {
+    gap: 7px;
+}
+
+.calendar-month .calendar-cell {
+    min-height: 94px;
+}
+
+/* Lateral do formulário mais larga */
+body:has(#appointmentForm) main section:nth-of-type(2) {
+    min-width: 0;
+}
+
+#appointmentForm {
+    gap: 13px;
+}
+
+/* Mini calendário organizado */
+.mini-calendar-box {
+    overflow: visible;
+}
+
+.mini-calendar-box .calendar-header.mini {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    align-items: start;
+}
+
+.mini-calendar-box .calendar-header.mini>div:first-child {
+    min-width: 0;
+}
+
+.mini-calendar-box .calendar-header.mini h3 {
+    font-size: 19px;
+    line-height: 1.15;
+    margin-bottom: 4px;
+}
+
+.mini-calendar-box .calendar-header.mini .section-note {
+    max-width: none;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.mini-calendar-box .calendar-controls {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 44px 1fr 44px;
+    gap: 10px;
+    align-items: center;
+}
+
+.mini-calendar-box .calendar-controls strong {
+    min-width: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 18px;
+    white-space: nowrap;
+}
+
+.mini-calendar-box .calendar-controls button {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+}
+
+/* Mini calendário com células legíveis */
+.mini-calendar {
+    gap: 6px;
+}
+
+.mini-calendar .calendar-cell {
+    min-height: 78px;
+    padding: 7px 5px;
+    justify-content: flex-start;
+}
+
+.mini-calendar .calendar-day-number {
+    font-size: 15px;
+}
+
+.mini-calendar .calendar-day-status {
+    display: block;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.mini-calendar .calendar-slots {
+    width: 100%;
+}
+
+.mini-calendar .calendar-slots span {
+    font-size: 9px;
+    line-height: 1.15;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: anywhere;
+}
+
+/* Evita o texto "Ocupado" e nomes ficarem pulando */
+.calendar-cell {
+    line-height: 1.15;
+}
+
+.calendar-slots span {
+    text-align: center;
+}
+
+/* Em telas médias, não deixa o form espremido */
+@media (max-width: 1250px) {
+    body:has(#appointmentForm) main {
+        grid-template-columns: 1fr;
+    }
+
+    body:has(#appointmentForm) main section:nth-of-type(1),
+    body:has(#appointmentForm) main section:nth-of-type(2),
+    body:has(#appointmentForm) main section:nth-of-type(3) {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    body:has(#appointmentForm) main section:nth-of-type(2) {
         max-width: none;
+    }
+}
+
+/* Celular: mantém compacto e organizado */
+@media (max-width: 700px) {
+
+    .site-header,
+    main {
+        width: min(100% - 18px, 430px);
+    }
+
+    .mini-calendar-box .calendar-controls {
+        grid-template-columns: 40px 1fr 40px;
+    }
+
+    .mini-calendar-box .calendar-controls button {
+        width: 40px;
+        height: 40px;
+    }
+
+    .mini-calendar-box .calendar-controls strong {
+        font-size: 15px;
+    }
+
+    .mini-calendar .calendar-cell {
+        min-height: 58px;
+        padding: 5px 3px;
+    }
+
+    .mini-calendar .calendar-day-status {
+        display: none;
+    }
+
+    .mini-calendar .calendar-slots span {
+        font-size: 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+/* Ajustes de tamanho do logotipo e QR Code */
+
+.brand img {
+    width: 190px;
+    display: block;
+}
+
+.pix-area {
+    grid-template-columns: 210px 1fr;
+}
+
+.pix-qrcode {
+    width: 210px;
+}
+
+@media (max-width: 700px) {
+    .brand img {
+        width: 128px;
+    }
+
+    .pix-area {
+        grid-template-columns: 1fr;
+    }
+
+    .pix-qrcode {
+        width: min(100%, 260px);
+        justify-self: center;
     }
 }

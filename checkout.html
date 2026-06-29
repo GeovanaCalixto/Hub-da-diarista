@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Checkout - Hub da Diarista</title>
+    <link rel="stylesheet" href="hubdadiarista.css" />
+</head>
+
+<body class="checkout-page">
+    <header class="checkout-top">
+        <div class="checkout-nav">
+            <a href="index.html">← Voltar ao agendamento</a>
+            <a href="regulamentos.html">Regulamentos</a>
+        </div>
+    </header>
+
+    <main class="checkout-main">
+        <div class="checkout-title">
+            <h1>Checkout do Agendamento</h1>
+            <p>Finalize a reserva com o pagamento antecipado de 40%.</p>
+        </div>
+
+        <section class="checkout-box">
+            <div class="checkout-left">
+                <div class="checkout-card pix-card">
+                    <h2>Pagamento Pix</h2>
+                    <p>Escaneie o QR Code ou copie o código Pix abaixo para confirmar sua reserva.</p>
+
+                    <div class="pix-area">
+                        <img src="imagens/pix-qrcode.jpeg" alt="QR Code Pix para pagamento" class="pix-qrcode" />
+
+                        <label>
+                            Pix copia e cola
+                            <textarea id="pixCode"
+                                readonly>00020126580014br.gov.bcb.pix013633d462cf-81ab-47a7-a90a-9e598856f43b27600016BR.COM.PAGSEGURO013653F9B06E-05AA-4633-BDD1-E37F75A9ECE35204549953039865802BR5925FRANCISCA ELIEUDA CALIXTO6009Sao Paulo62290525PAGS00000000026062911297163041922</textarea>
+                        </label>
+                    </div>
+
+                    <button type="button" id="copyPixButton" class="copy-pix-button">Copiar código Pix</button>
+                </div>
+
+                <div class="checkout-benefits">
+                    <span>Profissionais verificadas</span>
+                    <span>Agendamento seguro</span>
+                    <span>Pagamento protegido</span>
+                </div>
+
+                <div class="checkout-policy">
+                    <strong>Regras de cancelamento</strong>
+                    <p>Cancelamentos realizados até 3 dias antes da data agendada terão o valor antecipado reembolsado.
+                    </p>
+                    <p>Após esse prazo, o valor antecipado será mantido como garantia do serviço reservado e não será
+                        reembolsado.</p>
+                </div>
+            </div>
+
+            <aside class="checkout-summary-card">
+                <h2>Resumo do pagamento</h2>
+                <div id="checkoutSummary" class="checkout-summary-list"></div>
+            </aside>
+
+            <button type="button" id="confirmPaymentButton" class="confirm-payment-button">
+                Já paguei / confirmar agendamento
+            </button>
+        </section>
+    </main>
+
+    <script>
+        const apiUrl = "https://script.google.com/macros/s/AKfycbxW0C3mi8mSG4xrjoE9ZRXjpPhV9mIuwe4xqigztj17E72jXyzA6kYYmO2TXKfk3noQ/exec";
+        const whatsappNumber = "5511932118634";
+
+        const checkoutSummary = document.getElementById("checkoutSummary");
+        const copyPixButton = document.getElementById("copyPixButton");
+        const confirmPaymentButton = document.getElementById("confirmPaymentButton");
+
+        const pendingAppointments = JSON.parse(sessionStorage.getItem("pendingAppointments") || "[]");
+
+        if (pendingAppointments.length === 0) {
+            checkoutSummary.innerHTML = `
+                <p>Nenhum agendamento pendente encontrado.</p>
+                <p>Volte para a página de agendamento e escolha suas datas novamente.</p>
+            `;
+            confirmPaymentButton.disabled = true;
+        } else {
+            renderCheckout();
+        }
+
+        copyPixButton.addEventListener("click", function () {
+            const pixCode = document.getElementById("pixCode").value;
+
+            navigator.clipboard.writeText(pixCode).then(function () {
+                alert("Código Pix copiado!");
+            });
+        });
+
+        confirmPaymentButton.addEventListener("click", savePendingAppointments);
+
+        function renderCheckout() {
+            const firstAppointment = pendingAppointments[0];
+            const payment = buildPaymentInfo(pendingAppointments);
+
+            checkoutSummary.innerHTML = `
+                <p><b>Cliente:</b> ${firstAppointment.client}</p>
+                <p><b>WhatsApp:</b> ${firstAppointment.whatsapp}</p>
+                <p><b>Serviço:</b> ${getPropertyLabel(firstAppointment.propertyType)}</p>
+                <p><b>Quantidade de data(s):</b> ${payment.quantity}</p>
+                <p><b>Transporte estimado:</b> ${formatCurrency(payment.transportTotal)}</p>
+
+                <hr>
+
+                <p class="summary-line"><span>Valor total:</span> <strong>${formatCurrency(payment.total)}</strong></p>
+                <p class="summary-line reserve"><span>40% antecipado:</span> <strong>${formatCurrency(payment.reservation)}</strong></p>
+                <p class="summary-line pay-now"><span>Valor a pagar agora:</span> <strong>${formatCurrency(payment.reservation)}</strong></p>
+                <p class="summary-balance">Após o serviço integralmente realizado, pagar:<br><strong>${formatCurrency(payment.balance)}</strong></p>
+
+                <hr>
+
+                <p><b>Datas:</b><br>${pendingAppointments.map(function (appointment) {
+                return `• ${formatDate(appointment.date)} às ${formatTime(appointment.time)}`;
+            }).join("<br>")}</p>
+            `;
+        }
+
+        async function savePendingAppointments() {
+            confirmPaymentButton.disabled = true;
+            confirmPaymentButton.textContent = "Confirmando agendamento...";
+
+            try {
+                const latestAppointments = await fetch(apiUrl).then(function (response) {
+                    return response.json();
+                });
+
+                const unavailableDates = pendingAppointments.filter(function (appointment) {
+                    return latestAppointments.some(function (item) {
+                        return normalizeDate(item.dataAgendamento) === normalizeDate(appointment.date);
+                    });
+                });
+
+                if (unavailableDates.length > 0) {
+                    alert("Uma das datas escolhidas foi ocupada antes da confirmação. Volte e escolha outra data.");
+                    window.location.href = "index.html";
+                    return;
+                }
+
+                const payment = buildPaymentInfo(pendingAppointments);
+
+                for (const appointment of pendingAppointments) {
+                    await fetch(apiUrl, {
+                        method: "POST",
+                        mode: "no-cors",
+                        body: JSON.stringify({
+                            id: appointment.id,
+                            dataEnvio: new Date().toLocaleString("pt-BR"),
+                            cliente: appointment.client,
+                            servico: appointment.service,
+                            dataAgendamento: appointment.date,
+                            horario: appointment.time,
+                            endereco: appointment.address,
+                            frequencia: appointment.contractType,
+                            observacoes: appointment.notes,
+                            whatsapp: appointment.whatsapp,
+                            status: appointment.status,
+                            tipoImovel: getPropertyLabel(appointment.propertyType),
+                            cep: appointment.cep,
+                            regiao: getRegionLabel(appointment.region),
+                            transporte: payment.transportTotal,
+                            valorTotal: payment.total,
+                            reserva: payment.reservation,
+                            saldo: payment.balance,
+                            pagamento: "Pix - aguardando conferência"
+                        })
+                    });
+                }
+
+                sendToWhatsApp(pendingAppointments);
+                sessionStorage.removeItem("pendingAppointments");
+
+                alert("Agendamento confirmado! A mensagem será enviada pelo WhatsApp.");
+                window.location.href = "index.html";
+            } catch (error) {
+                alert("Não foi possível confirmar o agendamento. Tente novamente.");
+                confirmPaymentButton.disabled = false;
+                confirmPaymentButton.textContent = "Já paguei / confirmar agendamento";
+            }
+        }
+
+        function getServicePrice(propertyType) {
+            if (propertyType === "ate40") return 240;
+            if (propertyType === "ate55") return 250;
+            return 0;
+        }
+
+        function getTransportPrice(region) {
+            const fare = 5.60;
+
+            if (region === "proxima") return fare * 2;
+            if (region === "distante") return fare * 4;
+
+            return 0;
+        }
+
+        function getPropertyLabel(propertyType) {
+            if (propertyType === "ate40") return "Apto/Casa até 40m²";
+            if (propertyType === "ate55") return "Apto/Casa de 40m² até 55m²";
+            if (propertyType === "acima55") return "Apto/Casa acima de 55m²";
+            if (propertyType === "posobra") return "Pós-obras";
+            return "Não informado";
+        }
+
+        function getRegionLabel(region) {
+            if (region === "proxima") return "Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente";
+            if (region === "distante") return "Diadema, Santo Amaro ou Zona Sul";
+            return "Outra região - confirmar pelo WhatsApp";
+        }
+
+        function buildPaymentInfo(appointments) {
+            const firstAppointment = appointments[0];
+            const quantity = appointments.length;
+
+            const serviceUnitPrice = getServicePrice(firstAppointment.propertyType);
+            const transportUnitPrice = getTransportPrice(firstAppointment.region);
+
+            const serviceTotal = serviceUnitPrice * quantity;
+            const transportTotal = transportUnitPrice * quantity;
+            const total = serviceTotal + transportTotal;
+            const reservation = total * 0.4;
+            const balance = total - reservation;
+
+            return {
+                quantity,
+                serviceTotal,
+                transportTotal,
+                total,
+                reservation,
+                balance
+            };
+        }
+
+        function sendToWhatsApp(generatedAppointments) {
+            const firstAppointment = generatedAppointments[0];
+            const payment = buildPaymentInfo(generatedAppointments);
+            const ticket = `HD-${String(firstAppointment.id).slice(-6)}`;
+
+            const datesText = generatedAppointments
+                .map(function (appointment) {
+                    return `- ${formatDate(appointment.date)} às ${formatTime(appointment.time)}`;
+                })
+                .join("\n");
+
+            const message = `
+Olá! Nova solicitação de agendamento com reserva Pix:
+
+Ticket: ${ticket}
+Status solicitado: Aguardando confirmação
+
+Cliente: ${firstAppointment.client}
+WhatsApp da cliente: ${firstAppointment.whatsapp}
+Serviço: ${firstAppointment.service}
+CEP: ${firstAppointment.cep}
+Região: ${getRegionLabel(firstAppointment.region)}
+
+Datas solicitadas:
+${datesText}
+
+Endereço: ${firstAppointment.address}
+Observações: ${firstAppointment.notes || "Nenhuma"}
+
+Valor total: ${formatCurrency(payment.total)}
+Reserva 40% paga/pendente de conferência: ${formatCurrency(payment.reservation)}
+Saldo no dia: ${formatCurrency(payment.balance)}
+Transporte estimado: ${formatCurrency(payment.transportTotal)}
+
+Por favor, confirmar o agendamento diretamente com a cliente.
+            `;
+
+            const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+            window.open(url, "_blank");
+        }
+
+        function normalizeDate(date) {
+            if (!date) return "";
+            const textDate = String(date);
+            if (textDate.includes("T")) return textDate.split("T")[0];
+            return textDate;
+        }
+
+        function formatDate(date) {
+            if (!date) return "";
+
+            const textDate = String(date);
+
+            if (textDate.includes("T")) {
+                const onlyDate = textDate.split("T")[0];
+                return new Date(onlyDate + "T00:00:00").toLocaleDateString("pt-BR");
+            }
+
+            const parsedDate = new Date(textDate + "T00:00:00");
+
+            if (isNaN(parsedDate.getTime())) return textDate;
+
+            return parsedDate.toLocaleDateString("pt-BR");
+        }
+
+        function formatTime(time) {
+            if (!time) return "";
+            const textTime = String(time).trim();
+            if (textTime.includes(":")) return textTime.slice(0, 5);
+            return textTime;
+        }
+
+        function formatCurrency(value) {
+            return Number(value || 0).toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL"
+            });
+        }
+    </script>
+</body>
+
+</html>

@@ -9,15 +9,18 @@
 </head>
 
 <body>
-    <header>
+    <header class="site-header">
         <div class="header-content">
-            <h1>Hub da Diarista</h1>
-            <p>Preencha os dados abaixo para solicitar seu horário.</p>
+            <a class="brand" href="index.html">
+                <img src="imagens/Logotipo-hub.png" alt="Hub da Diarista" />
+            </a>
 
-            <nav>
+            <nav class="main-nav">
                 <a href="index.html">Agendamento</a>
                 <a href="regulamentos.html">Regulamentos</a>
             </nav>
+
+            <a class="header-button" href="#appointmentForm">Solicitar agendamento</a>
         </div>
     </header>
 
@@ -64,11 +67,28 @@
                 </label>
 
                 <label>
-                    Tipo de limpeza
-                    <select id="service" required>
+                    Tipo de serviço/imóvel
+                    <select id="propertyType" required>
                         <option value="">Selecione</option>
-                        <option>Limpeza geral</option>
-                        <option>Pós-obra</option>
+                        <option value="ate40">Apto/Casa até 40m²</option>
+                        <option value="ate55">Apto/Casa de 40m² até 55m²</option>
+                        <option value="acima55">Apto/Casa acima de 55m²</option>
+                        <option value="posobra">Pós-obras</option>
+                    </select>
+                </label>
+
+                <label>
+                    CEP do local
+                    <input id="cep" type="text" placeholder="Ex: 03200-000" required />
+                </label>
+
+                <label>
+                    Região para deslocamento
+                    <select id="region" required>
+                        <option value="">Selecione</option>
+                        <option value="proxima">Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente</option>
+                        <option value="distante">Diadema, Santo Amaro ou Zona Sul</option>
+                        <option value="custom">Outra região</option>
                     </select>
                 </label>
 
@@ -119,11 +139,10 @@
 
                 <label>
                     Observações
-                    <textarea id="notes"
-                        placeholder="Ex: tenho pets, preciso de limpeza na cozinha, preferência de acesso..."></textarea>
+                    <textarea id="notes" placeholder="Ex: tenho pets, preferência de acesso..."></textarea>
                 </label>
 
-                <button id="submitButton" type="submit">Enviar solicitação de agendamento</button>
+                <button id="submitButton" type="submit">Ir para checkout</button>
             </form>
         </section>
 
@@ -131,7 +150,8 @@
             <div class="status-header">
                 <div>
                     <h2>Status dos agendamentos</h2>
-                    <p class="section-note">Por padrão, aparecem os agendamentos mais recentes. Use a busca para encontrar qualquer registro.</p>
+                    <p class="section-note">Por padrão, aparecem os agendamentos mais recentes. Use a busca para
+                        encontrar qualquer registro.</p>
                 </div>
 
                 <div class="status-controls">
@@ -168,7 +188,6 @@
         ];
 
         const form = document.getElementById("appointmentForm");
-        const submitButton = document.getElementById("submitButton");
         const calendar = document.getElementById("calendar");
         const appointmentsTable = document.getElementById("appointmentsTable");
         const timeInput = document.getElementById("time");
@@ -193,8 +212,6 @@
 
         let miniVisibleMonth = new Date();
         miniVisibleMonth.setDate(1);
-
-        let isSubmitting = false;
 
         prevMonthButton.addEventListener("click", function () {
             visibleMonth.setMonth(visibleMonth.getMonth() - 1);
@@ -234,10 +251,6 @@
         form.addEventListener("submit", function (event) {
             event.preventDefault();
 
-            if (isSubmitting) {
-                return;
-            }
-
             if (!timeInput.value) {
                 alert("Selecione um horário.");
                 return;
@@ -248,10 +261,15 @@
                 return;
             }
 
+            const selectedPropertyType = document.getElementById("propertyType").value;
+
             const baseAppointment = {
                 client: document.getElementById("client").value.trim(),
                 whatsapp: document.getElementById("whatsapp").value.trim(),
-                service: document.getElementById("service").value,
+                service: getPropertyLabel(selectedPropertyType),
+                propertyType: selectedPropertyType,
+                cep: document.getElementById("cep").value.trim(),
+                region: document.getElementById("region").value,
                 time: timeInput.value,
                 address: document.getElementById("address").value.trim(),
                 contractType: "Datas selecionadas",
@@ -280,56 +298,14 @@
                     };
                 });
 
-            saveAppointments(generatedAppointments);
-        });
-
-        async function saveAppointments(generatedAppointments) {
-            if (isSubmitting) {
+            if (isCustomQuoteType(baseAppointment.propertyType)) {
+                sendCustomQuoteToWhatsApp(baseAppointment, generatedAppointments);
                 return;
             }
 
-            isSubmitting = true;
-            submitButton.disabled = true;
-            submitButton.textContent = "Enviando agendamento...";
-
-            try {
-                for (const appointment of generatedAppointments) {
-                    await fetch(apiUrl, {
-                        method: "POST",
-                        mode: "no-cors",
-                        body: JSON.stringify({
-                            id: appointment.id,
-                            dataEnvio: new Date().toLocaleString("pt-BR"),
-                            cliente: appointment.client,
-                            servico: appointment.service,
-                            dataAgendamento: appointment.date,
-                            horario: appointment.time,
-                            endereco: appointment.address,
-                            frequencia: appointment.contractType,
-                            observacoes: appointment.notes,
-                            whatsapp: appointment.whatsapp,
-                            status: appointment.status
-                        })
-                    });
-                }
-
-                appointments.push(...generatedAppointments);
-                selectedDates.length = 0;
-
-                render();
-                sendToWhatsApp(generatedAppointments);
-                form.reset();
-                updateSelectedDatesText();
-
-                alert("Agendamento enviado com sucesso!");
-            } catch (error) {
-                alert("Não foi possível salvar o agendamento. Tente novamente.");
-            } finally {
-                isSubmitting = false;
-                submitButton.disabled = false;
-                submitButton.textContent = "Enviar solicitação de agendamento";
-            }
-        }
+            sessionStorage.setItem("pendingAppointments", JSON.stringify(generatedAppointments));
+            window.location.href = "checkout.html";
+        });
 
         function loadAppointments() {
             fetch(apiUrl)
@@ -338,7 +314,6 @@
                 })
                 .then(function (data) {
                     appointments.length = 0;
-
                     const seenSlots = new Set();
 
                     data.forEach(function (item) {
@@ -382,7 +357,6 @@
 
         function renderMonthlyCalendar() {
             calendar.innerHTML = "";
-
             const year = visibleMonth.getFullYear();
             const month = visibleMonth.getMonth();
 
@@ -396,7 +370,6 @@
 
         function renderMiniCalendar() {
             miniCalendar.innerHTML = "";
-
             const year = miniVisibleMonth.getFullYear();
             const month = miniVisibleMonth.getMonth();
 
@@ -440,19 +413,17 @@
                 target.innerHTML += `
                     <${element} class="${cellClass}" ${buttonAttribute} ${clickAttribute}>
                         <div class="calendar-day-number">${day}</div>
-
                         <div class="calendar-day-status">
                             ${selected ? "Selecionado" : unavailableSlots.length > 0 ? "Ocupado" : "Livre"}
                         </div>
-
                         ${unavailableSlots.length > 0
-                            ? `<div class="calendar-slots">
+                        ? `<div class="calendar-slots">
                                 ${unavailableSlots.map(function (slot) {
-                                    return `<span>${slot}</span>`;
-                                }).join("")}
+                            return `<span>${slot}</span>`;
+                        }).join("")}
                             </div>`
-                            : ""
-                        }
+                        : ""
+                    }
                     </${element}>
                 `;
             }
@@ -483,7 +454,6 @@
 
         function renderAppointmentsTable() {
             appointmentsTable.innerHTML = "";
-
             const searchTerm = statusSearchInput.value.trim().toLowerCase();
 
             const filteredAppointments = appointments
@@ -516,29 +486,92 @@
                             <span class="client-badge">${item.client || "Cliente"}</span>
                             <strong>${formatDate(item.date)}</strong>
                         </div>
-
                         <p><b>Horário:</b> ${formatTime(item.time)}</p>
                         <p><b>Serviço:</b> ${item.service || "-"}</p>
                         <p><b>WhatsApp:</b> ${item.whatsapp || "-"}</p>
                         <p><b>Tipo:</b> ${item.contractType || "-"}</p>
-
                         <select class="status-select" onchange="changeStatus('${item.id}', this.value)">
                             ${statusOptions.map(function (status) {
-                                return `
+                    return `
                                     <option value="${status}" ${item.status === status ? "selected" : ""}>
                                         ${status}
                                     </option>
                                 `;
-                            }).join("")}
+                }).join("")}
                         </select>
                     </article>
                 `;
             });
         }
 
+        function changeStatus(id, newStatus) {
+            const appointment = appointments.find(function (item) {
+                return String(item.id) === String(id);
+            });
+
+            if (!appointment) {
+                return;
+            }
+
+            appointment.status = newStatus;
+            render();
+
+            fetch(apiUrl, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify({
+                    action: "updateStatus",
+                    id: appointment.id,
+                    status: newStatus
+                })
+            });
+
+            sendStatusToClientWhatsApp(appointment, newStatus);
+        }
+
+        function isCustomQuoteType(propertyType) {
+            return propertyType === "posobra" || propertyType === "acima55";
+        }
+
+        function sendCustomQuoteToWhatsApp(baseAppointment, generatedAppointments) {
+            const ticket = `HD-${String(generatedAppointments[0].id).slice(-6)}`;
+
+            const datesText = generatedAppointments
+                .map(function (appointment) {
+                    return `- ${formatDate(appointment.date)} às ${formatTime(appointment.time)}`;
+                })
+                .join("\n");
+
+            const message = `
+Olá! Nova solicitação de agendamento para confirmação:
+
+Ticket: ${ticket}
+Status solicitado: Aguardando confirmação
+Tipo: Cotação personalizada
+Serviço: ${getPropertyLabel(baseAppointment.propertyType)}
+
+Cliente: ${baseAppointment.client}
+WhatsApp da cliente: ${baseAppointment.whatsapp}
+CEP: ${baseAppointment.cep}
+Região: ${getRegionLabel(baseAppointment.region)}
+
+Datas desejadas:
+${datesText}
+
+Endereço: ${baseAppointment.address}
+Observações: ${baseAppointment.notes || "Nenhuma"}
+
+Por favor, confirmar o agendamento diretamente com a cliente.
+            `;
+
+            const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+            window.open(url, "_blank");
+
+            alert("Solicitação enviada para confirmação pelo WhatsApp.");
+        }
+
         function isWithinStatusWindow(date) {
             const appointmentDate = parseLocalDate(normalizeDate(date));
-
             const start = new Date();
             start.setDate(1);
             start.setHours(0, 0, 0, 0);
@@ -591,31 +624,6 @@
             return [...new Set(bookedSlots)].sort();
         }
 
-        function changeStatus(id, newStatus) {
-            const appointment = appointments.find(function (item) {
-                return String(item.id) === String(id);
-            });
-
-            if (!appointment) {
-                return;
-            }
-
-            appointment.status = newStatus;
-            render();
-
-            fetch(apiUrl, {
-                method: "POST",
-                mode: "no-cors",
-                body: JSON.stringify({
-                    action: "updateStatus",
-                    id: appointment.id,
-                    status: newStatus
-                })
-            });
-
-            sendStatusToClientWhatsApp(appointment, newStatus);
-        }
-
         function isDateUnavailable(date) {
             const normalizedDate = normalizeDate(date);
 
@@ -648,92 +656,18 @@
             availabilityMessage.className = "availability-message available";
         }
 
-        function isWeekend(date) {
-            const selectedDate = parseLocalDate(date);
-            const day = selectedDate.getDay();
-
-            return day === 0 || day === 6;
+        function getPropertyLabel(propertyType) {
+            if (propertyType === "ate40") return "Apto/Casa até 40m²";
+            if (propertyType === "ate55") return "Apto/Casa de 40m² até 55m²";
+            if (propertyType === "acima55") return "Apto/Casa acima de 55m²";
+            if (propertyType === "posobra") return "Pós-obras";
+            return "Não informado";
         }
 
-        function parseLocalDate(value) {
-            return new Date(value + "T00:00:00");
-        }
-
-        function formatDateKey(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, "0");
-            const day = String(date.getDate()).padStart(2, "0");
-
-            return `${year}-${month}-${day}`;
-        }
-
-        function normalizeDate(date) {
-            if (!date) {
-                return "";
-            }
-
-            const textDate = String(date);
-
-            if (textDate.includes("T")) {
-                return textDate.split("T")[0];
-            }
-
-            return textDate;
-        }
-
-        function normalizeTime(time) {
-            if (!time) {
-                return "";
-            }
-
-            const textTime = String(time).trim();
-
-            if (textTime === "dia-inteiro") {
-                return "dia-inteiro";
-            }
-
-            if (textTime.includes("T")) {
-                return new Date(textTime).toLocaleTimeString("pt-BR", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    timeZone: "America/Sao_Paulo"
-                });
-            }
-
-            if (textTime.includes(":")) {
-                return textTime.slice(0, 5);
-            }
-
-            return textTime;
-        }
-
-        function sendToWhatsApp(generatedAppointments) {
-            const firstAppointment = generatedAppointments[0];
-
-            const datesText = generatedAppointments
-                .map(function (appointment) {
-                    return `- ${formatDate(appointment.date)} às ${formatTime(appointment.time)}`;
-                })
-                .join("\n");
-
-            const message = `
-Olá! Nova solicitação de agendamento:
-
-Cliente: ${firstAppointment.client}
-WhatsApp da cliente: ${firstAppointment.whatsapp || "Não informado"}
-Serviço: ${firstAppointment.service}
-
-Datas solicitadas:
-${datesText}
-
-Endereço: ${firstAppointment.address}
-Observações: ${firstAppointment.notes || "Nenhuma"}
-
-Status: aguardando confirmação.
-            `;
-
-            const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-            window.open(url, "_blank");
+        function getRegionLabel(region) {
+            if (region === "proxima") return "Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente";
+            if (region === "distante") return "Diadema, Santo Amaro ou Zona Sul";
+            return "Outra região - confirmar pelo WhatsApp";
         }
 
         function sendStatusToClientWhatsApp(appointment, newStatus) {
@@ -760,10 +694,54 @@ Obrigada!
             window.open(url, "_blank");
         }
 
-        function formatWhatsAppNumber(value) {
-            if (!value) {
-                return "";
+        function isWeekend(date) {
+            const selectedDate = parseLocalDate(date);
+            const day = selectedDate.getDay();
+
+            return day === 0 || day === 6;
+        }
+
+        function parseLocalDate(value) {
+            return new Date(value + "T00:00:00");
+        }
+
+        function formatDateKey(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+
+            return `${year}-${month}-${day}`;
+        }
+
+        function normalizeDate(date) {
+            if (!date) return "";
+            const textDate = String(date);
+            if (textDate.includes("T")) return textDate.split("T")[0];
+            return textDate;
+        }
+
+        function normalizeTime(time) {
+            if (!time) return "";
+
+            const textTime = String(time).trim();
+
+            if (textTime === "dia-inteiro") return "dia-inteiro";
+
+            if (textTime.includes("T")) {
+                return new Date(textTime).toLocaleTimeString("pt-BR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    timeZone: "America/Sao_Paulo"
+                });
             }
+
+            if (textTime.includes(":")) return textTime.slice(0, 5);
+
+            return textTime;
+        }
+
+        function formatWhatsAppNumber(value) {
+            if (!value) return "";
 
             let phone = String(value).replace(/\D/g, "");
 
@@ -775,9 +753,7 @@ Obrigada!
         }
 
         function formatDate(date) {
-            if (!date) {
-                return "";
-            }
+            if (!date) return "";
 
             const textDate = String(date);
 
@@ -788,23 +764,17 @@ Obrigada!
 
             const parsedDate = new Date(textDate + "T00:00:00");
 
-            if (isNaN(parsedDate.getTime())) {
-                return textDate;
-            }
+            if (isNaN(parsedDate.getTime())) return textDate;
 
             return parsedDate.toLocaleDateString("pt-BR");
         }
 
         function formatTime(time) {
-            if (!time) {
-                return "";
-            }
+            if (!time) return "";
 
             const textTime = String(time).trim();
 
-            if (textTime === "dia-inteiro") {
-                return "Dia inteiro";
-            }
+            if (textTime === "dia-inteiro") return "Dia inteiro";
 
             if (textTime.includes("T")) {
                 return new Date(textTime).toLocaleTimeString("pt-BR", {
@@ -814,9 +784,7 @@ Obrigada!
                 });
             }
 
-            if (textTime.includes(":")) {
-                return textTime.slice(0, 5);
-            }
+            if (textTime.includes(":")) return textTime.slice(0, 5);
 
             return textTime;
         }
@@ -825,4 +793,4 @@ Obrigada!
     </script>
 </body>
 
-</html>
+ </html>
