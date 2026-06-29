@@ -805,79 +805,79 @@ body:has(#checkoutSummary) main {
 
     .header-content {
         grid-template-columns: 1fr;
-        padding: 18px;
-        gap: 18px;
+        padding: 16px;
+        gap: 14px;
     }
 
     .brand img {
-        width: 132px;
+        width: 124px;
     }
 
     .main-nav {
         width: 100%;
         justify-content: space-between;
-        gap: 10px;
+        gap: 8px;
     }
 
     .main-nav a {
-        font-size: 17px;
-        padding: 8px 0;
+        font-size: 15px;
+        padding: 6px 0;
     }
 
     .header-button {
         width: 100%;
         text-align: center;
-        font-size: 17px;
-        padding: 14px 16px;
+        font-size: 15px;
+        padding: 12px 14px;
     }
 
     main {
         width: 100%;
         margin: 0;
-        padding: 14px;
+        padding: 10px;
         border-radius: 0;
     }
 
     section {
         width: 100%;
-        padding: 16px;
-        border-radius: 14px;
+        padding: 13px;
+        border-radius: 12px;
     }
 
     h2 {
-        font-size: 26px;
+        font-size: 22px;
         line-height: 1.15;
     }
 
     .section-note {
-        font-size: 16px;
-        line-height: 1.45;
+        font-size: 13px;
+        line-height: 1.35;
     }
 
     .calendar-header,
     .status-header {
         align-items: flex-start;
         flex-direction: column;
-        gap: 16px;
+        gap: 12px;
     }
 
     .calendar-controls {
         width: 100%;
         display: grid;
-        grid-template-columns: 56px 1fr 56px;
+        grid-template-columns: 44px 1fr 44px;
         align-items: center;
     }
 
     .calendar-controls button {
-        width: 56px;
-        height: 56px;
-        border-radius: 14px;
-        font-size: 26px;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        font-size: 22px;
     }
 
     .calendar-controls strong {
         min-width: 0;
-        font-size: 22px;
+        font-size: 18px;
         line-height: 1.15;
         text-align: center;
     }
@@ -892,69 +892,75 @@ body:has(#checkoutSummary) main {
     .calendar-month,
     .mini-calendar-box .calendar-weekdays,
     .mini-calendar {
-        min-width: 720px;
+        min-width: 640px;
     }
 
     .calendar-weekdays {
-        font-size: 13px;
-        gap: 6px;
+        font-size: 11px;
+        gap: 5px;
     }
 
     .calendar-month,
     .mini-calendar {
-        gap: 7px;
+        gap: 5px;
     }
 
     .calendar-cell,
     .mini-calendar .calendar-cell {
-        min-height: 92px;
-        padding: 8px;
-        border-radius: 12px;
+        min-height: 76px;
+        padding: 6px;
+        border-radius: 10px;
     }
 
     button.calendar-cell,
     .mini-calendar button.calendar-cell {
-        min-height: 92px;
+        min-height: 76px;
     }
 
     .calendar-day-number {
-        font-size: 18px;
+        font-size: 15px;
     }
 
     .calendar-day-status,
     .mini-calendar .calendar-day-status {
         display: block;
-        font-size: 11px;
+        font-size: 9px;
         white-space: nowrap;
     }
 
     .calendar-slots span,
     .mini-calendar .calendar-slots span {
         display: block;
-        font-size: 10px;
-        line-height: 1.2;
+        font-size: 9px;
+        line-height: 1.15;
         white-space: normal;
         overflow: visible;
         text-overflow: unset;
         overflow-wrap: anywhere;
+        padding: 3px;
     }
 
     .mini-calendar-box .calendar-controls {
-        grid-template-columns: 56px 1fr 56px;
+        grid-template-columns: 44px 1fr 44px;
     }
 
     .mini-calendar-box .calendar-controls button {
-        width: 56px;
-        height: 56px;
+        width: 44px;
+        height: 44px;
     }
 
     .mini-calendar-box .calendar-controls strong {
-        font-size: 20px;
+        font-size: 17px;
     }
 
     .status-controls {
         width: 100%;
         justify-content: flex-start;
+    }
+
+    .status-controls button {
+        width: 42px;
+        height: 42px;
     }
 
     .search-box {
@@ -964,14 +970,15 @@ body:has(#checkoutSummary) main {
 
     .search-box input {
         width: 100%;
-        font-size: 16px;
+        font-size: 14px;
+        padding: 10px;
     }
 
     .status-carousel {
         display: grid;
         grid-template-columns: 1fr;
         overflow-x: visible;
-        gap: 14px;
+        gap: 10px;
     }
 
     .status-card {
@@ -979,38 +986,47 @@ body:has(#checkoutSummary) main {
         min-width: 0;
         max-width: none;
         flex: none;
-        padding: 16px;
+        padding: 12px;
+        border-radius: 10px;
     }
 
     .status-card-top {
+        display: flex;
         align-items: flex-start;
-        flex-direction: column;
-        gap: 6px;
+        justify-content: space-between;
+        flex-direction: row;
+        gap: 8px;
     }
 
     .status-card p {
-        font-size: 15px;
-        line-height: 1.35;
+        font-size: 13px;
+        line-height: 1.28;
+        margin: 5px 0;
         word-break: break-word;
+    }
+
+    .client-badge {
+        font-size: 15px;
     }
 
     .status-select {
         width: 100%;
         max-width: none;
-        font-size: 15px;
+        font-size: 13px;
+        padding: 9px;
     }
 
     .checkout-nav,
     .checkout-main {
-        width: min(100% - 22px, 430px);
+        width: min(100% - 20px, 430px);
     }
 
     .checkout-main {
-        padding: 18px;
+        padding: 16px;
     }
 
     .checkout-title h1 {
-        font-size: 25px;
+        font-size: 24px;
     }
 
     .pix-area,
@@ -1019,7 +1035,7 @@ body:has(#checkoutSummary) main {
     }
 
     .pix-qrcode {
-        width: min(100%, 260px);
+        width: min(100%, 250px);
         justify-self: center;
     }
 
