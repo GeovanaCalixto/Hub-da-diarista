@@ -1,6 +1,4 @@
-Sim,
-Gi. Substitui o `hubdadiarista.css` inteiro por este aqui. Já está consolidado,
-sem precisar colocar bloco em cima de bloco. ```css:root {
+:root {
     --azul: #0f1d2d;
     --azul-2: #172b42;
     --coral: #e8a7ae;
