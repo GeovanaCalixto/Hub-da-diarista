@@ -44,6 +44,11 @@ body {
     gap: 26px;
 }
 
+.icon {
+    width: 30px;
+    height: 30px;
+}
+
 .brand img {
     width: 190px;
     display: block;
