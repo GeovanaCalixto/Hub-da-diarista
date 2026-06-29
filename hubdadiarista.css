@@ -43,11 +43,7 @@ body {
     align-items: center;
     gap: 26px;
 }
-
-.icon {
-    width: 80%;
-    height: 80px;
-}
+ 
 
 .brand img {
     width: 190px;
@@ -1874,5 +1870,190 @@ body:has(#checkoutSummary) main {
 
     #copyPixButton {
         grid-column: 1;
+    }
+}
+
+/* Correção final do checkout no celular */
+@media (max-width: 700px) {
+    .checkout-page {
+        overflow-x: hidden;
+    }
+
+    .checkout-nav,
+    .checkout-main {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .checkout-nav {
+        margin: 0;
+        padding: 14px;
+        gap: 12px;
+    }
+
+    .checkout-main {
+        margin: 0;
+        padding: 12px;
+        border-radius: 0;
+        overflow: hidden;
+    }
+
+    .checkout-title {
+        margin-bottom: 14px;
+    }
+
+    .checkout-title h1 {
+        font-size: 22px;
+        line-height: 1.15;
+    }
+
+    .checkout-title p {
+        font-size: 13px;
+        line-height: 1.35;
+    }
+
+    .checkout-box {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+    }
+
+    .checkout-left,
+    .checkout-card,
+    .checkout-summary-card,
+    .checkout-policy,
+    .checkout-benefits {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .checkout-card,
+    .checkout-summary-card {
+        padding: 14px;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .checkout-card h2,
+    .checkout-summary-card h2 {
+        font-size: 18px;
+        line-height: 1.2;
+    }
+
+    .checkout-card p,
+    .checkout-summary-list p,
+    .checkout-policy p {
+        font-size: 13px;
+        line-height: 1.35;
+    }
+
+    .pix-area {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+    }
+
+    .pix-qrcode {
+        width: min(100%, 230px);
+        justify-self: center;
+    }
+
+    #pixCode {
+        width: 100%;
+        max-width: 100%;
+        min-height: 110px;
+        font-size: 11px;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+    }
+
+    .copy-pix-button,
+    #copyPixButton {
+        width: 100%;
+        grid-column: 1;
+        font-size: 13px;
+    }
+
+    .checkout-benefits {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 12px;
+    }
+
+    .checkout-benefits span {
+        font-size: 13px;
+    }
+
+    .checkout-policy {
+        padding: 12px;
+    }
+
+    .checkout-summary-list {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        overflow: hidden;
+        gap: 8px;
+    }
+
+    .checkout-summary-list hr {
+        margin: 8px 0;
+    }
+
+    .summary-line {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 4px;
+        padding: 10px;
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+    }
+
+    .summary-line span {
+        font-size: 13px;
+        line-height: 1.25;
+    }
+
+    .summary-line strong {
+        font-size: 20px;
+        line-height: 1.15;
+        word-break: break-word;
+    }
+
+    .summary-line.reserve,
+    .summary-line.pay-now {
+        border-radius: 10px;
+    }
+
+    .summary-balance {
+        text-align: left;
+        font-size: 13px;
+        line-height: 1.35;
+        word-break: break-word;
+    }
+
+    .summary-balance strong {
+        font-size: 22px;
+        line-height: 1.15;
+        word-break: break-word;
+    }
+
+    .confirm-payment-button,
+    #confirmPaymentButton {
+        width: 100%;
+        max-width: 100%;
+        min-height: 50px;
+        font-size: 14px;
+        line-height: 1.2;
+        padding: 12px;
+        border-radius: 10px;
     }
 }
