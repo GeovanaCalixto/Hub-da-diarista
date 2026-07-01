@@ -10,7 +10,7 @@
     <link rel="icon" type="image/png" href="imagens/icon.png" />
 
     <link rel="stylesheet" href="hubdadiarista.css" />
- </head>
+</head>
 
 
 <body>
@@ -621,9 +621,9 @@ Por favor, confirmar o agendamento diretamente com a cliente.
 
                     return `${formatTime(time)} - ${appointment.client || "Cliente"}`;
                 });
-
+                
             if (isWeekend(dateKey)) {
-                bookedSlots.push("Fim de semana");
+                bookedSlots.push("Domingo");
             }
 
             return [...new Set(bookedSlots)].sort();
@@ -703,7 +703,7 @@ Obrigada!
             const selectedDate = parseLocalDate(date);
             const day = selectedDate.getDay();
 
-            return day === 0 || day === 6;
+            return day === 0;
         }
 
         function parseLocalDate(value) {
