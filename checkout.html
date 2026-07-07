@@ -79,9 +79,9 @@
 
         if (pendingAppointments.length === 0) {
             checkoutSummary.innerHTML = `
-                <p>Nenhum agendamento pendente encontrado.</p>
-                <p>Volte para a página de agendamento e escolha suas datas novamente.</p>
-            `;
+            <p>Nenhum agendamento pendente encontrado.</p>
+            <p>Volte para a página de agendamento e escolha suas datas novamente.</p>
+        `;
             confirmPaymentButton.disabled = true;
         } else {
             renderCheckout();
@@ -102,167 +102,159 @@
             const payment = buildPaymentInfo(pendingAppointments);
 
             checkoutSummary.innerHTML = `
-                <p><b>Cliente:</b> ${firstAppointment.client}</p>
-                <p><b>WhatsApp:</b> ${firstAppointment.whatsapp}</p>
-                <p><b>Serviço:</b> ${getPropertyLabel(firstAppointment.propertyType)}</p>
-                <p><b>Quantidade de data(s):</b> ${payment.quantity}</p>
-                <p><b>Transporte estimado:</b> ${formatCurrency(payment.transportTotal)}</p>
+            <p><b>Cliente:</b> ${firstAppointment.client}</p>
+            <p><b>WhatsApp:</b> ${firstAppointment.whatsapp}</p>
+            <p><b>Serviço:</b> ${getPropertyLabel(firstAppointment.propertyType)}</p>
+            <p><b>Quantidade de data(s):</b> ${payment.quantity}</p>
+            <p><b>Transporte estimado:</b> ${formatCurrency(payment.transportTotal)}</p>
 
-                <hr>
+            <hr>
 
-                <p class="summary-line"><span>Valor total:</span> <strong>${formatCurrency(payment.total)}</strong></p>
-                <p class="summary-line reserve"><span>40% antecipado:</span> <strong>${formatCurrency(payment.reservation)}</strong></p>
-                <p class="summary-line pay-now"><span>Valor a pagar agora:</span> <strong>${formatCurrency(payment.reservation)}</strong></p>
-                <p class="summary-balance">Após o serviço integralmente realizado, pagar:<br><strong>${formatCurrency(payment.balance)}</strong></p>
+            <p class="summary-line"><span>Valor total:</span> <strong>${formatCurrency(payment.total)}</strong></p>
+            <p class="summary-line reserve"><span>40% antecipado:</span> <strong>${formatCurrency(payment.reservation)}</strong></p>
+            <p class="summary-line pay-now"><span>Valor a pagar agora:</span> <strong>${formatCurrency(payment.reservation)}</strong></p>
+            <p class="summary-balance">Após o serviço integralmente realizado, pagar:<br><strong>${formatCurrency(payment.balance)}</strong></p>
 
-                <hr>
+            <hr>
 
-                <p><b>Datas:</b><br>${pendingAppointments.map(function (appointment) {
+            <p><b>Datas:</b><br>${pendingAppointments.map(function (appointment) {
                 return `• ${formatDate(appointment.date)} às ${formatTime(appointment.time)}`;
             }).join("<br>")}</p>
-            `;
+        `;
         }
 
         async function savePendingAppointments() {
-            async function savePendingAppointments() {
-                if (confirmPaymentButton.dataset.loading === "true") {
+            if (confirmPaymentButton.dataset.loading === "true") {
+                return;
+            }
+
+            confirmPaymentButton.dataset.loading = "true";
+            confirmPaymentButton.disabled = true;
+            confirmPaymentButton.classList.add("is-loading");
+            confirmPaymentButton.textContent = "Confirmando agendamento...";
+
+            try {
+                const latestAppointments = await fetch(apiUrl).then(function (response) {
+                    return response.json();
+                });
+
+                const unavailableDates = pendingAppointments.filter(function (appointment) {
+                    return latestAppointments.some(function (item) {
+                        return normalizeDate(item.dataAgendamento) === normalizeDate(appointment.date);
+                    });
+                });
+
+                if (unavailableDates.length > 0) {
+                    alert("Uma das datas escolhidas foi ocupada antes da confirmação. Volte e escolha outra data.");
+                    window.location.href = "index.html";
                     return;
                 }
 
-                confirmPaymentButton.dataset.loading = "true";
-                confirmPaymentButton.disabled = true;
-                confirmPaymentButton.classList.add("is-loading");
-                confirmPaymentButton.textContent = "Confirmando agendamento...";
+                const payment = buildPaymentInfo(pendingAppointments);
 
-                try {
-                    const latestAppointments = await fetch(apiUrl).then(function (response) {
-                        return response.json();
+                for (const appointment of pendingAppointments) {
+                    await fetch(apiUrl, {
+                        method: "POST",
+                        mode: "no-cors",
+                        body: JSON.stringify({
+                            id: appointment.id,
+                            dataEnvio: new Date().toLocaleString("pt-BR"),
+                            cliente: appointment.client,
+                            servico: appointment.service,
+                            dataAgendamento: appointment.date,
+                            horario: appointment.time,
+                            endereco: appointment.address,
+                            frequencia: appointment.contractType,
+                            observacoes: appointment.notes,
+                            whatsapp: appointment.whatsapp,
+                            status: appointment.status,
+                            tipoImovel: getPropertyLabel(appointment.propertyType),
+                            cep: appointment.cep,
+                            regiao: getRegionLabel(appointment.region),
+                            transporte: payment.transportTotal,
+                            valorTotal: payment.total,
+                            reserva: payment.reservation,
+                            saldo: payment.balance,
+                            pagamento: "Pix - aguardando conferência"
+                        })
                     });
-
-                    const unavailableDates = pendingAppointments.filter(function (appointment) {
-                        return latestAppointments.some(function (item) {
-                            return normalizeDate(item.dataAgendamento) === normalizeDate(appointment.date);
-                        });
-                    });
-
-                    if (unavailableDates.length > 0) {
-                        alert("Uma das datas escolhidas foi ocupada antes da confirmação. Volte e escolha outra data.");
-                        window.location.href = "index.html";
-                        return;
-                    }
-
-                    const payment = buildPaymentInfo(pendingAppointments);
-
-                    for (const appointment of pendingAppointments) {
-                        await fetch(apiUrl, {
-                            method: "POST",
-                            mode: "no-cors",
-                            body: JSON.stringify({
-                                id: appointment.id,
-                                dataEnvio: new Date().toLocaleString("pt-BR"),
-                                cliente: appointment.client,
-                                servico: appointment.service,
-                                dataAgendamento: appointment.date,
-                                horario: appointment.time,
-                                endereco: appointment.address,
-                                frequencia: appointment.contractType,
-                                observacoes: appointment.notes,
-                                whatsapp: appointment.whatsapp,
-                                status: appointment.status,
-                                tipoImovel: getPropertyLabel(appointment.propertyType),
-                                cep: appointment.cep,
-                                regiao: getRegionLabel(appointment.region),
-                                transporte: payment.transportTotal,
-                                valorTotal: payment.total,
-                                reserva: payment.reservation,
-                                saldo: payment.balance,
-                                pagamento: "Pix - aguardando conferência"
-                            })
-                        });
-                    }
-
-                    sendToWhatsApp(pendingAppointments);
-                    sessionStorage.removeItem("pendingAppointments");
-
-                    alert("Agendamento confirmado! A mensagem será enviada pelo WhatsApp.");
-                    window.location.href = "index.html";
-                } catch (error) {
-                    alert("Não foi possível confirmar o agendamento. Tente novamente.");
-                    confirmPaymentButton.dataset.loading = "false";
-                    confirmPaymentButton.disabled = false;
-                    confirmPaymentButton.classList.remove("is-loading");
-                    confirmPaymentButton.textContent = "Já paguei / confirmar agendamento";
                 }
+
+                sendToWhatsApp(pendingAppointments);
+                sessionStorage.removeItem("pendingAppointments");
+
+                alert("Agendamento confirmado! A mensagem será enviada pelo WhatsApp.");
+                window.location.href = "index.html";
+            } catch (error) {
+                alert("Não foi possível confirmar o agendamento. Tente novamente.");
+                confirmPaymentButton.dataset.loading = "false";
+                confirmPaymentButton.disabled = false;
+                confirmPaymentButton.classList.remove("is-loading");
+                confirmPaymentButton.textContent = "Já paguei / confirmar agendamento";
             }
+        }
 
-            function getServicePrice(propertyType) {
-                if (propertyType === "ate40") return 240;
-                if (propertyType === "ate55") return 250;
-                if (propertyType === "ate90") return 280;
-                if (propertyType === "ate100") return 310;
-                return 0;
-            }
+        function getServicePrice(propertyType) {
+            if (propertyType === "ate40") return 240;
+            if (propertyType === "ate55") return 250;
+            if (propertyType === "ate90") return 280;
+            if (propertyType === "ate100") return 310;
+            return 0;
+        }
 
-            function getTransportPrice(region) {
-                const fare = 5.60;
+        function getTransportPrice(region) {
+            const fare = 5.60;
 
-                if (region === "proxima") return fare * 2;
-                if (region === "distante") return fare * 4;
+            if (region === "proxima") return fare * 2;
+            if (region === "distante") return fare * 4;
 
-                return 0;
-            }
+            return 0;
+        }
 
-            function getPropertyLabel(propertyType) {
-                if (propertyType === "ate40") return "Apto/Casa até 40m²";
-                if (propertyType === "ate55") return "Apto/Casa de 40m² até 55m²";
-                if (propertyType === "ate90") return "Apto/Casa de 55m² até 90m²";
-                if (propertyType === "ate100") return "Apto/Casa de 90m² até 100m²";
-                if (propertyType === "acima150") return "Apto/Casa acima de 150m²";
-                if (propertyType === "posobra") return "Pós-obras";
-                return "Não informado";
-            }
+        function getPropertyLabel(propertyType) {
+            if (propertyType === "ate40") return "Apto/Casa até 40m²";
+            if (propertyType === "ate55") return "Apto/Casa de 40m² até 55m²";
+            if (propertyType === "ate90") return "Apto/Casa de 55m² até 90m²";
+            if (propertyType === "ate100") return "Apto/Casa de 90m² até 100m²";
+            if (propertyType === "acima150") return "Apto/Casa acima de 150m²";
+            if (propertyType === "posobra") return "Pós-obras";
+            return "Não informado";
+        }
 
-            function getRegionLabel(region) {
-                if (region === "proxima") return "Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente";
-                if (region === "distante") return "Diadema, Santo Amaro ou Zona Sul";
-                return "Outra região - confirmar pelo WhatsApp";
-            }
+        function getRegionLabel(region) {
+            if (region === "proxima") return "Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente";
+            if (region === "distante") return "Diadema, Santo Amaro ou Zona Sul";
+            return "Outra região - confirmar pelo WhatsApp";
+        }
 
-            function buildPaymentInfo(appointments) {
-                const firstAppointment = appointments[0];
-                const quantity = appointments.length;
+        function buildPaymentInfo(appointments) {
+            const firstAppointment = appointments[0];
+            const quantity = appointments.length;
 
-                const serviceUnitPrice = getServicePrice(firstAppointment.propertyType);
-                const transportUnitPrice = getTransportPrice(firstAppointment.region);
+            const serviceUnitPrice = getServicePrice(firstAppointment.propertyType);
+            const transportUnitPrice = getTransportPrice(firstAppointment.region);
 
-                const serviceTotal = serviceUnitPrice * quantity;
-                const transportTotal = transportUnitPrice * quantity;
-                const total = serviceTotal + transportTotal;
-                const reservation = total * 0.4;
-                const balance = total - reservation;
+            const serviceTotal = serviceUnitPrice * quantity;
+            const transportTotal = transportUnitPrice * quantity;
+            const total = serviceTotal + transportTotal;
+            const reservation = total * 0.4;
+            const balance = total - reservation;
 
-                return {
-                    quantity,
-                    serviceTotal,
-                    transportTotal,
-                    total,
-                    reservation,
-                    balance
-                };
-            }
+            return { quantity, serviceTotal, transportTotal, total, reservation, balance };
+        }
 
-            function sendToWhatsApp(generatedAppointments) {
-                const firstAppointment = generatedAppointments[0];
-                const payment = buildPaymentInfo(generatedAppointments);
-                const ticket = `HD-${String(firstAppointment.id).slice(-6)}`;
+        function sendToWhatsApp(generatedAppointments) {
+            const firstAppointment = generatedAppointments[0];
+            const payment = buildPaymentInfo(generatedAppointments);
+            const ticket = `HD-${String(firstAppointment.id).slice(-6)}`;
 
-                const datesText = generatedAppointments
-                    .map(function (appointment) {
-                        return `- ${formatDate(appointment.date)} às ${formatTime(appointment.time)}`;
-                    })
-                    .join("\n");
+            const datesText = generatedAppointments
+                .map(function (appointment) {
+                    return `- ${formatDate(appointment.date)} às ${formatTime(appointment.time)}`;
+                })
+                .join("\n");
 
-                const message = `
+            const message = `
 Olá! Nova solicitação de agendamento com reserva Pix:
 
 Ticket: ${ticket}
@@ -286,49 +278,49 @@ Saldo no dia: ${formatCurrency(payment.balance)}
 Transporte estimado: ${formatCurrency(payment.transportTotal)}
 
 Por favor, confirmar o agendamento diretamente com a cliente.
-            `;
+        `;
 
-                const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-                window.open(url, "_blank");
+            const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+            window.open(url, "_blank");
+        }
+
+        function normalizeDate(date) {
+            if (!date) return "";
+            const textDate = String(date);
+            if (textDate.includes("T")) return textDate.split("T")[0];
+            return textDate;
+        }
+
+        function formatDate(date) {
+            if (!date) return "";
+
+            const textDate = String(date);
+
+            if (textDate.includes("T")) {
+                const onlyDate = textDate.split("T")[0];
+                return new Date(onlyDate + "T00:00:00").toLocaleDateString("pt-BR");
             }
 
-            function normalizeDate(date) {
-                if (!date) return "";
-                const textDate = String(date);
-                if (textDate.includes("T")) return textDate.split("T")[0];
-                return textDate;
-            }
+            const parsedDate = new Date(textDate + "T00:00:00");
 
-            function formatDate(date) {
-                if (!date) return "";
+            if (isNaN(parsedDate.getTime())) return textDate;
 
-                const textDate = String(date);
+            return parsedDate.toLocaleDateString("pt-BR");
+        }
 
-                if (textDate.includes("T")) {
-                    const onlyDate = textDate.split("T")[0];
-                    return new Date(onlyDate + "T00:00:00").toLocaleDateString("pt-BR");
-                }
+        function formatTime(time) {
+            if (!time) return "";
+            const textTime = String(time).trim();
+            if (textTime.includes(":")) return textTime.slice(0, 5);
+            return textTime;
+        }
 
-                const parsedDate = new Date(textDate + "T00:00:00");
-
-                if (isNaN(parsedDate.getTime())) return textDate;
-
-                return parsedDate.toLocaleDateString("pt-BR");
-            }
-
-            function formatTime(time) {
-                if (!time) return "";
-                const textTime = String(time).trim();
-                if (textTime.includes(":")) return textTime.slice(0, 5);
-                return textTime;
-            }
-
-            function formatCurrency(value) {
-                return Number(value || 0).toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL"
-                });
-            }
+        function formatCurrency(value) {
+            return Number(value || 0).toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL"
+            });
+        }
     </script>
 </body>
 
