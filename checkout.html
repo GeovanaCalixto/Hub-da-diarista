@@ -189,6 +189,8 @@
         function getServicePrice(propertyType) {
             if (propertyType === "ate40") return 240;
             if (propertyType === "ate55") return 250;
+            if (propertyType === "ate90") return 280;
+            if (propertyType === "ate100") return 310;
             return 0;
         }
 
@@ -204,7 +206,9 @@
         function getPropertyLabel(propertyType) {
             if (propertyType === "ate40") return "Apto/Casa até 40m²";
             if (propertyType === "ate55") return "Apto/Casa de 40m² até 55m²";
-            if (propertyType === "acima55") return "Apto/Casa acima de 55m²";
+            if (propertyType === "ate90") return "Apto/Casa de 55m² até 90m²";
+            if (propertyType === "ate100") return "Apto/Casa de 90m² até 100m²";
+            if (propertyType === "acima150") return "Apto/Casa acima de 150m²";
             if (propertyType === "posobra") return "Pós-obras";
             return "Não informado";
         }

@@ -77,7 +77,9 @@
                         <option value="">Selecione</option>
                         <option value="ate40">Apto/Casa até 40m²</option>
                         <option value="ate55">Apto/Casa de 40m² até 55m²</option>
-                        <option value="acima55">Apto/Casa acima de 55m²</option>
+                        <option value="ate90">Apto/Casa de 55m² até 90m²</option>
+                        <option value="ate100">Apto/Casa de 90m² até 100m²</option>
+                        <option value="acima150">Apto/Casa acima de 150m²</option>
                         <option value="posobra">Pós-obras</option>
                     </select>
                 </label>
@@ -534,8 +536,14 @@
             sendStatusToClientWhatsApp(appointment, newStatus);
         }
 
-        function isCustomQuoteType(propertyType) {
-            return propertyType === "posobra" || propertyType === "acima55";
+        function getPropertyLabel(propertyType) {
+            if (propertyType === "ate40") return "Apto/Casa até 40m²";
+            if (propertyType === "ate55") return "Apto/Casa de 40m² até 55m²";
+            if (propertyType === "ate90") return "Apto/Casa de 55m² até 90m²";
+            if (propertyType === "ate100") return "Apto/Casa de 90m² até 100m²";
+            if (propertyType === "acima150") return "Apto/Casa acima de 150m²";
+            if (propertyType === "posobra") return "Pós-obras";
+            return "Não informado";
         }
 
         function sendCustomQuoteToWhatsApp(baseAppointment, generatedAppointments) {
@@ -621,7 +629,7 @@ Por favor, confirmar o agendamento diretamente com a cliente.
 
                     return `${formatTime(time)} - ${appointment.client || "Cliente"}`;
                 });
-                
+
             if (isWeekend(dateKey)) {
                 bookedSlots.push("Domingo");
             }
