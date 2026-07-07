@@ -149,7 +149,10 @@
                     <textarea id="notes" placeholder="Ex: tenho pets, preferência de acesso..."></textarea>
                 </label>
 
+                <p id="formMessage" class="form-message" aria-live="polite"></p>
+
                 <button id="submitButton" type="submit">Ir para checkout</button>
+
             </form>
         </section>
 
@@ -213,6 +216,8 @@
 
         const statusPrevButton = document.getElementById("statusPrev");
         const statusNextButton = document.getElementById("statusNext");
+        const submitButton = document.getElementById("submitButton");
+        const formMessage = document.getElementById("formMessage");
 
         let visibleMonth = new Date();
         visibleMonth.setDate(1);
@@ -257,6 +262,10 @@
 
         form.addEventListener("submit", function (event) {
             event.preventDefault();
+
+            if (form.dataset.loading === "true") {
+                return;
+            }
 
             if (!timeInput.value) {
                 alert("Selecione um horário.");
@@ -310,8 +319,13 @@
                 return;
             }
 
+            setFormLoading(true, "Preparando checkout, aguarde...");
+
             sessionStorage.setItem("pendingAppointments", JSON.stringify(generatedAppointments));
-            window.location.href = "checkout.html";
+
+            setTimeout(function () {
+                window.location.href = "checkout.html";
+            }, 500);
         });
 
         function loadAppointments() {
@@ -546,6 +560,10 @@
             return "Não informado";
         }
 
+        function isCustomQuoteType(propertyType) {
+            return propertyType === "posobra" || propertyType === "acima150";
+        }
+
         function sendCustomQuoteToWhatsApp(baseAppointment, generatedAppointments) {
             const ticket = `HD-${String(generatedAppointments[0].id).slice(-6)}`;
 
@@ -669,13 +687,7 @@ Por favor, confirmar o agendamento diretamente com a cliente.
             availabilityMessage.className = "availability-message available";
         }
 
-        function getPropertyLabel(propertyType) {
-            if (propertyType === "ate40") return "Apto/Casa até 40m²";
-            if (propertyType === "ate55") return "Apto/Casa de 40m² até 55m²";
-            if (propertyType === "acima55") return "Apto/Casa acima de 55m²";
-            if (propertyType === "posobra") return "Pós-obras";
-            return "Não informado";
-        }
+
 
         function getRegionLabel(region) {
             if (region === "proxima") return "Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente";
@@ -800,6 +812,16 @@ Obrigada!
             if (textTime.includes(":")) return textTime.slice(0, 5);
 
             return textTime;
+        }
+
+        function setFormLoading(isLoading, message) {
+            form.dataset.loading = isLoading ? "true" : "false";
+            submitButton.disabled = isLoading;
+            submitButton.classList.toggle("is-loading", isLoading);
+            submitButton.textContent = isLoading ? "Preparando checkout" : "Ir para checkout";
+
+            formMessage.textContent = message || "";
+            formMessage.classList.toggle("active", Boolean(message));
         }
 
         loadAppointments();

@@ -43,7 +43,7 @@ body {
     align-items: center;
     gap: 26px;
 }
- 
+
 
 .brand img {
     width: 190px;
@@ -2055,5 +2055,47 @@ body:has(#checkoutSummary) main {
         line-height: 1.2;
         padding: 12px;
         border-radius: 10px;
+    }
+}
+
+.form-message {
+    display: none;
+    margin-top: 10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #fff1f3;
+    color: #9f4050;
+    font-weight: 700;
+    text-align: center;
+}
+
+.form-message.active {
+    display: block;
+}
+
+button.is-loading,
+.confirm-payment-button.is-loading {
+    opacity: 0.75;
+    cursor: wait;
+    pointer-events: none;
+}
+
+button.is-loading::after,
+.confirm-payment-button.is-loading::after {
+    content: "";
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-left: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.55);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: -2px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
     }
 }
