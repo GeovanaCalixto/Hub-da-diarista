@@ -1,17 +1,14 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hub da Diarista</title>
 
     <link rel="icon" type="image/png" href="imagens/icon.png" />
-
     <link rel="stylesheet" href="hubdadiarista.css" />
 </head>
-
 
 <body>
     <header class="site-header">
@@ -152,7 +149,6 @@
                 <p id="formMessage" class="form-message" aria-live="polite"></p>
 
                 <button id="submitButton" type="submit">Ir para checkout</button>
-
             </form>
         </section>
 
@@ -583,17 +579,24 @@
                 })
                 .join(", ");
 
+            const datesList = generatedAppointments.map(function (appointment) {
+                return appointment.date;
+            });
+
             fetch(apiUrl, {
                 method: "POST",
                 mode: "no-cors",
                 body: JSON.stringify({
                     action: "saveCustomQuoteRequest",
+                    customQuote: true,
                     id: generatedAppointments[0].id,
                     dataSolicitacao: new Date().toLocaleString("pt-BR"),
                     cliente: baseAppointment.client,
                     whatsapp: baseAppointment.whatsapp,
                     servico: getPropertyLabel(baseAppointment.propertyType),
                     tipoImovel: getPropertyLabel(baseAppointment.propertyType),
+                    dataAgendamento: generatedAppointments[0].date,
+                    datasAgendamento: datesList,
                     datasSolicitadas: datesText,
                     horario: baseAppointment.time,
                     endereco: baseAppointment.address,
@@ -735,8 +738,6 @@ Depois das respostas, gerar o orçamento no painel admin.
             availabilityMessage.textContent = `${selectedDates.length} data(s) selecionada(s).`;
             availabilityMessage.className = "availability-message available";
         }
-
-
 
         function getRegionLabel(region) {
             if (region === "proxima") return "Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente";
