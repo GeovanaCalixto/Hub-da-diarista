@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Hub da Diarista</title>
+    <link rel="icon" type="image/png" href="imagens/icon.png" />
+    <link rel="stylesheet" href="hubdadiarista.css" />
+</head>
+
+<body class="admin-page">
+    <header class="site-header">
+        <div class="header-content">
+            <a class="brand" href="index.html">
+                <img src="imagens/Logotipo-hub.png" alt="Hub da Diarista" />
+            </a>
+
+            <nav class="main-nav">
+                <a href="index.html">Agendamento</a>
+                <a href="regulamentos.html">Regulamentos</a>
+            </nav>
+
+            <a class="header-button" href="#budgetForm">Gerar orçamento</a>
+        </div>
+    </header>
+
+    <main>
+        <section id="loginPanel" class="admin-login-card">
+            <h1>Painel administrativo</h1>
+            <p class="section-note">Acesso restrito para geração de orçamentos personalizados.</p>
+
+            <form id="loginForm">
+                <label>
+                    Usuário
+                    <input id="adminUser" type="text" required />
+                </label>
+
+                <label>
+                    Senha
+                    <input id="adminPassword" type="password" required />
+                </label>
+
+                <button type="submit">Entrar</button>
+                <p id="loginMessage" class="form-message" aria-live="polite"></p>
+            </form>
+        </section>
+
+        <div id="adminContent" class="admin-content hidden">
+            <section>
+                <div class="admin-title-row">
+                    <div>
+                        <h1>Orçamentos personalizados</h1>
+                        <p class="section-note">Selecione uma solicitação, preencha os detalhes e gere o orçamento.</p>
+                    </div>
+
+                    <button type="button" id="reloadRequestsButton">Atualizar lista</button>
+                </div>
+
+                <label>
+                    Solicitação da cliente
+                    <select id="quoteRequestSelect">
+                        <option value="">Carregando solicitações...</option>
+                    </select>
+                </label>
+
+                <div id="clientPreview" class="admin-client-preview">
+                    Nenhuma solicitação selecionada.
+                </div>
+            </section>
+
+            <section>
+                <h2>Gerador de orçamento</h2>
+
+                <form id="budgetForm" class="admin-grid-form">
+                    <label>
+                        Tipo de serviço base
+                        <select id="budgetServiceType" required>
+                            <option value="residencial">Limpeza Residencial Personalizada</option>
+                            <option value="posobra">Limpeza Pós-Obra</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Tamanho do local em m²
+                        <input id="squareMeters" type="number" min="1" step="1" placeholder="Ex: 120" required />
+                    </label>
+
+                    <label>
+                        Logística de produtos
+                        <select id="productKit" required>
+                            <option value="0">Cliente fornece os produtos - R$ 0,00</option>
+                            <option value="180">Kit 2 - Padrão Residencial Grande - R$ 180,00</option>
+                            <option value="300">Kit 1 - Padrão Pós-Obra - R$ 300,00</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Quantidade de eletrodomésticos internos
+                        <input id="appliances" type="number" min="0" step="1" value="0" />
+                    </label>
+
+                    <label class="admin-check">
+                        <input id="furnished" type="checkbox" />
+                        Imóvel mobiliado/com móveis (+15%)
+                    </label>
+
+                    <label class="admin-check">
+                        <input id="rubble" type="checkbox" />
+                        Presença de entulho/lixo pesado (+R$ 80,00)
+                    </label>
+
+                    <label class="admin-full">
+                        Observações do orçamento
+                        <textarea id="budgetNotes"
+                            placeholder="Ex: orçamento válido por 7 dias, detalhes combinados com a cliente..."></textarea>
+                    </label>
+                </form>
+            </section>
+
+            <section class="admin-budget-layout">
+                <div class="checkout-card pix-card">
+                    <h2>Pagamento Pix</h2>
+                    <p>Use o QR Code ou o código Pix para enviar junto com o orçamento.</p>
+
+                    <div class="pix-area">
+                        <img src="imagens/pix-qrcode.jpeg" alt="QR Code Pix" class="pix-qrcode" />
+
+                        <label>
+                            Pix copia e cola
+                            <textarea id="pixCode"
+                                readonly>00020126580014br.gov.bcb.pix013633d462cf-81ab-47a7-a90a-9e598856f43b27600016BR.COM.PAGSEGURO013653F9B06E-05AA-4633-BDD1-E37F75A9ECE35204549953039865802BR5925FRANCISCA ELIEUDA CALIXTO6009Sao Paulo62290525PAGS00000000026062911297163041922</textarea>
+                        </label>
+                    </div>
+
+                    <button type="button" id="copyPixButton" class="copy-pix-button">Copiar código Pix</button>
+                </div>
+
+                <aside class="checkout-summary-card admin-summary">
+                    <h2>Resumo do orçamento</h2>
+                    <div id="budgetSummary" class="checkout-summary-list"></div>
+
+                    <button type="button" id="saveBudgetButton">Salvar orçamento</button>
+                    <button type="button" id="sendBudgetButton">Enviar pelo WhatsApp</button>
+                    <button type="button" id="printBudgetButton">Gerar PDF / imprimir</button>
+                </aside>
+            </section>
+
+            <section>
+                <div class="status-header">
+                    <div>
+                        <h2>Histórico de orçamentos personalizados</h2>
+                        <p class="section-note">Use a busca para encontrar orçamento por cliente, serviço, data, status ou valor.</p>
+                    </div>
+
+                    <div class="status-controls">
+                        <button type="button" id="historyPrev">&lsaquo;</button>
+                        <button type="button" id="historyNext">&rsaquo;</button>
+                    </div>
+                </div>
+
+                <label class="search-box">
+                    Buscar orçamento
+                    <input id="historySearch" type="search" placeholder="Digite nome, serviço, data, status ou valor" />
+                </label>
+
+                <div id="quotesHistory" class="status-carousel admin-history"></div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        const apiUrl = "https://script.google.com/macros/s/AKfycbyo-_RD8L9wT4-mpDZSV9_OB5xlAWo_qBKcTamrvGNgCaB4IF6O8k1LED24nW0B7lxh/exec";
+
+        const ADMIN_USER = "admin";
+        const ADMIN_PASSWORD = "hub2026";
+
+        const loginPanel = document.getElementById("loginPanel");
+        const adminContent = document.getElementById("adminContent");
+        const loginForm = document.getElementById("loginForm");
+        const loginMessage = document.getElementById("loginMessage");
+
+        const quoteRequestSelect = document.getElementById("quoteRequestSelect");
+        const clientPreview = document.getElementById("clientPreview");
+        const budgetSummary = document.getElementById("budgetSummary");
+        const quotesHistory = document.getElementById("quotesHistory");
+        const historySearchInput = document.getElementById("historySearch");
+        const historyPrevButton = document.getElementById("historyPrev");
+        const historyNextButton = document.getElementById("historyNext");
+
+        const reloadRequestsButton = document.getElementById("reloadRequestsButton");
+        const copyPixButton = document.getElementById("copyPixButton");
+        const saveBudgetButton = document.getElementById("saveBudgetButton");
+        const sendBudgetButton = document.getElementById("sendBudgetButton");
+        const printBudgetButton = document.getElementById("printBudgetButton");
+
+        const budgetInputs = [
+            "budgetServiceType",
+            "squareMeters",
+            "productKit",
+            "appliances",
+            "furnished",
+            "rubble",
+            "budgetNotes"
+        ];
+
+        let quoteRequests = [];
+        let selectedQuote = null;
+        let currentBudget = null;
+
+        loginForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            const user = document.getElementById("adminUser").value.trim();
+            const password = document.getElementById("adminPassword").value.trim();
+
+            if (user === ADMIN_USER && password === ADMIN_PASSWORD) {
+                sessionStorage.setItem("hubAdminLogged", "true");
+                showAdmin();
+                return;
+            }
+
+            loginMessage.textContent = "Usuário ou senha inválidos.";
+            loginMessage.classList.add("active");
+        });
+
+        reloadRequestsButton.addEventListener("click", loadCustomQuoteRequests);
+
+        historySearchInput.addEventListener("input", renderHistory);
+
+        historyPrevButton.addEventListener("click", function () {
+            quotesHistory.scrollBy({ left: -320, behavior: "smooth" });
+        });
+
+        historyNextButton.addEventListener("click", function () {
+            quotesHistory.scrollBy({ left: 320, behavior: "smooth" });
+        });
+
+        quoteRequestSelect.addEventListener("change", function () {
+            selectedQuote = quoteRequests.find(function (item) {
+                return String(item.id) === String(quoteRequestSelect.value);
+            }) || null;
+
+            fillSelectedQuote();
+            calculateAndRenderBudget();
+        });
+
+        budgetInputs.forEach(function (id) {
+            document.getElementById(id).addEventListener("input", calculateAndRenderBudget);
+            document.getElementById(id).addEventListener("change", calculateAndRenderBudget);
+        });
+
+        copyPixButton.addEventListener("click", function () {
+            navigator.clipboard.writeText(document.getElementById("pixCode").value).then(function () {
+                alert("Código Pix copiado!");
+            });
+        });
+
+        saveBudgetButton.addEventListener("click", saveBudget);
+        sendBudgetButton.addEventListener("click", sendBudgetToWhatsApp);
+        printBudgetButton.addEventListener("click", function () {
+            window.print();
+        });
+
+        if (sessionStorage.getItem("hubAdminLogged") === "true") {
+            showAdmin();
+        }
+
+        function showAdmin() {
+            loginPanel.classList.add("hidden");
+            adminContent.classList.remove("hidden");
+            loadCustomQuoteRequests();
+        }
+
+        function loadCustomQuoteRequests() {
+            quoteRequestSelect.innerHTML = `<option value="">Carregando solicitações...</option>`;
+
+            fetch(`${apiUrl}?action=getCustomQuoteRequests`)
+                .then(function (response) {
+                    return response.json();
+                })
+                .then(function (data) {
+                    quoteRequests = data || [];
+                    renderQuoteOptions();
+                    renderHistory();
+                })
+                .catch(function () {
+                    quoteRequestSelect.innerHTML = `<option value="">Não foi possível carregar.</option>`;
+                });
+        }
+
+        function renderQuoteOptions() {
+            const pending = quoteRequests.filter(function (item) {
+                return item.status !== "Orçamento gerado";
+            });
+
+            if (pending.length === 0) {
+                quoteRequestSelect.innerHTML = `<option value="">Nenhuma solicitação pendente.</option>`;
+                return;
+            }
+
+            quoteRequestSelect.innerHTML = `<option value="">Selecione uma cliente</option>`;
+
+            pending.forEach(function (item) {
+                quoteRequestSelect.innerHTML += `
+                    <option value="${item.id}">
+                        ${item.cliente || "Cliente"} - ${item.servico || "Serviço"} - ${item.datasSolicitadas || ""}
+                    </option>
+                `;
+            });
+        }
+
+        function fillSelectedQuote() {
+            if (!selectedQuote) {
+                clientPreview.innerHTML = "Nenhuma solicitação selecionada.";
+                return;
+            }
+
+            const serviceType = String(selectedQuote.servico || "").toLowerCase().includes("pós")
+                ? "posobra"
+                : "residencial";
+
+            document.getElementById("budgetServiceType").value = serviceType;
+
+            clientPreview.innerHTML = `
+                <strong>${selectedQuote.cliente || "Cliente"}</strong>
+                <span>WhatsApp: ${selectedQuote.whatsapp || "-"}</span>
+                <span>Serviço solicitado: ${selectedQuote.servico || "-"}</span>
+                <span>Datas: ${selectedQuote.datasSolicitadas || "-"}</span>
+                <span>Endereço: ${selectedQuote.endereco || "-"}</span>
+                <span>CEP: ${selectedQuote.cep || "-"}</span>
+                <span>Região: ${selectedQuote.regiao || "-"}</span>
+                <span>Observações: ${selectedQuote.observacoes || "-"}</span>
+            `;
+        }
+
+        function calculateAndRenderBudget() {
+            const result = calculateBudget();
+            currentBudget = result;
+
+            budgetSummary.innerHTML = `
+                <p><b>Tipo:</b> ${getServiceLabel(result.serviceType)}</p>
+                <p><b>Metragem:</b> ${result.squareMeters}m²</p>
+                <p><b>Valor por m²:</b> ${formatCurrency(result.pricePerMeter)}</p>
+
+                <hr>
+
+                <p class="summary-line"><span>Valor bruto:</span> <strong>${formatCurrency(result.grossValue)}</strong></p>
+                <p class="summary-line"><span>Acréscimo mobiliado:</span> <strong>${formatCurrency(result.furnishedFee)}</strong></p>
+                <p class="summary-line"><span>Entulho/lixo pesado:</span> <strong>${formatCurrency(result.rubbleFee)}</strong></p>
+                <p class="summary-line"><span>Eletrodomésticos:</span> <strong>${formatCurrency(result.appliancesFee)}</strong></p>
+                <p class="summary-line"><span>Produtos:</span> <strong>${formatCurrency(result.productKit)}</strong></p>
+
+                <hr>
+
+                <p class="summary-line"><span>Valor total:</span> <strong>${formatCurrency(result.total)}</strong></p>
+                <p class="summary-line reserve"><span>40% antecipado:</span> <strong>${formatCurrency(result.reservation)}</strong></p>
+                <p class="summary-line pay-now"><span>Valor para reserva:</span> <strong>${formatCurrency(result.reservation)}</strong></p>
+                <p class="summary-balance">Saldo após conclusão:<br><strong>${formatCurrency(result.balance)}</strong></p>
+            `;
+        }
+
+        function calculateBudget() {
+            const serviceType = document.getElementById("budgetServiceType").value;
+            const squareMeters = Number(document.getElementById("squareMeters").value || 0);
+            const productKit = Number(document.getElementById("productKit").value || 0);
+            const furnished = document.getElementById("furnished").checked;
+            const rubble = document.getElementById("rubble").checked;
+            const appliances = Number(document.getElementById("appliances").value || 0);
+
+            const pricePerMeter = serviceType === "posobra" ? 8.50 : 3.50;
+            const grossValue = squareMeters * pricePerMeter;
+            const furnishedFee = furnished ? grossValue * 0.15 : 0;
+            const rubbleFee = rubble ? 80 : 0;
+            const appliancesFee = appliances * 30;
+            const additions = furnishedFee + rubbleFee + appliancesFee + productKit;
+            const total = grossValue + additions;
+            const reservation = total * 0.4;
+            const balance = total - reservation;
+
+            return {
+                serviceType,
+                squareMeters,
+                pricePerMeter,
+                productKit,
+                furnished,
+                rubble,
+                appliances,
+                grossValue,
+                furnishedFee,
+                rubbleFee,
+                appliancesFee,
+                additions,
+                total,
+                reservation,
+                balance
+            };
+        }
+
+        function saveBudget() {
+            if (!selectedQuote) {
+                alert("Selecione uma solicitação antes de salvar.");
+                return;
+            }
+
+            calculateAndRenderBudget();
+
+            fetch(apiUrl, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify({
+                    action: "saveCustomQuoteResult",
+                    id: selectedQuote.id,
+                    status: "Orçamento gerado",
+                    metragem: currentBudget.squareMeters,
+                    produtos: getProductKitLabel(currentBudget.productKit),
+                    mobiliado: currentBudget.furnished ? "Sim" : "Não",
+                    entulho: currentBudget.rubble ? "Sim" : "Não",
+                    qtdEletrodomesticos: currentBudget.appliances,
+                    valorBruto: currentBudget.grossValue,
+                    acrescimos: currentBudget.additions,
+                    valorTotal: currentBudget.total,
+                    reserva: currentBudget.reservation,
+                    saldo: currentBudget.balance,
+                    dataOrcamento: new Date().toLocaleString("pt-BR")
+                })
+            });
+
+            alert("Orçamento salvo na planilha.");
+            loadCustomQuoteRequests();
+        }
+
+        function sendBudgetToWhatsApp() {
+            if (!selectedQuote || !currentBudget) {
+                alert("Selecione uma solicitação e gere o orçamento primeiro.");
+                return;
+            }
+
+            const phone = formatWhatsAppNumber(selectedQuote.whatsapp);
+
+            if (!phone) {
+                alert("WhatsApp da cliente não encontrado.");
+                return;
+            }
+
+            const message = `
+Olá, ${selectedQuote.cliente}! Segue o orçamento personalizado:
+
+Serviço: ${getServiceLabel(currentBudget.serviceType)}
+Datas solicitadas: ${selectedQuote.datasSolicitadas || "-"}
+Metragem considerada: ${currentBudget.squareMeters}m²
+
+Valor total: ${formatCurrency(currentBudget.total)}
+Reserva de 40%: ${formatCurrency(currentBudget.reservation)}
+Saldo após conclusão do serviço: ${formatCurrency(currentBudget.balance)}
+
+Detalhes:
+- Produtos: ${getProductKitLabel(currentBudget.productKit)}
+- Imóvel mobiliado: ${currentBudget.furnished ? "Sim" : "Não"}
+- Entulho/lixo pesado: ${currentBudget.rubble ? "Sim" : "Não"}
+- Eletrodomésticos internos: ${currentBudget.appliances}
+
+Pix copia e cola:
+${document.getElementById("pixCode").value}
+
+Após o pagamento da reserva, o agendamento fica pendente de confirmação.
+            `;
+
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank");
+        }
+
+        function renderHistory() {
+            const searchTerm = historySearchInput.value.trim().toLowerCase();
+
+            const filteredQuotes = quoteRequests
+                .filter(function (item) {
+                    if (!searchTerm) {
+                        return true;
+                    }
+
+                    const searchableText = [
+                        item.cliente,
+                        item.whatsapp,
+                        item.servico,
+                        item.tipoImovel,
+                        item.datasSolicitadas,
+                        item.horario,
+                        item.endereco,
+                        item.cep,
+                        item.regiao,
+                        item.observacoes,
+                        item.status,
+                        item.metragem,
+                        item.valorTotal,
+                        item.reserva,
+                        item.saldo,
+                        item.dataOrcamento
+                    ].join(" ").toLowerCase();
+
+                    return searchableText.includes(searchTerm);
+                })
+                .slice()
+                .reverse();
+
+            if (filteredQuotes.length === 0) {
+                quotesHistory.innerHTML = `
+                    <article class="status-card admin-history-card">
+                        <strong>Nenhum orçamento encontrado</strong>
+                        <p>Tente buscar por outro nome, serviço, data ou status.</p>
+                    </article>
+                `;
+                return;
+            }
+
+            quotesHistory.innerHTML = "";
+
+            filteredQuotes.forEach(function (item) {
+                quotesHistory.innerHTML += `
+                    <article class="status-card admin-history-card">
+                        <div class="status-card-top">
+                            <span class="client-badge">${item.cliente || "Cliente"}</span>
+                            <strong>${item.status || "Aguardando orçamento"}</strong>
+                        </div>
+                        <p><b>Serviço:</b> ${item.servico || "-"}</p>
+                        <p><b>Datas:</b> ${item.datasSolicitadas || "-"}</p>
+                        <p><b>WhatsApp:</b> ${item.whatsapp || "-"}</p>
+                        <p><b>Metragem:</b> ${item.metragem || "-"}</p>
+                        <p><b>Valor total:</b> ${item.valorTotal ? formatCurrency(item.valorTotal) : "-"}</p>
+                        <p><b>Reserva:</b> ${item.reserva ? formatCurrency(item.reserva) : "-"}</p>
+                    </article>
+                `;
+            });
+        }
+
+        function getServiceLabel(serviceType) {
+            return serviceType === "posobra" ? "Limpeza Pós-Obra" : "Limpeza Residencial Personalizada";
+        }
+
+        function getProductKitLabel(value) {
+            if (Number(value) === 180) return "Kit 2 - Padrão Residencial Grande";
+            if (Number(value) === 300) return "Kit 1 - Padrão Pós-Obra";
+            return "Cliente fornece os produtos";
+        }
+
+        function formatWhatsAppNumber(value) {
+            if (!value) return "";
+            let phone = String(value).replace(/\D/g, "");
+
+            if (phone.length === 10 || phone.length === 11) {
+                phone = "55" + phone;
+            }
+
+            return phone;
+        }
+
+        function formatCurrency(value) {
+            return Number(value || 0).toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL"
+            });
+        }
+
+        calculateAndRenderBudget();
+    </script>
+</body>
+
+</html>
