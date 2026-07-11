@@ -2306,3 +2306,13 @@ button.is-loading::after,
         margin: 16mm;
     }
 }
+
+.admin-nav-link {
+    font-size: 12px !important;
+    opacity: 0.55;
+    padding: 6px 8px !important;
+}
+
+.admin-nav-link:hover {
+    opacity: 1;
+}
