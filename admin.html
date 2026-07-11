@@ -368,7 +368,7 @@
             const rubble = document.getElementById("rubble").checked;
             const appliances = Number(document.getElementById("appliances").value || 0);
 
-            const pricePerMeter = serviceType === "posobra" ? 8.50 : 3.50;
+            const pricePerMeter = serviceType === "posobra" ? 15.50 : 8.50;
             const grossValue = squareMeters * pricePerMeter;
             const furnishedFee = furnished ? grossValue * 0.15 : 0;
             const rubbleFee = rubble ? 80 : 0;
