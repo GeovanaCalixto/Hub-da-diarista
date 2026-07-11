@@ -13,115 +13,41 @@
 <body>
     <header class="site-header">
         <div class="header-content">
-            <a class="brand" href="index.html">
-                <img src="imagens/Logotipo-hub.png" alt="Hub da Diarista" />
-            </a>
+            <div class="brand-area">
+                <a class="brand" href="index.html">
+                    <img src="imagens/Logotipo-hub.png" alt="Hub da Diarista" />
+                </a>
+
+                <a class="admin-under-logo" href="admin.html">Admin</a>
+            </div>
 
             <nav class="main-nav">
                 <a href="index.html">Agendamento</a>
                 <a href="regulamentos.html">Regulamentos</a>
-                <a href="admin.html" class="admin-nav-link" title="Acesso administrativo">Admin</a>
             </nav>
-            
+
             <a class="header-button" href="#appointmentForm">Solicitar agendamento</a>
         </div>
     </header>
 
     <main>
-        <section>
-            <div class="calendar-header">
-                <div>
-                    <h2>Calendário de agendamentos</h2>
-                    <p class="section-note">Dias preenchidos aparecem como indisponíveis.</p>
-                </div>
-
-                <div class="calendar-controls">
-                    <button type="button" id="prevMonth">&lsaquo;</button>
-                    <strong id="currentMonthLabel"></strong>
-                    <button type="button" id="nextMonth">&rsaquo;</button>
-                </div>
-            </div>
-
-            <div class="calendar-weekdays">
-                <span>Dom</span>
-                <span>Seg</span>
-                <span>Ter</span>
-                <span>Qua</span>
-                <span>Qui</span>
-                <span>Sex</span>
-                <span>Sáb</span>
-            </div>
-
-            <div id="calendar" class="calendar-month"></div>
-        </section>
-
-        <section>
-            <h2>Solicitar agendamento</h2>
-
-            <form id="appointmentForm">
-                <label>
-                    Nome da cliente
-                    <input id="client" type="text" placeholder="Digite seu nome" required />
-                </label>
-
-                <label>
-                    WhatsApp da cliente
-                    <input id="whatsapp" type="tel" placeholder="Ex: 11999999999" required />
-                </label>
-
-                <label>
-                    Tipo de serviço/imóvel
-                    <select id="propertyType" required>
-                        <option value="">Selecione</option>
-                        <option value="ate40">Apto/Casa até 40m²</option>
-                        <option value="ate55">Apto/Casa de 40m² até 55m²</option>
-                        <option value="ate90">Apto/Casa de 55m² até 90m²</option>
-                        <option value="ate100">Apto/Casa de 90m² até 100m²</option>
-                        <option value="acima150">Apto/Casa acima de 150m²</option>
-                        <option value="posobra">Pós-obras</option>
-                    </select>
-                </label>
-
-                <label>
-                    CEP do local
-                    <input id="cep" type="text" placeholder="Ex: 03200-000" required />
-                </label>
-
-                <label>
-                    Região para deslocamento
-                    <select id="region" required>
-                        <option value="">Selecione</option>
-                        <option value="proxima">Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente</option>
-                        <option value="distante">Diadema, Santo Amaro ou Zona Sul</option>
-                        <option value="custom">Outra região</option>
-                    </select>
-                </label>
-
-                <label>
-                    Horário de início
-                    <select id="time" required>
-                        <option value="">Selecione</option>
-                        <option value="06:00">06:00</option>
-                        <option value="07:00">07:00</option>
-                        <option value="08:00">08:00</option>
-                    </select>
-                </label>
-
-                <div class="mini-calendar-box">
-                    <div class="calendar-header mini">
+        <div class="home-layout">
+            <div class="home-left-column">
+                <section>
+                    <div class="calendar-header">
                         <div>
-                            <h3>Escolha as datas</h3>
-                            <p class="section-note">Clique nos dias disponíveis. Clique novamente para desmarcar.</p>
+                            <h2>Calendário de agendamentos</h2>
+                            <p class="section-note">Dias preenchidos aparecem como indisponíveis.</p>
                         </div>
 
                         <div class="calendar-controls">
-                            <button type="button" id="prevMiniMonth">&lsaquo;</button>
-                            <strong id="miniMonthLabel"></strong>
-                            <button type="button" id="nextMiniMonth">&rsaquo;</button>
+                            <button type="button" id="prevMonth">&lsaquo;</button>
+                            <strong id="currentMonthLabel"></strong>
+                            <button type="button" id="nextMonth">&rsaquo;</button>
                         </div>
                     </div>
 
-                    <div class="calendar-weekdays mini-weekdays">
+                    <div class="calendar-weekdays">
                         <span>Dom</span>
                         <span>Seg</span>
                         <span>Ter</span>
@@ -131,53 +57,138 @@
                         <span>Sáb</span>
                     </div>
 
-                    <div id="miniCalendar" class="mini-calendar"></div>
+                    <div id="calendar" class="calendar-month"></div>
+                </section>
 
-                    <p id="selectedDatesText" class="selected-dates-text">Nenhuma data selecionada.</p>
-                    <p id="availabilityMessage" class="availability-message"></p>
-                </div>
+                <section>
+                    <div class="status-header">
+                        <div>
+                            <h2>Status dos agendamentos</h2>
+                            <p class="section-note">Por padrão, aparecem os agendamentos mais recentes. Use a busca para
+                                encontrar qualquer registro.</p>
+                        </div>
 
-                <label>
-                    Endereço
-                    <input id="address" type="text" placeholder="Rua, número e bairro" required />
-                </label>
+                        <div class="status-controls">
+                            <button type="button" id="statusPrev">&lsaquo;</button>
+                            <button type="button" id="statusNext">&rsaquo;</button>
+                        </div>
+                    </div>
 
-                <label>
-                    Observações
-                    <textarea id="notes" placeholder="Ex: tenho pets, preferência de acesso..."></textarea>
-                </label>
+                    <label class="search-box">
+                        Buscar agendamento
+                        <input id="statusSearch" type="search"
+                            placeholder="Digite nome, data, serviço, endereço ou status" />
+                    </label>
 
-                <p id="formMessage" class="form-message" aria-live="polite"></p>
-
-                <button id="submitButton" type="submit">Ir para checkout</button>
-            </form>
-        </section>
-
-        <section>
-            <div class="status-header">
-                <div>
-                    <h2>Status dos agendamentos</h2>
-                    <p class="section-note">Por padrão, aparecem os agendamentos mais recentes. Use a busca para
-                        encontrar qualquer registro.</p>
-                </div>
-
-                <div class="status-controls">
-                    <button type="button" id="statusPrev">&lsaquo;</button>
-                    <button type="button" id="statusNext">&rsaquo;</button>
-                </div>
+                    <div id="appointmentsTable" class="status-carousel"></div>
+                </section>
             </div>
 
-            <label class="search-box">
-                Buscar agendamento
-                <input id="statusSearch" type="search" placeholder="Digite nome, data, serviço, endereço ou status" />
-            </label>
+            <section class="appointment-side-panel">
+                <h2>Solicitar agendamento</h2>
 
-            <div id="appointmentsTable" class="status-carousel"></div>
-        </section>
+                <form id="appointmentForm">
+                    <label>
+                        Nome da cliente
+                        <input id="client" type="text" placeholder="Digite seu nome" required />
+                    </label>
+
+                    <label>
+                        WhatsApp da cliente
+                        <input id="whatsapp" type="tel" placeholder="Ex: 11999999999" required />
+                    </label>
+
+                    <label>
+                        Tipo de serviço/imóvel
+                        <select id="propertyType" required>
+                            <option value="">Selecione</option>
+                            <option value="ate40">Apto/Casa até 40m²</option>
+                            <option value="ate55">Apto/Casa de 40m² até 55m²</option>
+                            <option value="ate90">Apto/Casa de 55m² até 90m²</option>
+                            <option value="ate100">Apto/Casa de 90m² até 100m²</option>
+                            <option value="acima150">Apto/Casa acima de 150m²</option>
+                            <option value="posobra">Pós-obras</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        CEP do local
+                        <input id="cep" type="text" placeholder="Ex: 03200-000" required />
+                    </label>
+
+                    <label>
+                        Região para deslocamento
+                        <select id="region" required>
+                            <option value="">Selecione</option>
+                            <option value="proxima">Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente
+                            </option>
+                            <option value="distante">Diadema, Santo Amaro ou Zona Sul</option>
+                            <option value="custom">Outra região</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Horário de início
+                        <select id="time" required>
+                            <option value="">Selecione</option>
+                            <option value="06:00">06:00</option>
+                            <option value="07:00">07:00</option>
+                            <option value="08:00">08:00</option>
+                        </select>
+                    </label>
+
+                    <div class="mini-calendar-box">
+                        <div class="calendar-header mini">
+                            <div>
+                                <h3>Escolha as datas</h3>
+                                <p class="section-note">Clique nos dias disponíveis. Clique novamente para desmarcar.
+                                </p>
+                            </div>
+
+                            <div class="calendar-controls">
+                                <button type="button" id="prevMiniMonth">&lsaquo;</button>
+                                <strong id="miniMonthLabel"></strong>
+                                <button type="button" id="nextMiniMonth">&rsaquo;</button>
+                            </div>
+                        </div>
+
+                        <div class="calendar-weekdays mini-weekdays">
+                            <span>Dom</span>
+                            <span>Seg</span>
+                            <span>Ter</span>
+                            <span>Qua</span>
+                            <span>Qui</span>
+                            <span>Sex</span>
+                            <span>Sáb</span>
+                        </div>
+
+                        <div id="miniCalendar" class="mini-calendar"></div>
+
+                        <p id="selectedDatesText" class="selected-dates-text">Nenhuma data selecionada.</p>
+                        <p id="availabilityMessage" class="availability-message"></p>
+                    </div>
+
+                    <label>
+                        Endereço
+                        <input id="address" type="text" placeholder="Rua, número e bairro" required />
+                    </label>
+
+                    <label>
+                        Observações
+                        <textarea id="notes" placeholder="Ex: tenho pets, preferência de acesso..."></textarea>
+                    </label>
+
+                    <p id="formMessage" class="form-message" aria-live="polite"></p>
+
+                    <button id="submitButton" type="submit">Ir para checkout</button>
+                </form>
+            </section>
+        </div>
     </main>
 
     <script>
-        const apiUrl = "https://script.google.com/macros/s/AKfycbyo-_RD8L9wT4-mpDZSV9_OB5xlAWo_qBKcTamrvGNgCaB4IF6O8k1LED24nW0B7lxh/exec"; const whatsappNumber = "5511932118634";
+        const apiUrl = "https://script.google.com/macros/s/AKfycbyo-_RD8L9wT4-mpDZSV9_OB5xlAWo_qBKcTamrvGNgCaB4IF6O8k1LED24nW0B7lxh/exec";
+        const whatsappNumber = "5511932118634";
 
         const appointments = [];
         const selectedDates = [];
