@@ -315,7 +315,19 @@
                 });
 
             if (isCustomQuoteType(baseAppointment.propertyType)) {
-                sendCustomQuoteToWhatsApp(baseAppointment, generatedAppointments);
+                setFormLoading(true, "Enviando solicitação personalizada...");
+
+                saveCustomQuoteRequest(baseAppointment, generatedAppointments);
+
+                setTimeout(function () {
+                    sendCustomQuoteToWhatsApp(baseAppointment, generatedAppointments);
+                    setFormLoading(false, "");
+                    form.reset();
+                    selectedDates.length = 0;
+                    updateSelectedDatesText();
+                    renderMiniCalendar();
+                }, 700);
+
                 return;
             }
 
@@ -564,6 +576,35 @@
             return propertyType === "posobra" || propertyType === "acima150";
         }
 
+        function saveCustomQuoteRequest(baseAppointment, generatedAppointments) {
+            const datesText = generatedAppointments
+                .map(function (appointment) {
+                    return `${formatDate(appointment.date)} às ${formatTime(appointment.time)}`;
+                })
+                .join(", ");
+
+            fetch(apiUrl, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify({
+                    action: "saveCustomQuoteRequest",
+                    id: generatedAppointments[0].id,
+                    dataSolicitacao: new Date().toLocaleString("pt-BR"),
+                    cliente: baseAppointment.client,
+                    whatsapp: baseAppointment.whatsapp,
+                    servico: getPropertyLabel(baseAppointment.propertyType),
+                    tipoImovel: getPropertyLabel(baseAppointment.propertyType),
+                    datasSolicitadas: datesText,
+                    horario: baseAppointment.time,
+                    endereco: baseAppointment.address,
+                    cep: baseAppointment.cep,
+                    regiao: getRegionLabel(baseAppointment.region),
+                    observacoes: baseAppointment.notes,
+                    status: "Aguardando orçamento"
+                })
+            });
+        }
+
         function sendCustomQuoteToWhatsApp(baseAppointment, generatedAppointments) {
             const ticket = `HD-${String(generatedAppointments[0].id).slice(-6)}`;
 
@@ -574,10 +615,10 @@
                 .join("\n");
 
             const message = `
-Olá! Nova solicitação de agendamento para confirmação:
+Olá! Nova solicitação de orçamento personalizado:
 
 Ticket: ${ticket}
-Status solicitado: Aguardando confirmação
+Status solicitado: Aguardando orçamento
 Tipo: Cotação personalizada
 Serviço: ${getPropertyLabel(baseAppointment.propertyType)}
 
@@ -592,8 +633,16 @@ ${datesText}
 Endereço: ${baseAppointment.address}
 Observações: ${baseAppointment.notes || "Nenhuma"}
 
-Por favor, confirmar o agendamento diretamente com a cliente.
-            `;
+Perguntas para fechar o orçamento:
+1. Qual a metragem aproximada do local?
+2. O imóvel está mobiliado?
+3. Há entulho, lixo pesado ou resíduo de obra?
+4. Precisa de limpeza interna de eletrodomésticos? Quantos?
+5. A cliente fornece os produtos de limpeza?
+6. Pode enviar fotos ou vídeo do local?
+
+Depois das respostas, gerar o orçamento no painel admin.
+`;
 
             const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
             window.open(url, "_blank");
