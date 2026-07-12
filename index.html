@@ -433,6 +433,7 @@
             for (let day = 1; day <= lastDay.getDate(); day++) {
                 const date = new Date(year, month, day);
                 const dateKey = formatDateKey(date);
+                const isPast = isPastDate(dateKey);
                 const unavailableSlots = getUnavailableSlotsByDate(dateKey);
                 const isToday = dateKey === formatDateKey(new Date());
                 const selected = selectedDates.includes(dateKey);
@@ -440,7 +441,7 @@
 
                 const cellClass = [
                     "calendar-cell",
-                    unavailableSlots.length > 0 ? "occupied" : "available",
+                    unavailable ? "occupied" : "available",
                     isToday ? "today" : "",
                     selected ? "selected" : "",
                     isSelectable && unavailable ? "blocked" : ""
@@ -454,7 +455,7 @@
                     <${element} class="${cellClass}" ${buttonAttribute} ${clickAttribute}>
                         <div class="calendar-day-number">${day}</div>
                         <div class="calendar-day-status">
-                            ${selected ? "Selecionado" : unavailableSlots.length > 0 ? "Ocupado" : "Livre"}
+                            ${selected ? "Selecionado" : isPast ? "Data passada" : unavailable ? "Ocupado" : "Livre"}
                         </div>
                         ${unavailableSlots.length > 0
                         ? `<div class="calendar-slots">
@@ -711,6 +712,10 @@ Depois das respostas, gerar o orçamento no painel admin.
                     return `${formatTime(time)} - ${appointment.client || "Cliente"}`;
                 });
 
+            if (isPastDate(dateKey)) {
+                bookedSlots.push("Indisponível");
+            }
+
             if (isWeekend(dateKey)) {
                 bookedSlots.push("Domingo");
             }
@@ -720,6 +725,10 @@ Depois das respostas, gerar o orçamento no painel admin.
 
         function isDateUnavailable(date) {
             const normalizedDate = normalizeDate(date);
+
+            if (isPastDate(normalizedDate)) {
+                return true;
+            }
 
             if (isWeekend(normalizedDate)) {
                 return true;
@@ -797,6 +806,11 @@ Obrigada!
             const day = String(date.getDate()).padStart(2, "0");
 
             return `${year}-${month}-${day}`;
+        }
+
+        function isPastDate(dateKey) {
+            const today = formatDateKey(new Date());
+            return String(dateKey) < today;
         }
 
         function normalizeDate(date) {
