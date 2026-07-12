@@ -100,6 +100,27 @@
                         <input id="appliances" type="number" min="0" step="1" value="0" />
                     </label>
 
+                    <label>
+                        Desconto em R$
+                        <input id="discount" type="number" min="0" step="0.01" value="0" />
+                    </label>
+
+                    <label>
+                        Status do orçamento
+                        <select id="quoteStatus" required>
+                            <option>Orçamento solicitado</option>
+                            <option>Orçamento em análise</option>
+                            <option>Orçamento enviado para cliente</option>
+                            <option>Aguardando retorno da cliente</option>
+                            <option>Aguardando confirmação do orçamento</option>
+                            <option>Orçamento aprovado</option>
+                            <option>Orçamento recusado</option>
+                            <option>Serviço agendado</option>
+                            <option>Serviço finalizado</option>
+                            <option>Pagamento realizado</option>
+                        </select>
+                    </label>
+
                     <label class="admin-check">
                         <input id="furnished" type="checkbox" />
                         Imóvel mobiliado/com móveis (+15%)
@@ -112,8 +133,13 @@
 
                     <label class="admin-full">
                         Observações do orçamento
-                        <textarea id="budgetNotes"
-                            placeholder="Ex: orçamento válido por 7 dias, detalhes combinados com a cliente..."></textarea>
+                        <textarea id="budgetNotes" placeholder="Ex: detalhes combinados com a cliente..."></textarea>
+                    </label>
+
+                    <label class="admin-full">
+                        Condições do orçamento
+                        <textarea id="budgetConditions"
+                            placeholder="Ex: orçamento válido por 7 dias. Reserva de 40% para confirmação. Saldo no dia do serviço."></textarea>
                     </label>
                 </form>
             </section>
@@ -150,7 +176,8 @@
                 <div class="status-header">
                     <div>
                         <h2>Histórico de orçamentos personalizados</h2>
-                        <p class="section-note">Use a busca para encontrar orçamento por cliente, serviço, data, status ou valor.</p>
+                        <p class="section-note">Use a busca para encontrar orçamento por cliente, serviço, data, status
+                            ou valor.</p>
                     </div>
 
                     <div class="status-controls">
@@ -174,6 +201,19 @@
 
         const ADMIN_USER = "admin";
         const ADMIN_PASSWORD = "hub2026";
+
+        const quoteStatusOptions = [
+            "Orçamento solicitado",
+            "Orçamento em análise",
+            "Orçamento enviado para cliente",
+            "Aguardando retorno da cliente",
+            "Aguardando confirmação do orçamento",
+            "Orçamento aprovado",
+            "Orçamento recusado",
+            "Serviço agendado",
+            "Serviço finalizado",
+            "Pagamento realizado"
+        ];
 
         const loginPanel = document.getElementById("loginPanel");
         const adminContent = document.getElementById("adminContent");
@@ -199,9 +239,12 @@
             "squareMeters",
             "productKit",
             "appliances",
+            "discount",
+            "quoteStatus",
             "furnished",
             "rubble",
-            "budgetNotes"
+            "budgetNotes",
+            "budgetConditions"
         ];
 
         let quoteRequests = [];
@@ -246,8 +289,9 @@
         });
 
         budgetInputs.forEach(function (id) {
-            document.getElementById(id).addEventListener("input", calculateAndRenderBudget);
-            document.getElementById(id).addEventListener("change", calculateAndRenderBudget);
+            const element = document.getElementById(id);
+            element.addEventListener("input", calculateAndRenderBudget);
+            element.addEventListener("change", calculateAndRenderBudget);
         });
 
         copyPixButton.addEventListener("click", function () {
@@ -290,24 +334,23 @@
         }
 
         function renderQuoteOptions() {
-            const pending = quoteRequests.filter(function (item) {
-                return item.status !== "Orçamento gerado";
-            });
-
-            if (pending.length === 0) {
-                quoteRequestSelect.innerHTML = `<option value="">Nenhuma solicitação pendente.</option>`;
+            if (quoteRequests.length === 0) {
+                quoteRequestSelect.innerHTML = `<option value="">Nenhuma solicitação encontrada.</option>`;
                 return;
             }
 
             quoteRequestSelect.innerHTML = `<option value="">Selecione uma cliente</option>`;
 
-            pending.forEach(function (item) {
-                quoteRequestSelect.innerHTML += `
-                    <option value="${item.id}">
-                        ${item.cliente || "Cliente"} - ${item.servico || "Serviço"} - ${item.datasSolicitadas || ""}
-                    </option>
-                `;
-            });
+            quoteRequests
+                .slice()
+                .reverse()
+                .forEach(function (item) {
+                    quoteRequestSelect.innerHTML += `
+                        <option value="${item.id}">
+                            ${item.cliente || "Cliente"} - ${item.servico || "Serviço"} - ${item.statusOrcamento || item.status || "Aguardando orçamento"}
+                        </option>
+                    `;
+                });
         }
 
         function fillSelectedQuote() {
@@ -321,6 +364,13 @@
                 : "residencial";
 
             document.getElementById("budgetServiceType").value = serviceType;
+            document.getElementById("quoteStatus").value = selectedQuote.statusOrcamento || selectedQuote.status || "Orçamento solicitado";
+            document.getElementById("discount").value = selectedQuote.desconto || 0;
+            document.getElementById("budgetConditions").value = selectedQuote.condicoesOrcamento || "";
+
+            if (selectedQuote.metragem) {
+                document.getElementById("squareMeters").value = selectedQuote.metragem;
+            }
 
             clientPreview.innerHTML = `
                 <strong>${selectedQuote.cliente || "Cliente"}</strong>
@@ -330,6 +380,7 @@
                 <span>Endereço: ${selectedQuote.endereco || "-"}</span>
                 <span>CEP: ${selectedQuote.cep || "-"}</span>
                 <span>Região: ${selectedQuote.regiao || "-"}</span>
+                <span>Status do orçamento: ${selectedQuote.statusOrcamento || selectedQuote.status || "Aguardando orçamento"}</span>
                 <span>Observações: ${selectedQuote.observacoes || "-"}</span>
             `;
         }
@@ -342,6 +393,7 @@
                 <p><b>Tipo:</b> ${getServiceLabel(result.serviceType)}</p>
                 <p><b>Metragem:</b> ${result.squareMeters}m²</p>
                 <p><b>Valor por m²:</b> ${formatCurrency(result.pricePerMeter)}</p>
+                <p><b>Status:</b> ${result.statusOrcamento}</p>
 
                 <hr>
 
@@ -350,13 +402,19 @@
                 <p class="summary-line"><span>Entulho/lixo pesado:</span> <strong>${formatCurrency(result.rubbleFee)}</strong></p>
                 <p class="summary-line"><span>Eletrodomésticos:</span> <strong>${formatCurrency(result.appliancesFee)}</strong></p>
                 <p class="summary-line"><span>Produtos:</span> <strong>${formatCurrency(result.productKit)}</strong></p>
+                <p class="summary-line"><span>Desconto:</span> <strong>${formatCurrency(result.discount)}</strong></p>
 
                 <hr>
 
+                <p class="summary-line"><span>Valor antes do desconto:</span> <strong>${formatCurrency(result.totalBeforeDiscount)}</strong></p>
                 <p class="summary-line"><span>Valor total:</span> <strong>${formatCurrency(result.total)}</strong></p>
                 <p class="summary-line reserve"><span>40% antecipado:</span> <strong>${formatCurrency(result.reservation)}</strong></p>
                 <p class="summary-line pay-now"><span>Valor para reserva:</span> <strong>${formatCurrency(result.reservation)}</strong></p>
                 <p class="summary-balance">Saldo após conclusão:<br><strong>${formatCurrency(result.balance)}</strong></p>
+
+                <hr>
+
+                <p><b>Condições:</b><br>${result.conditions || "-"}</p>
             `;
         }
 
@@ -367,6 +425,9 @@
             const furnished = document.getElementById("furnished").checked;
             const rubble = document.getElementById("rubble").checked;
             const appliances = Number(document.getElementById("appliances").value || 0);
+            const discount = Math.max(Number(document.getElementById("discount").value || 0), 0);
+            const statusOrcamento = document.getElementById("quoteStatus").value;
+            const conditions = document.getElementById("budgetConditions").value.trim();
 
             const pricePerMeter = serviceType === "posobra" ? 15.50 : 8.50;
             const grossValue = squareMeters * pricePerMeter;
@@ -374,7 +435,8 @@
             const rubbleFee = rubble ? 80 : 0;
             const appliancesFee = appliances * 30;
             const additions = furnishedFee + rubbleFee + appliancesFee + productKit;
-            const total = grossValue + additions;
+            const totalBeforeDiscount = grossValue + additions;
+            const total = Math.max(totalBeforeDiscount - discount, 0);
             const reservation = total * 0.4;
             const balance = total - reservation;
 
@@ -391,9 +453,13 @@
                 rubbleFee,
                 appliancesFee,
                 additions,
+                discount,
+                totalBeforeDiscount,
                 total,
                 reservation,
-                balance
+                balance,
+                statusOrcamento,
+                conditions
             };
         }
 
@@ -411,7 +477,8 @@
                 body: JSON.stringify({
                     action: "saveCustomQuoteResult",
                     id: selectedQuote.id,
-                    status: "Orçamento gerado",
+                    status: currentBudget.statusOrcamento,
+                    statusOrcamento: currentBudget.statusOrcamento,
                     metragem: currentBudget.squareMeters,
                     produtos: getProductKitLabel(currentBudget.productKit),
                     mobiliado: currentBudget.furnished ? "Sim" : "Não",
@@ -419,15 +486,24 @@
                     qtdEletrodomesticos: currentBudget.appliances,
                     valorBruto: currentBudget.grossValue,
                     acrescimos: currentBudget.additions,
+                    desconto: currentBudget.discount,
                     valorTotal: currentBudget.total,
                     reserva: currentBudget.reservation,
                     saldo: currentBudget.balance,
+                    condicoesOrcamento: currentBudget.conditions,
                     dataOrcamento: new Date().toLocaleString("pt-BR")
                 })
             });
 
             alert("Orçamento salvo na planilha.");
-            loadCustomQuoteRequests();
+            selectedQuote.status = currentBudget.statusOrcamento;
+            selectedQuote.statusOrcamento = currentBudget.statusOrcamento;
+            selectedQuote.desconto = currentBudget.discount;
+            selectedQuote.condicoesOrcamento = currentBudget.conditions;
+            selectedQuote.valorTotal = currentBudget.total;
+            selectedQuote.reserva = currentBudget.reservation;
+            selectedQuote.saldo = currentBudget.balance;
+            renderHistory();
         }
 
         function sendBudgetToWhatsApp() {
@@ -443,6 +519,14 @@
                 return;
             }
 
+            const discountText = currentBudget.discount > 0
+                ? `Desconto aplicado: ${formatCurrency(currentBudget.discount)}\n`
+                : "";
+
+            const conditionsText = currentBudget.conditions
+                ? `\nCondições do orçamento:\n${currentBudget.conditions}\n`
+                : "";
+
             const message = `
 Olá, ${selectedQuote.cliente}! Segue o orçamento personalizado:
 
@@ -450,16 +534,19 @@ Serviço: ${getServiceLabel(currentBudget.serviceType)}
 Datas solicitadas: ${selectedQuote.datasSolicitadas || "-"}
 Metragem considerada: ${currentBudget.squareMeters}m²
 
-Valor total: ${formatCurrency(currentBudget.total)}
+Valor antes do desconto: ${formatCurrency(currentBudget.totalBeforeDiscount)}
+${discountText}Valor total: ${formatCurrency(currentBudget.total)}
 Reserva de 40%: ${formatCurrency(currentBudget.reservation)}
 Saldo após conclusão do serviço: ${formatCurrency(currentBudget.balance)}
+
+Status do orçamento: ${currentBudget.statusOrcamento}
 
 Detalhes:
 - Produtos: ${getProductKitLabel(currentBudget.productKit)}
 - Imóvel mobiliado: ${currentBudget.furnished ? "Sim" : "Não"}
 - Entulho/lixo pesado: ${currentBudget.rubble ? "Sim" : "Não"}
 - Eletrodomésticos internos: ${currentBudget.appliances}
-
+${conditionsText}
 Pix copia e cola:
 ${document.getElementById("pixCode").value}
 
@@ -490,10 +577,13 @@ Após o pagamento da reserva, o agendamento fica pendente de confirmação.
                         item.regiao,
                         item.observacoes,
                         item.status,
+                        item.statusOrcamento,
                         item.metragem,
+                        item.desconto,
                         item.valorTotal,
                         item.reserva,
                         item.saldo,
+                        item.condicoesOrcamento,
                         item.dataOrcamento
                     ].join(" ").toLowerCase();
 
@@ -515,20 +605,57 @@ Após o pagamento da reserva, o agendamento fica pendente de confirmação.
             quotesHistory.innerHTML = "";
 
             filteredQuotes.forEach(function (item) {
+                const selectedStatus = item.statusOrcamento || item.status || "Aguardando orçamento";
+
                 quotesHistory.innerHTML += `
                     <article class="status-card admin-history-card">
                         <div class="status-card-top">
                             <span class="client-badge">${item.cliente || "Cliente"}</span>
-                            <strong>${item.status || "Aguardando orçamento"}</strong>
+                            <strong>${selectedStatus}</strong>
                         </div>
                         <p><b>Serviço:</b> ${item.servico || "-"}</p>
                         <p><b>Datas:</b> ${item.datasSolicitadas || "-"}</p>
                         <p><b>WhatsApp:</b> ${item.whatsapp || "-"}</p>
                         <p><b>Metragem:</b> ${item.metragem || "-"}</p>
+                        <p><b>Desconto:</b> ${item.desconto ? formatCurrency(item.desconto) : "-"}</p>
                         <p><b>Valor total:</b> ${item.valorTotal ? formatCurrency(item.valorTotal) : "-"}</p>
                         <p><b>Reserva:</b> ${item.reserva ? formatCurrency(item.reserva) : "-"}</p>
+                        <p><b>Condições:</b> ${item.condicoesOrcamento || "-"}</p>
+
+                        <select class="status-select" onchange="changeCustomQuoteStatus('${item.id}', this.value)">
+                            ${quoteStatusOptions.map(function (status) {
+                    return `
+                                    <option value="${status}" ${selectedStatus === status ? "selected" : ""}>
+                                        ${status}
+                                    </option>
+                                `;
+                }).join("")}
+                        </select>
                     </article>
                 `;
+            });
+        }
+
+        function changeCustomQuoteStatus(id, newStatus) {
+            const quote = quoteRequests.find(function (item) {
+                return String(item.id) === String(id);
+            });
+
+            if (quote) {
+                quote.status = newStatus;
+                quote.statusOrcamento = newStatus;
+                renderHistory();
+            }
+
+            fetch(apiUrl, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify({
+                    action: "updateCustomQuoteStatus",
+                    id: id,
+                    status: newStatus,
+                    statusOrcamento: newStatus
+                })
             });
         }
 
@@ -564,4 +691,4 @@ Após o pagamento da reserva, o agendamento fica pendente de confirmação.
     </script>
 </body>
 
-</html>
+ </html>
