@@ -135,7 +135,9 @@
             confirmPaymentButton.textContent = "Confirmando agendamento...";
 
             try {
-                const latestAppointments = await fetch(apiUrl).then(function (response) {
+                const latestAppointments = await fetch(`${apiUrl}?t=${Date.now()}`, {
+                    cache: "no-store"
+                }).then(function (response) {
                     return response.json();
                 });
 
@@ -162,6 +164,7 @@
                         method: "POST",
                         mode: "no-cors",
                         body: JSON.stringify({
+                            action: "saveAppointment",
                             id: appointment.id,
                             dataEnvio: new Date().toLocaleString("pt-BR"),
                             cliente: appointment.client,
