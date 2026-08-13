@@ -143,7 +143,11 @@
 
                 const unavailableDates = pendingAppointments.filter(function (appointment) {
                     return latestAppointments.some(function (item) {
-                        return normalizeDate(item.dataAgendamento) === normalizeDate(appointment.date);
+                        const sameDate = normalizeDate(item.dataAgendamento) === normalizeDate(appointment.date);
+                        const status = String(item.status || "").toLowerCase().trim();
+                        const isCanceled = status === "cancelado";
+
+                        return sameDate && !isCanceled;
                     });
                 });
 

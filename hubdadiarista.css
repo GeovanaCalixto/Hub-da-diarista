@@ -1093,6 +1093,7 @@ button[type="submit"]:disabled,
 /* Ajuste fino do calendario no celular */
 
 @media (max-width: 700px) {
+
     .calendar-weekdays,
     .calendar-month,
     .mini-calendar {
@@ -1150,33 +1151,78 @@ button[type="submit"]:disabled,
     }
 }
 
-@media (max-width: 430px) {
-    .calendar-weekdays {
-        font-size: 8px;
+@media (max-width: 700px) {
+    .checkout-main {
+        width: calc(100% - 14px);
+        padding: 14px;
+        margin: 8px auto 18px;
+        overflow: hidden;
     }
 
-    .calendar-cell {
-        min-height: 68px;
-        padding: 4px 2px;
+    .checkout-box {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+        overflow: hidden;
     }
 
-    .calendar-day-number {
+    .checkout-card,
+    .checkout-summary-card {
+        min-width: 0;
+        padding: 14px;
+    }
+
+    .pix-area {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+    }
+
+    .pix-qrcode {
+        width: min(190px, 70vw);
+        margin: 0 auto;
+    }
+
+    #pixCode {
+        width: 100%;
+        min-height: 105px;
+        font-size: 10px;
+        line-height: 1.45;
+        overflow-x: hidden;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    .checkout-summary-list {
+        min-width: 0;
+    }
+
+    .summary-line {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 4px;
+        align-items: start;
+    }
+
+    .summary-line strong {
+        font-size: 18px;
+        white-space: normal;
+        word-break: break-word;
+        text-align: left;
+    }
+
+    .summary-balance {
+        text-align: left;
+    }
+
+    .summary-balance strong {
+        font-size: 22px;
+        word-break: break-word;
+    }
+
+    .confirm-payment-button,
+    #confirmPaymentButton {
         font-size: 14px;
-    }
-
-    .calendar-day-status {
-        font-size: 7px;
-    }
-
-    .calendar-slots span {
-        font-size: 6.5px;
-    }
-
-    .mini-calendar .calendar-cell {
-        min-height: 56px;
-    }
-
-    .mini-calendar .calendar-slots span {
-        font-size: 5.8px;
+        padding: 12px;
+        line-height: 1.3;
     }
 }
