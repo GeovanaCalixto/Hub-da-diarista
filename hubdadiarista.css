@@ -1109,7 +1109,7 @@ button[type="submit"]:disabled,
         width: 100%;
         min-width: 0;
         min-height: auto;
-        aspect-ratio: 1 / 1.6;
+        aspect-ratio: 1.7 / 1.8;
         padding: 2px 1px;
         overflow: hidden;
     }
@@ -1137,7 +1137,7 @@ button[type="submit"]:disabled,
     .mini-calendar .calendar-slots span {
         width: 100%;
         padding: 0px;
-        font-size: 7px;
+        font-size: 6.2px;
         line-height: 1.05;
         text-align: center;
         white-space: normal;
