@@ -1094,45 +1094,50 @@ button[type="submit"]:disabled,
 /* Ajuste fino do calendario no celular */
 
 @media (max-width: 700px) {
-    .calendar-weekdays,
     .calendar-month,
     .mini-calendar {
         width: 100%;
         min-width: 0;
         max-width: 100%;
+        display: grid;
         grid-template-columns: repeat(7, minmax(0, 1fr));
-        gap: 2px;
+        gap: 1px;
     }
 
-    .calendar-cell {
+    .calendar-month .calendar-cell,
+    .mini-calendar .calendar-cell {
         width: 100%;
         min-width: 0;
         min-height: auto;
-        aspect-ratio: 1 / 1;
-        padding: 1px 1px;
+        aspect-ratio: 1 / 1.2;
+        padding: 2px 1px;
         overflow: hidden;
     }
 
-    .calendar-day-number {
-        font-size: 10px;
+    .calendar-month .calendar-day-number,
+    .mini-calendar .calendar-day-number {
+        font-size: 11px;
         line-height: 1;
     }
 
-    .calendar-day-status {
-        margin-top: 2px;
+    .calendar-month .calendar-day-status,
+    .mini-calendar .calendar-day-status {
+        margin-top: 1px;
         font-size: 5px;
         line-height: 1;
     }
 
-    .calendar-slots {
-        margin-top: 1px;
+    .calendar-month .calendar-slots,
+    .mini-calendar .calendar-slots {
+        margin-top: 2px;
         gap: 1px;
     }
 
-    .calendar-slots span {
+    .calendar-month .calendar-slots span,
+    .mini-calendar .calendar-slots span {
         width: 100%;
-        padding: 1px 2px;
-        font-size: 7px;
+        padding: 1px;
+        font-size: 5.5px;
         line-height: 1.05;
         text-align: center;
         white-space: normal;
