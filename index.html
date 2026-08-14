@@ -91,9 +91,14 @@
                     <label>
                         Nome da cliente
                         <input id="client" type="text" placeholder="Digite seu nome" required />
-                     </label>
+                    </label>
 
-                     <label>
+                    <label>
+                        WhatsApp da cliente
+                        <input id="whatsapp" type="tel" placeholder="Ex: 11999999999" required />
+                    </label>
+
+                    <label>
                         Tipo de serviço/imóvel
                         <select id="propertyType" required>
                             <option value="">Selecione</option>
@@ -524,7 +529,6 @@
                         </div>
                         <p><b>Horário:</b> ${formatTime(item.time)}</p>
                         <p><b>Serviço:</b> ${item.service || "-"}</p>
-                        <p><b>WhatsApp:</b> ${item.whatsapp || "-"}</p>
                         <p><b>Tipo:</b> ${item.contractType || "-"}</p>
                         <select class="status-select" onchange="changeStatus('${item.id}', this.value)">
                             ${statusOptions.map(function (status) {
