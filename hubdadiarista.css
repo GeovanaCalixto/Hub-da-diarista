@@ -113,8 +113,8 @@ button {
 
 .main-nav a {
     color: var(--branco);
-    font-size: 15px;
-    font-weight: 800;
+    font-size: 8px;
+    font-weight: 200;
     text-decoration: none;
 }
 
@@ -123,12 +123,12 @@ button {
 }
 
 .header-button {
-    min-width: 190px;
-    padding: 12px 18px;
-    border-radius: 8px;
+    min-width:5px;
+    padding: 10px 10px;
+    border-radius: 100px;
     background: linear-gradient(135deg, var(--coral-forte), var(--coral));
     color: var(--branco);
-    font-size: 15px;
+    font-size: 10px;
     font-weight: 800;
     text-decoration: none;
     text-align: center;
@@ -675,14 +675,16 @@ button[type="submit"]:disabled,
 
 .checkout-card h2,
 .checkout-summary-card h2 {
-    font-size: 20px;
+    font-size: 25px;
 }
 
-.pix-area {
-    display: grid;
-    grid-template-columns: 170px 1fr;
-    gap: 14px;
-    align-items: start;
+@media (max-width: 700px) {
+    .pix-area {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        align-items: center;
+    }
 }
 
 .pix-qrcode {
@@ -694,14 +696,15 @@ button[type="submit"]:disabled,
 
 #pixCode {
     min-height: 120px;
-    font-size: 12px;
+    font-size: 18px;
     line-height: 1.45;
 }
 
 .copy-pix-button,
 #copyPixButton {
-    width: 100%;
+    width: 70%;
     min-height: 40px;
+    justify-content: center;
     margin-top: 8px;
     border: 1px solid var(--coral);
     border-radius: 8px;
@@ -712,8 +715,8 @@ button[type="submit"]:disabled,
 
 .checkout-benefits {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
 }
 
 .checkout-benefits span {
@@ -880,7 +883,7 @@ button[type="submit"]:disabled,
     }
 
     .header-button {
-        width: 100%;
+        width: 80%;
         max-width: 360px;
     }
 
@@ -932,11 +935,11 @@ button[type="submit"]:disabled,
     }
 
     .main-nav a {
-        font-size: 20px;
+        font-size: 18px;
     }
 
     .header-button {
-        font-size: 18px;
+        font-size: 15px;
     }
 
     .calendar-header,
@@ -976,7 +979,7 @@ button[type="submit"]:disabled,
     }
 
     .calendar-slots span {
-        font-size: 9px;
+        font-size: 15px;
     }
 
     .mini-calendar .calendar-cell {
@@ -988,7 +991,7 @@ button[type="submit"]:disabled,
     }
 
     .mini-calendar .calendar-slots span {
-        font-size: 8px;
+        font-size: 15px;
     }
 
     .status-card,
@@ -1092,7 +1095,7 @@ button[type="submit"]:disabled,
 
 /* Ajuste fino do calendario no celular */
 
-@media (max-width: 700px) {
+@media (max-width: 500px) {
 
     .calendar-weekdays,
     .calendar-month,
@@ -1101,9 +1104,9 @@ button[type="submit"]:disabled,
     }
 
     .calendar-cell {
-        min-height: 72px;
-        padding: 5px 2px;
-        border-radius: 7px;
+        min-height: 60px;
+        aspect-ratio: 1/1;
+        padding:7px;
     }
 
     .calendar-day-number {
@@ -1112,8 +1115,8 @@ button[type="submit"]:disabled,
     }
 
     .calendar-day-status {
-        margin-top: 4px;
-        font-size: 8px;
+        margin-top: 3px;
+        font-size: 6px;
         line-height: 1;
     }
 
@@ -1123,10 +1126,10 @@ button[type="submit"]:disabled,
     }
 
     .calendar-slots span {
-        padding: 3px 2px;
-        font-size: 7px;
+        padding: 2px 1px;
+        font-size: 6px;
         line-height: 1.1;
-        border-radius: 5px;
+        border-radius: 10px;
         word-break: normal;
         overflow-wrap: break-word;
         hyphens: auto;
@@ -1151,33 +1154,33 @@ button[type="submit"]:disabled,
     }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 800px) {
     .checkout-main {
-        width: calc(100% - 14px);
-        padding: 14px;
-        margin: 8px auto 18px;
+        width: calc(100% -20px);
+        padding: 5px;
+        margin: 5px auto 10px;
         overflow: hidden;
     }
 
     .checkout-box {
         grid-template-columns: minmax(0, 1fr);
-        gap: 14px;
+        gap: 5px;
         overflow: hidden;
     }
 
     .checkout-card,
     .checkout-summary-card {
         min-width: 0;
-        padding: 14px;
+        padding: 5px;
     }
 
     .pix-area {
         grid-template-columns: minmax(0, 1fr);
-        gap: 10px;
+        gap: 5px;
     }
 
     .pix-qrcode {
-        width: min(190px, 70vw);
+        width: min(199px, 70vw);
         margin: 0 auto;
     }
 
@@ -1199,12 +1202,12 @@ button[type="submit"]:disabled,
     .summary-line {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 4px;
+        gap: 3px;
         align-items: start;
     }
 
     .summary-line strong {
-        font-size: 18px;
+        font-size: 5px;
         white-space: normal;
         word-break: break-word;
         text-align: left;
@@ -1215,7 +1218,7 @@ button[type="submit"]:disabled,
     }
 
     .summary-balance strong {
-        font-size: 22px;
+        font-size: 10px;
         word-break: break-word;
     }
 
@@ -1226,3 +1229,12 @@ button[type="submit"]:disabled,
         line-height: 1.3;
     }
 }
+
+@media (max-width: 700px) {
+    .checkout-card p {
+        font-size: 11px;
+        line-height: 1.50;
+        margin-bottom: 15px;
+    }
+}
+
