@@ -1109,14 +1109,14 @@ button[type="submit"]:disabled,
         width: 100%;
         min-width: 0;
         min-height: auto;
-        aspect-ratio: 1 / 1.4;
+        aspect-ratio: 1 / 1.6;
         padding: 2px 1px;
         overflow: hidden;
     }
 
     .calendar-month .calendar-day-number,
     .mini-calendar .calendar-day-number {
-        font-size: 11px;
+        font-size: 9px;
         line-height: 1;
     }
 
@@ -1136,8 +1136,8 @@ button[type="submit"]:disabled,
     .calendar-month .calendar-slots span,
     .mini-calendar .calendar-slots span {
         width: 100%;
-        padding: 1px;
-        font-size: 5.5px;
+        padding: 0px;
+        font-size: 7px;
         line-height: 1.05;
         text-align: center;
         white-space: normal;
