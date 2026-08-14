@@ -1109,7 +1109,7 @@ button[type="submit"]:disabled,
         width: 100%;
         min-width: 0;
         min-height: auto;
-        aspect-ratio: 1 / 1.2;
+        aspect-ratio: 1 / 1.4;
         padding: 2px 1px;
         overflow: hidden;
     }
