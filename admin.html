@@ -15,12 +15,10 @@
             <a class="brand" href="index.html">
                 <img src="imagens/Logotipo-hub.png" alt="Hub da Diarista" />
             </a>
-
             <nav class="main-nav">
                 <a href="index.html">Agendamento</a>
                 <a href="regulamentos.html">Regulamentos</a>
             </nav>
-
             <a class="header-button" href="#budgetForm">Gerar orçamento</a>
         </div>
     </header>
@@ -29,85 +27,159 @@
         <section id="loginPanel" class="admin-login-card">
             <h1>Painel administrativo</h1>
             <p class="section-note">Acesso restrito para geração de orçamentos personalizados.</p>
-
             <form id="loginForm">
-                <label>
-                    Usuário
-                    <input id="adminUser" type="text" required />
-                </label>
-
-                <label>
-                    Senha
-                    <input id="adminPassword" type="password" required />
-                </label>
-
+                <label>Usuário<input id="adminUser" type="text" required /></label>
+                <label>Senha<input id="adminPassword" type="password" required /></label>
                 <button type="submit">Entrar</button>
                 <p id="loginMessage" class="form-message" aria-live="polite"></p>
             </form>
         </section>
 
         <div id="adminContent" class="admin-content hidden">
+            <!-- ===== GERENCIAR AGENDAMENTOS ===== -->
+            <section>
+                <div class="admin-title-row">
+                    <div>
+                        <h2>Gerenciar agendamentos (manual)</h2>
+                        <p class="section-note">Adicione, edite ou cancele agendamentos direto no painel. As alterações
+                            sincronizam com o calendário e a planilha.</p>
+                    </div>
+                    <button type="button" id="reloadAppointmentsButton">Atualizar lista</button>
+                </div>
+
+                <div id="appointmentFormPanel" class="admin-client-preview" style="display:none;">
+                    <h3 id="appointmentFormTitle">Novo agendamento</h3>
+                    <form id="appointmentFormAdmin">
+                        <input type="hidden" id="apptId" />
+                        <input type="hidden" id="apptRowNumber" />
+                        <input type="hidden" id="apptOriginalDate" />
+                        <input type="hidden" id="apptOriginalTime" />
+
+                        <label>Cliente<input id="apptClient" type="text" placeholder="Nome da cliente"
+                                required /></label>
+                        <label>WhatsApp<input id="apptWhatsapp" type="tel" placeholder="Ex: 11999999999"
+                                required /></label>
+                        <label>
+                            Serviço
+                            <select id="apptService" required>
+                                <option value="">Selecione</option>
+                                <option value="Apto/Casa até 40m²">Apto/Casa até 40m²</option>
+                                <option value="Apto/Casa de 40m² até 55m²">Apto/Casa de 40m² até 55m²</option>
+                                <option value="Apto/Casa de 55m² até 90m²">Apto/Casa de 55m² até 90m²</option>
+                                <option value="Apto/Casa de 90m² até 100m²">Apto/Casa de 90m² até 100m²</option>
+                                <option value="Apto/Casa acima de 150m²">Apto/Casa acima de 150m²</option>
+                                <option value="Pós-obras">Pós-obras</option>
+                                <option value="Orçamento personalizado">Orçamento personalizado</option>
+                            </select>
+                        </label>
+                        <label>Data do agendamento<input id="apptDate" type="date" required /></label>
+                        <label>
+                            Horário
+                            <select id="apptTime" required>
+                                <option value="">Selecione</option>
+                                <option value="06:00">06:00</option>
+                                <option value="07:00">07:00</option>
+                                <option value="08:00">08:00</option>
+                                <option value="dia-inteiro">Dia inteiro (bloqueio)</option>
+                            </select>
+                        </label>
+                        <label>Endereço<input id="apptAddress" type="text" placeholder="Rua, número e bairro"
+                                required /></label>
+                        <label>CEP<input id="apptCep" type="text" placeholder="Ex: 03200-000" /></label>
+                        <label>
+                            Região
+                            <select id="apptRegion">
+                                <option value="">Selecione</option>
+                                <option value="proxima">Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente
+                                </option>
+                                <option value="distante">Diadema, Santo Amaro ou Zona Sul</option>
+                                <option value="custom">Outra região</option>
+                            </select>
+                        </label>
+                        <label>
+                            Frequência / Tipo
+                            <select id="apptFrequency">
+                                <option value="Datas selecionadas">Datas selecionadas</option>
+                                <option value="Semanal">Semanal</option>
+                                <option value="Quinzenal">Quinzenal</option>
+                                <option value="Mensal">Mensal</option>
+                                <option value="Orçamento personalizado">Orçamento personalizado</option>
+                            </select>
+                        </label>
+                        <label>Observações<textarea id="apptNotes"
+                                placeholder="Ex: tenho pets, preferência de acesso..."></textarea></label>
+                        <label>
+                            Status
+                            <select id="apptStatus">
+                                <option value="Aguardando confirmação">Aguardando confirmação</option>
+                                <option value="Serviço agendado">Serviço agendado</option>
+                                <option value="Serviço em andamento">Serviço em andamento</option>
+                                <option value="Serviço concluído">Serviço concluído</option>
+                                <option value="Pago">Pago</option>
+                                <option value="Não concluído">Não concluído</option>
+                                <option value="Indisponível">Indisponível (bloqueio)</option>
+                                <option value="Cancelado">Cancelado</option>
+                            </select>
+                        </label>
+                        <div class="admin-actions">
+                            <button type="submit" id="saveAppointmentButton">Salvar agendamento</button>
+                            <button type="button" id="cancelAppointmentFormButton" class="secondary">Cancelar</button>
+                            <button type="button" id="deleteAppointmentButton" class="danger"
+                                style="display:none;">Excluir agendamento</button>
+                        </div>
+                        <p id="apptFormMessage" class="form-message" aria-live="polite"></p>
+                    </form>
+                </div>
+
+                <div class="status-header">
+                    <div>
+                        <h3>Agendamentos existentes</h3>
+                        <p class="section-note">Clique em "Editar" para alterar cliente, data, horário ou status. Ao
+                            salvar, o calendário atualiza automaticamente.</p>
+                    </div>
+                    <div class="status-controls">
+                        <button type="button" id="apptListPrev">&lsaquo;</button>
+                        <button type="button" id="apptListNext">&rsaquo;</button>
+                    </div>
+                </div>
+                <label class="search-box">Buscar agendamento<input id="apptSearch" type="search"
+                        placeholder="Nome, data, serviço, status..." /></label>
+                <div id="appointmentsList" class="status-carousel admin-history"></div>
+            </section>
+
+            <!-- ===== ORÇAMENTOS PERSONALIZADOS (ORIGINAL) ===== -->
             <section>
                 <div class="admin-title-row">
                     <div>
                         <h1>Orçamentos personalizados</h1>
                         <p class="section-note">Selecione uma solicitação, preencha os detalhes e gere o orçamento.</p>
                     </div>
-
                     <button type="button" id="reloadRequestsButton">Atualizar lista</button>
                 </div>
-
-                <label>
-                    Solicitação da cliente
-                    <select id="quoteRequestSelect">
+                <label>Solicitação da cliente<select id="quoteRequestSelect">
                         <option value="">Carregando solicitações...</option>
-                    </select>
-                </label>
-
-                <div id="clientPreview" class="admin-client-preview">
-                    Nenhuma solicitação selecionada.
-                </div>
+                    </select></label>
+                <div id="clientPreview" class="admin-client-preview">Nenhuma solicitação selecionada.</div>
             </section>
 
             <section>
                 <h2>Gerador de orçamento</h2>
-
                 <form id="budgetForm" class="admin-grid-form">
-                    <label>
-                        Tipo de serviço base
-                        <select id="budgetServiceType" required>
+                    <label>Tipo de serviço base<select id="budgetServiceType" required>
                             <option value="residencial">Limpeza Residencial Personalizada</option>
                             <option value="posobra">Limpeza Pós-Obra</option>
-                        </select>
-                    </label>
-
-                    <label>
-                        Tamanho do local em m²
-                        <input id="squareMeters" type="number" min="1" step="1" placeholder="Ex: 120" required />
-                    </label>
-
-                    <label>
-                        Logística de produtos
-                        <select id="productKit" required>
+                        </select></label>
+                    <label>Tamanho do local em m²<input id="squareMeters" type="number" min="1" step="1"
+                            placeholder="Ex: 120" required /></label>
+                    <label>Logística de produtos<select id="productKit" required>
                             <option value="0">Cliente fornece os produtos - R$ 0,00</option>
                             <option value="180">Kit 2 - Padrão Residencial Grande - R$ 180,00</option>
                             <option value="300">Kit 1 - Padrão Pós-Obra - R$ 300,00</option>
-                        </select>
-                    </label>
-
-                    <label>
-                        Quantidade de eletrodomésticos internos
-                        <input id="appliances" type="number" min="0" step="1" value="0" />
-                    </label>
-
-                    <label>
-                        Desconto em R$
-                        <input id="discount" type="number" min="0" step="0.01" value="0" />
-                    </label>
-
-                    <label>
-                        Status do orçamento
-                        <select id="quoteStatus" required>
+                        </select></label>
+                    <label>Quantidade de eletrodomésticos internos<input id="appliances" type="number" min="0" step="1"
+                            value="0" /></label>
+                    <label>Desconto em R$<input id="discount" type="number" min="0" step="0.01" value="0" /></label>
+                    <label>Status do orçamento<select id="quoteStatus" required>
                             <option>Orçamento solicitado</option>
                             <option>Orçamento em análise</option>
                             <option>Orçamento enviado para cliente</option>
@@ -118,29 +190,15 @@
                             <option>Serviço agendado</option>
                             <option>Serviço finalizado</option>
                             <option>Pagamento realizado</option>
-                        </select>
-                    </label>
-
-                    <label class="admin-check">
-                        <input id="furnished" type="checkbox" />
-                        Imóvel mobiliado/com móveis (+15%)
-                    </label>
-
-                    <label class="admin-check">
-                        <input id="rubble" type="checkbox" />
-                        Presença de entulho/lixo pesado (+R$ 80,00)
-                    </label>
-
-                    <label class="admin-full">
-                        Observações do orçamento
-                        <textarea id="budgetNotes" placeholder="Ex: detalhes combinados com a cliente..."></textarea>
-                    </label>
-
-                    <label class="admin-full">
-                        Condições do orçamento
-                        <textarea id="budgetConditions"
-                            placeholder="Ex: orçamento válido por 7 dias. Reserva de 40% para confirmação. Saldo no dia do serviço."></textarea>
-                    </label>
+                        </select></label>
+                    <label class="admin-check"><input id="furnished" type="checkbox" /> Imóvel mobiliado/com móveis
+                        (+15%)</label>
+                    <label class="admin-check"><input id="rubble" type="checkbox" /> Presença de entulho/lixo pesado
+                        (+R$ 80,00)</label>
+                    <label class="admin-full">Observações do orçamento<textarea id="budgetNotes"
+                            placeholder="Ex: detalhes combinados com a cliente..."></textarea></label>
+                    <label class="admin-full">Condições do orçamento<textarea id="budgetConditions"
+                            placeholder="Ex: orçamento válido por 7 dias. Reserva de 40% para confirmação. Saldo no dia do serviço."></textarea></label>
                 </form>
             </section>
 
@@ -148,24 +206,16 @@
                 <div class="checkout-card pix-card">
                     <h2>Pagamento Pix</h2>
                     <p>Use o QR Code ou o código Pix para enviar junto com o orçamento.</p>
-
                     <div class="pix-area">
                         <img src="imagens/pix-qrcode.jpeg" alt="QR Code Pix" class="pix-qrcode" />
-
-                        <label>
-                            Pix copia e cola
-                            <textarea id="pixCode"
-                                readonly>00020126580014br.gov.bcb.pix013633d462cf-81ab-47a7-a90a-9e598856f43b27600016BR.COM.PAGSEGURO013653F9B06E-05AA-4633-BDD1-E37F75A9ECE35204549953039865802BR5925FRANCISCA ELIEUDA CALIXTO6009Sao Paulo62290525PAGS00000000026062911297163041922</textarea>
-                        </label>
+                        <label>Pix copia e cola<textarea id="pixCode"
+                                readonly>00020126580014br.gov.bcb.pix013633d462cf-81ab-47a7-a90a-9e598856f43b27600016BR.COM.PAGSEGURO013653F9B06E-05AA-4633-BDD1-E37F75A9ECE35204549953039865802BR5925FRANCISCA ELIEUDA CALIXTO6009Sao Paulo62290525PAGS00000000026062911297163041922</textarea></label>
                     </div>
-
                     <button type="button" id="copyPixButton" class="copy-pix-button">Copiar código Pix</button>
                 </div>
-
                 <aside class="checkout-summary-card admin-summary">
                     <h2>Resumo do orçamento</h2>
                     <div id="budgetSummary" class="checkout-summary-list"></div>
-
                     <button type="button" id="saveBudgetButton">Salvar orçamento</button>
                     <button type="button" id="sendBudgetButton">Enviar pelo WhatsApp</button>
                     <button type="button" id="printBudgetButton">Gerar PDF / imprimir</button>
@@ -179,18 +229,11 @@
                         <p class="section-note">Use a busca para encontrar orçamento por cliente, serviço, data, status
                             ou valor.</p>
                     </div>
-
-                    <div class="status-controls">
-                        <button type="button" id="historyPrev">&lsaquo;</button>
-                        <button type="button" id="historyNext">&rsaquo;</button>
-                    </div>
+                    <div class="status-controls"><button type="button" id="historyPrev">&lsaquo;</button><button
+                            type="button" id="historyNext">&rsaquo;</button></div>
                 </div>
-
-                <label class="search-box">
-                    Buscar orçamento
-                    <input id="historySearch" type="search" placeholder="Digite nome, serviço, data, status ou valor" />
-                </label>
-
+                <label class="search-box">Buscar orçamento<input id="historySearch" type="search"
+                        placeholder="Digite nome, serviço, data, status ou valor" /></label>
                 <div id="quotesHistory" class="status-carousel admin-history"></div>
             </section>
         </div>
@@ -198,28 +241,40 @@
 
     <script>
         const apiUrl = "https://script.google.com/macros/s/AKfycbyo-_RD8L9wT4-mpDZSV9_OB5xlAWo_qBKcTamrvGNgCaB4IF6O8k1LED24nW0B7lxh/exec";
-
         const ADMIN_USER = "admin";
         const ADMIN_PASSWORD = "hub2026";
 
-        const quoteStatusOptions = [
-            "Orçamento solicitado",
-            "Orçamento em análise",
-            "Orçamento enviado para cliente",
-            "Aguardando retorno da cliente",
-            "Aguardando confirmação do orçamento",
-            "Orçamento aprovado",
-            "Orçamento recusado",
-            "Serviço agendado",
-            "Serviço finalizado",
-            "Pagamento realizado"
-        ];
+        const quoteStatusOptions = ["Orçamento solicitado", "Orçamento em análise", "Orçamento enviado para cliente", "Aguardando retorno da cliente", "Aguardando confirmação do orçamento", "Orçamento aprovado", "Orçamento recusado", "Serviço agendado", "Serviço finalizado", "Pagamento realizado"];
 
+        // ===== LOGIN =====
         const loginPanel = document.getElementById("loginPanel");
         const adminContent = document.getElementById("adminContent");
         const loginForm = document.getElementById("loginForm");
         const loginMessage = document.getElementById("loginMessage");
 
+        loginForm.addEventListener("submit", e => {
+            e.preventDefault();
+            const user = document.getElementById("adminUser").value.trim();
+            const pass = document.getElementById("adminPassword").value.trim();
+            if (user === ADMIN_USER && pass === ADMIN_PASSWORD) {
+                sessionStorage.setItem("hubAdminLogged", "true");
+                showAdmin();
+            } else {
+                loginMessage.textContent = "Usuário ou senha inválidos.";
+                loginMessage.classList.add("active");
+            }
+        });
+
+        function showAdmin() {
+            loginPanel.classList.add("hidden");
+            adminContent.classList.remove("hidden");
+            loadCustomQuoteRequests();
+            loadAppointmentsAdmin();
+        }
+
+        if (sessionStorage.getItem("hubAdminLogged") === "true") showAdmin();
+
+        // ===== ORÇAMENTOS (ORIGINAL) =====
         const quoteRequestSelect = document.getElementById("quoteRequestSelect");
         const clientPreview = document.getElementById("clientPreview");
         const budgetSummary = document.getElementById("budgetSummary");
@@ -227,197 +282,45 @@
         const historySearchInput = document.getElementById("historySearch");
         const historyPrevButton = document.getElementById("historyPrev");
         const historyNextButton = document.getElementById("historyNext");
-
         const reloadRequestsButton = document.getElementById("reloadRequestsButton");
         const copyPixButton = document.getElementById("copyPixButton");
         const saveBudgetButton = document.getElementById("saveBudgetButton");
         const sendBudgetButton = document.getElementById("sendBudgetButton");
         const printBudgetButton = document.getElementById("printBudgetButton");
-
-        const budgetInputs = [
-            "budgetServiceType",
-            "squareMeters",
-            "productKit",
-            "appliances",
-            "discount",
-            "quoteStatus",
-            "furnished",
-            "rubble",
-            "budgetNotes",
-            "budgetConditions"
-        ];
-
-        let quoteRequests = [];
-        let selectedQuote = null;
-        let currentBudget = null;
-
-        loginForm.addEventListener("submit", function (event) {
-            event.preventDefault();
-
-            const user = document.getElementById("adminUser").value.trim();
-            const password = document.getElementById("adminPassword").value.trim();
-
-            if (user === ADMIN_USER && password === ADMIN_PASSWORD) {
-                sessionStorage.setItem("hubAdminLogged", "true");
-                showAdmin();
-                return;
-            }
-
-            loginMessage.textContent = "Usuário ou senha inválidos.";
-            loginMessage.classList.add("active");
-        });
+        const budgetInputs = ["budgetServiceType", "squareMeters", "productKit", "appliances", "discount", "quoteStatus", "furnished", "rubble", "budgetNotes", "budgetConditions"];
+        let quoteRequests = [], selectedQuote = null, currentBudget = null;
 
         reloadRequestsButton.addEventListener("click", loadCustomQuoteRequests);
-
         historySearchInput.addEventListener("input", renderHistory);
-
-        historyPrevButton.addEventListener("click", function () {
-            quotesHistory.scrollBy({ left: -320, behavior: "smooth" });
-        });
-
-        historyNextButton.addEventListener("click", function () {
-            quotesHistory.scrollBy({ left: 320, behavior: "smooth" });
-        });
-
-        quoteRequestSelect.addEventListener("change", function () {
-            selectedQuote = quoteRequests.find(function (item) {
-                return String(item.id) === String(quoteRequestSelect.value);
-            }) || null;
-
-            fillSelectedQuote();
-            calculateAndRenderBudget();
-        });
-
-        budgetInputs.forEach(function (id) {
-            const element = document.getElementById(id);
-            element.addEventListener("input", calculateAndRenderBudget);
-            element.addEventListener("change", calculateAndRenderBudget);
-        });
-
-        copyPixButton.addEventListener("click", function () {
-            navigator.clipboard.writeText(document.getElementById("pixCode").value).then(function () {
-                alert("Código Pix copiado!");
-            });
-        });
-
+        historyPrevButton.addEventListener("click", () => quotesHistory.scrollBy({ left: -320, behavior: "smooth" }));
+        historyNextButton.addEventListener("click", () => quotesHistory.scrollBy({ left: 320, behavior: "smooth" }));
+        quoteRequestSelect.addEventListener("change", () => { selectedQuote = quoteRequests.find(i => String(i.id) === String(quoteRequestSelect.value)) || null; fillSelectedQuote(); calculateAndRenderBudget(); });
+        budgetInputs.forEach(id => { const el = document.getElementById(id); el.addEventListener("input", calculateAndRenderBudget); el.addEventListener("change", calculateAndRenderBudget); });
+        copyPixButton.addEventListener("click", () => navigator.clipboard.writeText(document.getElementById("pixCode").value).then(() => alert("Código Pix copiado!")));
         saveBudgetButton.addEventListener("click", saveBudget);
         sendBudgetButton.addEventListener("click", sendBudgetToWhatsApp);
-        printBudgetButton.addEventListener("click", function () {
-            window.print();
-        });
-
-        if (sessionStorage.getItem("hubAdminLogged") === "true") {
-            showAdmin();
-        }
-
-        function showAdmin() {
-            loginPanel.classList.add("hidden");
-            adminContent.classList.remove("hidden");
-            loadCustomQuoteRequests();
-        }
+        printBudgetButton.addEventListener("click", () => window.print());
 
         function loadCustomQuoteRequests() {
             quoteRequestSelect.innerHTML = `<option value="">Carregando solicitações...</option>`;
-
-            fetch(`${apiUrl}?action=getCustomQuoteRequests`)
-                .then(function (response) {
-                    return response.json();
-                })
-                .then(function (data) {
-                    quoteRequests = data || [];
-                    renderQuoteOptions();
-                    renderHistory();
-                })
-                .catch(function () {
-                    quoteRequestSelect.innerHTML = `<option value="">Não foi possível carregar.</option>`;
-                });
+            fetch(`${apiUrl}?action=getCustomQuoteRequests`).then(r => r.json()).then(data => { quoteRequests = data || []; renderQuoteOptions(); renderHistory(); }).catch(() => quoteRequestSelect.innerHTML = `<option value="">Não foi possível carregar.</option>`);
         }
-
         function renderQuoteOptions() {
-            if (quoteRequests.length === 0) {
-                quoteRequestSelect.innerHTML = `<option value="">Nenhuma solicitação encontrada.</option>`;
-                return;
-            }
-
+            if (!quoteRequests.length) { quoteRequestSelect.innerHTML = `<option value="">Nenhuma solicitação encontrada.</option>`; return; }
             quoteRequestSelect.innerHTML = `<option value="">Selecione uma cliente</option>`;
-
-            quoteRequests
-                .slice()
-                .reverse()
-                .forEach(function (item) {
-                    quoteRequestSelect.innerHTML += `
-                        <option value="${item.id}">
-                            ${item.cliente || "Cliente"} - ${item.servico || "Serviço"} - ${item.statusOrcamento || item.status || "Aguardando orçamento"}
-                        </option>
-                    `;
-                });
+            quoteRequests.slice().reverse().forEach(item => { quoteRequestSelect.innerHTML += `<option value="${item.id}">${item.cliente || "Cliente"} - ${item.servico || "Serviço"} - ${item.statusOrcamento || item.status || "Aguardando orçamento"}</option>`; });
         }
-
         function fillSelectedQuote() {
-            if (!selectedQuote) {
-                clientPreview.innerHTML = "Nenhuma solicitação selecionada.";
-                return;
-            }
-
-            const serviceType = String(selectedQuote.servico || "").toLowerCase().includes("pós")
-                ? "posobra"
-                : "residencial";
-
+            if (!selectedQuote) { clientPreview.innerHTML = "Nenhuma solicitação selecionada."; return; }
+            const serviceType = String(selectedQuote.servico || "").toLowerCase().includes("pós") ? "posobra" : "residencial";
             document.getElementById("budgetServiceType").value = serviceType;
             document.getElementById("quoteStatus").value = selectedQuote.statusOrcamento || selectedQuote.status || "Orçamento solicitado";
             document.getElementById("discount").value = selectedQuote.desconto || 0;
             document.getElementById("budgetConditions").value = selectedQuote.condicoesOrcamento || "";
-
-            if (selectedQuote.metragem) {
-                document.getElementById("squareMeters").value = selectedQuote.metragem;
-            }
-
-            clientPreview.innerHTML = `
-                <strong>${selectedQuote.cliente || "Cliente"}</strong>
-                <span>WhatsApp: ${selectedQuote.whatsapp || "-"}</span>
-                <span>Serviço solicitado: ${selectedQuote.servico || "-"}</span>
-                <span>Datas: ${selectedQuote.datasSolicitadas || "-"}</span>
-                <span>Endereço: ${selectedQuote.endereco || "-"}</span>
-                <span>CEP: ${selectedQuote.cep || "-"}</span>
-                <span>Região: ${selectedQuote.regiao || "-"}</span>
-                <span>Status do orçamento: ${selectedQuote.statusOrcamento || selectedQuote.status || "Aguardando orçamento"}</span>
-                <span>Observações: ${selectedQuote.observacoes || "-"}</span>
-            `;
+            if (selectedQuote.metragem) document.getElementById("squareMeters").value = selectedQuote.metragem;
+            clientPreview.innerHTML = `<strong>${selectedQuote.cliente || "Cliente"}</strong><span>WhatsApp: ${selectedQuote.whatsapp || "-"}</span><span>Serviço solicitado: ${selectedQuote.servico || "-"}</span><span>Datas: ${selectedQuote.datasSolicitadas || "-"}</span><span>Endereço: ${selectedQuote.endereco || "-"}</span><span>CEP: ${selectedQuote.cep || "-"}</span><span>Região: ${selectedQuote.regiao || "-"}</span><span>Status do orçamento: ${selectedQuote.statusOrcamento || selectedQuote.status || "Aguardando orçamento"}</span><span>Observações: ${selectedQuote.observacoes || "-"}</span>`;
         }
-
-        function calculateAndRenderBudget() {
-            const result = calculateBudget();
-            currentBudget = result;
-
-            budgetSummary.innerHTML = `
-                <p><b>Tipo:</b> ${getServiceLabel(result.serviceType)}</p>
-                <p><b>Metragem:</b> ${result.squareMeters}m²</p>
-                <p><b>Valor por m²:</b> ${formatCurrency(result.pricePerMeter)}</p>
-                <p><b>Status:</b> ${result.statusOrcamento}</p>
-
-                <hr>
-
-                <p class="summary-line"><span>Valor bruto:</span> <strong>${formatCurrency(result.grossValue)}</strong></p>
-                <p class="summary-line"><span>Acréscimo mobiliado:</span> <strong>${formatCurrency(result.furnishedFee)}</strong></p>
-                <p class="summary-line"><span>Entulho/lixo pesado:</span> <strong>${formatCurrency(result.rubbleFee)}</strong></p>
-                <p class="summary-line"><span>Eletrodomésticos:</span> <strong>${formatCurrency(result.appliancesFee)}</strong></p>
-                <p class="summary-line"><span>Produtos:</span> <strong>${formatCurrency(result.productKit)}</strong></p>
-                <p class="summary-line"><span>Desconto:</span> <strong>${formatCurrency(result.discount)}</strong></p>
-
-                <hr>
-
-                <p class="summary-line"><span>Valor antes do desconto:</span> <strong>${formatCurrency(result.totalBeforeDiscount)}</strong></p>
-                <p class="summary-line"><span>Valor total:</span> <strong>${formatCurrency(result.total)}</strong></p>
-                <p class="summary-line reserve"><span>40% antecipado:</span> <strong>${formatCurrency(result.reservation)}</strong></p>
-                <p class="summary-line pay-now"><span>Valor para reserva:</span> <strong>${formatCurrency(result.reservation)}</strong></p>
-                <p class="summary-balance">Saldo após conclusão:<br><strong>${formatCurrency(result.balance)}</strong></p>
-
-                <hr>
-
-                <p><b>Condições:</b><br>${result.conditions || "-"}</p>
-            `;
-        }
-
+        function calculateAndRenderBudget() { const r = calculateBudget(); currentBudget = r; budgetSummary.innerHTML = `<p><b>Tipo:</b> ${getServiceLabel(r.serviceType)}</p><p><b>Metragem:</b> ${r.squareMeters}m²</p><p><b>Valor por m²:</b> ${formatCurrency(r.pricePerMeter)}</p><p><b>Status:</b> ${r.statusOrcamento}</p><hr><p class="summary-line"><span>Valor bruto:</span> <strong>${formatCurrency(r.grossValue)}</strong></p><p class="summary-line"><span>Acréscimo mobiliado:</span> <strong>${formatCurrency(r.furnishedFee)}</strong></p><p class="summary-line"><span>Entulho/lixo pesado:</span> <strong>${formatCurrency(r.rubbleFee)}</strong></p><p class="summary-line"><span>Eletrodomésticos:</span> <strong>${formatCurrency(r.appliancesFee)}</strong></p><p class="summary-line"><span>Produtos:</span> <strong>${formatCurrency(r.productKit)}</strong></p><p class="summary-line"><span>Desconto:</span> <strong>${formatCurrency(r.discount)}</strong></p><hr><p class="summary-line"><span>Valor antes do desconto:</span> <strong>${formatCurrency(r.totalBeforeDiscount)}</strong></p><p class="summary-line"><span>Valor total:</span> <strong>${formatCurrency(r.total)}</strong></p><p class="summary-line reserve"><span>40% antecipado:</span> <strong>${formatCurrency(r.reservation)}</strong></p><p class="summary-line pay-now"><span>Valor para reserva:</span> <strong>${formatCurrency(r.reservation)}</strong></p><p class="summary-balance">Saldo após conclusão:<br><strong>${formatCurrency(r.balance)}</strong></p><hr><p><b>Condições:</b><br>${r.conditions || "-"}</p>`; }
         function calculateBudget() {
             const serviceType = document.getElementById("budgetServiceType").value;
             const squareMeters = Number(document.getElementById("squareMeters").value || 0);
@@ -428,7 +331,6 @@
             const discount = Math.max(Number(document.getElementById("discount").value || 0), 0);
             const statusOrcamento = document.getElementById("quoteStatus").value;
             const conditions = document.getElementById("budgetConditions").value.trim();
-
             const pricePerMeter = serviceType === "posobra" ? 15.50 : 8.50;
             const grossValue = squareMeters * pricePerMeter;
             const furnishedFee = furnished ? grossValue * 0.15 : 0;
@@ -439,256 +341,237 @@
             const total = Math.max(totalBeforeDiscount - discount, 0);
             const reservation = total * 0.4;
             const balance = total - reservation;
-
-            return {
-                serviceType,
-                squareMeters,
-                pricePerMeter,
-                productKit,
-                furnished,
-                rubble,
-                appliances,
-                grossValue,
-                furnishedFee,
-                rubbleFee,
-                appliancesFee,
-                additions,
-                discount,
-                totalBeforeDiscount,
-                total,
-                reservation,
-                balance,
-                statusOrcamento,
-                conditions
-            };
+            return { serviceType, squareMeters, pricePerMeter, productKit, furnished, rubble, appliances, grossValue, furnishedFee, rubbleFee, appliancesFee, additions, discount, totalBeforeDiscount, total, reservation, balance, statusOrcamento, conditions };
         }
-
         function saveBudget() {
-            if (!selectedQuote) {
-                alert("Selecione uma solicitação antes de salvar.");
-                return;
-            }
-
+            if (!selectedQuote) { alert("Selecione uma solicitação antes de salvar."); return; }
             calculateAndRenderBudget();
-
-            fetch(apiUrl, {
-                method: "POST",
-                mode: "no-cors",
-                body: JSON.stringify({
-                    action: "saveCustomQuoteResult",
-                    id: selectedQuote.id,
-                    status: currentBudget.statusOrcamento,
-                    statusOrcamento: currentBudget.statusOrcamento,
-                    metragem: currentBudget.squareMeters,
-                    produtos: getProductKitLabel(currentBudget.productKit),
-                    mobiliado: currentBudget.furnished ? "Sim" : "Não",
-                    entulho: currentBudget.rubble ? "Sim" : "Não",
-                    qtdEletrodomesticos: currentBudget.appliances,
-                    valorBruto: currentBudget.grossValue,
-                    acrescimos: currentBudget.additions,
-                    desconto: currentBudget.discount,
-                    valorTotal: currentBudget.total,
-                    reserva: currentBudget.reservation,
-                    saldo: currentBudget.balance,
-                    condicoesOrcamento: currentBudget.conditions,
-                    dataOrcamento: new Date().toLocaleString("pt-BR")
-                })
-            });
-
-            alert("Orçamento salvo na planilha.");
-            selectedQuote.status = currentBudget.statusOrcamento;
-            selectedQuote.statusOrcamento = currentBudget.statusOrcamento;
-            selectedQuote.desconto = currentBudget.discount;
-            selectedQuote.condicoesOrcamento = currentBudget.conditions;
-            selectedQuote.valorTotal = currentBudget.total;
-            selectedQuote.reserva = currentBudget.reservation;
-            selectedQuote.saldo = currentBudget.balance;
-            renderHistory();
+            fetch(apiUrl, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "saveCustomQuoteResult", id: selectedQuote.id, status: currentBudget.statusOrcamento, statusOrcamento: currentBudget.statusOrcamento, metragem: currentBudget.squareMeters, produtos: getProductKitLabel(currentBudget.productKit), mobiliado: currentBudget.furnished ? "Sim" : "Não", entulho: currentBudget.rubble ? "Sim" : "Não", qtdEletrodomesticos: currentBudget.appliances, valorBruto: currentBudget.grossValue, acrescimos: currentBudget.additions, desconto: currentBudget.discount, valorTotal: currentBudget.total, reserva: currentBudget.reservation, saldo: currentBudget.balance, condicoesOrcamento: currentBudget.conditions, dataOrcamento: new Date().toLocaleString("pt-BR") }) });
+            alert("Orçamento salvo na planilha."); selectedQuote.status = currentBudget.statusOrcamento; selectedQuote.statusOrcamento = currentBudget.statusOrcamento; selectedQuote.desconto = currentBudget.discount; selectedQuote.condicoesOrcamento = currentBudget.conditions; selectedQuote.valorTotal = currentBudget.total; selectedQuote.reserva = currentBudget.reservation; selectedQuote.saldo = currentBudget.balance; renderHistory();
         }
-
         function sendBudgetToWhatsApp() {
-            if (!selectedQuote || !currentBudget) {
-                alert("Selecione uma solicitação e gere o orçamento primeiro.");
-                return;
-            }
-
+            if (!selectedQuote || !currentBudget) { alert("Selecione uma solicitação e gere o orçamento primeiro."); return; }
             const phone = formatWhatsAppNumber(selectedQuote.whatsapp);
-
-            if (!phone) {
-                alert("WhatsApp da cliente não encontrado.");
-                return;
-            }
-
-            const discountText = currentBudget.discount > 0
-                ? `Desconto aplicado: ${formatCurrency(currentBudget.discount)}\n`
-                : "";
-
-            const conditionsText = currentBudget.conditions
-                ? `\nCondições do orçamento:\n${currentBudget.conditions}\n`
-                : "";
-
-            const message = `
-Olá, ${selectedQuote.cliente}! Segue o orçamento personalizado:
-
-Serviço: ${getServiceLabel(currentBudget.serviceType)}
-Datas solicitadas: ${selectedQuote.datasSolicitadas || "-"}
-Metragem considerada: ${currentBudget.squareMeters}m²
-
-Valor antes do desconto: ${formatCurrency(currentBudget.totalBeforeDiscount)}
-${discountText}Valor total: ${formatCurrency(currentBudget.total)}
-Reserva de 40%: ${formatCurrency(currentBudget.reservation)}
-Saldo após conclusão do serviço: ${formatCurrency(currentBudget.balance)}
-
-Status do orçamento: ${currentBudget.statusOrcamento}
-
-Detalhes:
-- Produtos: ${getProductKitLabel(currentBudget.productKit)}
-- Imóvel mobiliado: ${currentBudget.furnished ? "Sim" : "Não"}
-- Entulho/lixo pesado: ${currentBudget.rubble ? "Sim" : "Não"}
-- Eletrodomésticos internos: ${currentBudget.appliances}
-${conditionsText}
-Pix copia e cola:
-${document.getElementById("pixCode").value}
-
-Após o pagamento da reserva, o agendamento fica pendente de confirmação.
-            `;
-
-            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank");
+            if (!phone) { alert("WhatsApp da cliente não encontrado."); return; }
+            const discountText = currentBudget.discount > 0 ? `Desconto aplicado: ${formatCurrency(currentBudget.discount)}\n` : "";
+            const conditionsText = currentBudget.conditions ? `\nCondições do orçamento:\n${currentBudget.conditions}\n` : "";
+            const msg = `Olá, ${selectedQuote.cliente}! Segue o orçamento personalizado:\n\nServiço: ${getServiceLabel(currentBudget.serviceType)}\nDatas solicitadas: ${selectedQuote.datasSolicitadas || "-"}\nMetragem considerada: ${currentBudget.squareMeters}m²\n\nValor antes do desconto: ${formatCurrency(currentBudget.totalBeforeDiscount)}${discountText}Valor total: ${formatCurrency(currentBudget.total)}\nReserva de 40%: ${formatCurrency(currentBudget.reservation)}\nSaldo após conclusão do serviço: ${formatCurrency(currentBudget.balance)}\n\nStatus do orçamento: ${currentBudget.statusOrcamento}\n\nDetalhes:\n- Produtos: ${getProductKitLabel(currentBudget.productKit)}\n- Imóvel mobiliado: ${currentBudget.furnished ? "Sim" : "Não"}\n- Entulho/lixo pesado: ${currentBudget.rubble ? "Sim" : "Não"}\n- Eletrodomésticos internos: ${currentBudget.appliances}${conditionsText}Pix copia e cola:\n${document.getElementById("pixCode").value}\n\nApós o pagamento da reserva, o agendamento fica pendente de confirmação.`;
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
         }
-
         function renderHistory() {
-            const searchTerm = historySearchInput.value.trim().toLowerCase();
+            const term = historySearchInput.value.trim().toLowerCase();
+            const filtered = quoteRequests.filter(item => !term || [item.cliente, item.whatsapp, item.servico, item.tipoImovel, item.datasSolicitadas, item.horario, item.endereco, item.cep, item.regiao, item.observacoes, item.status, item.statusOrcamento, item.metragem, item.desconto, item.valorTotal, item.reserva, item.saldo, item.condicoesOrcamento, item.dataOrcamento].join(" ").toLowerCase().includes(term)).slice().reverse();
+            if (!filtered.length) { quotesHistory.innerHTML = `<article class="status-card admin-history-card"><strong>Nenhum orçamento encontrado</strong><p>Tente buscar por outro nome, serviço, data ou status.</p></article>`; return; }
+            quotesHistory.innerHTML = ""; filtered.forEach(item => { const sel = item.statusOrcamento || item.status || "Aguardando orçamento"; quotesHistory.innerHTML += `<article class="status-card admin-history-card"><div class="status-card-top"><span class="client-badge">${item.cliente || "Cliente"}</span><strong>${sel}</strong></div><p><b>Serviço:</b> ${item.servico || "-"}</p><p><b>Datas:</b> ${item.datasSolicitadas || "-"}</p><p><b>WhatsApp:</b> ${item.whatsapp || "-"}</p><p><b>Metragem:</b> ${item.metragem || "-"}</p><p><b>Desconto:</b> ${item.desconto ? formatCurrency(item.desconto) : "-"}</p><p><b>Valor total:</b> ${item.valorTotal ? formatCurrency(item.valorTotal) : "-"}</p><p><b>Reserva:</b> ${item.reserva ? formatCurrency(item.reserva) : "-"}</p><p><b>Condições:</b> ${item.condicoesOrcamento || "-"}</p><select class="status-select" onchange="changeCustomQuoteStatus('${item.id}', this.value)">${quoteStatusOptions.map(s => `<option value="${s}" ${sel === s ? "selected" : ""}>${s}</option>`).join("")}</select></article>`; });
+        }
+        function changeCustomQuoteStatus(id, newStatus) { const q = quoteRequests.find(i => String(i.id) === String(id)); if (q) { q.status = newStatus; q.statusOrcamento = newStatus; renderHistory(); } fetch(apiUrl, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "updateCustomQuoteStatus", id, status: newStatus, statusOrcamento: newStatus }) }); }
+        function getServiceLabel(t) { return t === "posobra" ? "Limpeza Pós-Obra" : "Limpeza Residencial Personalizada"; }
+        function getProductKitLabel(v) { if (Number(v) === 180) return "Kit 2 - Padrão Residencial Grande"; if (Number(v) === 300) return "Kit 1 - Padrão Pós-Obra"; return "Cliente fornece os produtos"; }
+        function formatWhatsAppNumber(v) { if (!v) return ""; let p = String(v).replace(/\D/g, ""); if (p.length === 10 || p.length === 11) p = "55" + p; return p; }
+        function formatCurrency(v) { return Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); }
 
-            const filteredQuotes = quoteRequests
-                .filter(function (item) {
-                    if (!searchTerm) {
-                        return true;
-                    }
+        // ===== GERENCIAR AGENDAMENTOS =====
+        const reloadAppointmentsButton = document.getElementById("reloadAppointmentsButton");
+        const appointmentFormPanel = document.getElementById("appointmentFormPanel");
+        const appointmentFormTitle = document.getElementById("appointmentFormTitle");
+        const appointmentFormAdmin = document.getElementById("appointmentFormAdmin");
+        const cancelAppointmentFormButton = document.getElementById("cancelAppointmentFormButton");
+        const deleteAppointmentButton = document.getElementById("deleteAppointmentButton");
+        const apptFormMessage = document.getElementById("apptFormMessage");
+        const appointmentsList = document.getElementById("appointmentsList");
+        const apptSearch = document.getElementById("apptSearch");
+        const apptListPrev = document.getElementById("apptListPrev");
+        const apptListNext = document.getElementById("apptListNext");
+        let allAppointments = [];
 
-                    const searchableText = [
-                        item.cliente,
-                        item.whatsapp,
-                        item.servico,
-                        item.tipoImovel,
-                        item.datasSolicitadas,
-                        item.horario,
-                        item.endereco,
-                        item.cep,
-                        item.regiao,
-                        item.observacoes,
-                        item.status,
-                        item.statusOrcamento,
-                        item.metragem,
-                        item.desconto,
-                        item.valorTotal,
-                        item.reserva,
-                        item.saldo,
-                        item.condicoesOrcamento,
-                        item.dataOrcamento
-                    ].join(" ").toLowerCase();
+        reloadAppointmentsButton.addEventListener("click", loadAppointmentsAdmin);
+        apptSearch.addEventListener("input", renderAppointmentsList);
+        apptListPrev.addEventListener("click", () => appointmentsList.scrollBy({ left: -320, behavior: "smooth" }));
+        apptListNext.addEventListener("click", () => appointmentsList.scrollBy({ left: 320, behavior: "smooth" }));
+        cancelAppointmentFormButton.addEventListener("click", hideAppointmentForm);
+        deleteAppointmentButton.addEventListener("click", deleteAppointmentAdmin);
+        appointmentFormAdmin.addEventListener("submit", saveAppointmentAdmin);
 
-                    return searchableText.includes(searchTerm);
+        async function loadAppointmentsAdmin() {
+            reloadAppointmentsButton.disabled = true; reloadAppointmentsButton.textContent = "Carregando...";
+            try {
+                const res = await fetch(`${apiUrl}?t=${Date.now()}`, { cache: "no-store" });
+                const data = await res.json();
+                allAppointments = (data || []).map(row => ({ id: row.id, rowNumber: row.rowNumber, dataEnvio: row.dataEnvio, cliente: row.cliente, servico: row.servico, dataAgendamento: row.dataAgendamento, horario: row.horario, endereco: row.endereco, frequencia: row.frequencia, observacoes: row.observacoes, whatsapp: row.whatsapp || "", status: row.status || "Aguardando confirmação", tipoImovel: row.tipoImovel || "", cep: row.cep || "", regiao: row.regiao || "", transporte: row.transporte || "", valorTotal: row.valorTotal || "", reserva: row.reserva || "", saldo: row.saldo || "", pagamento: row.pagamento || "" }));
+                renderAppointmentsList();
+            } catch (e) { appointmentsList.innerHTML = `<article class="status-card admin-history-card"><strong>Erro ao carregar</strong><p>Tente novamente.</p></article>`; }
+            finally { reloadAppointmentsButton.disabled = false; reloadAppointmentsButton.textContent = "Atualizar lista"; }
+        }
+
+        function renderAppointmentsList() {
+            const term = apptSearch.value.trim().toLowerCase();
+            const filtered = allAppointments
+                .filter(a => {
+                    if (!term) return true;
+                    // Normaliza a data do agendamento para DD/MM/YYYY pra casar com a busca
+                    const dataNorm = formatDateBR(a.dataAgendamento).toLowerCase();
+                    const searchable = [a.cliente, a.servico, dataNorm, a.horario, a.status, a.endereco, a.whatsapp].join(" ").toLowerCase();
+                    return searchable.includes(term);
                 })
-                .slice()
-                .reverse();
+                .sort((a, b) => `${a.dataAgendamento}${a.horario}`.localeCompare(`${b.dataAgendamento}${b.horario}`));
+            if (!filtered.length) { appointmentsList.innerHTML = `<article class="status-card admin-history-card appointment-card"><strong>Nenhum agendamento</strong><p>Use a busca ou clique em Atualizar lista.</p></article>`; return; }
+            appointmentsList.innerHTML = "";
+            filtered.forEach(a => {
+                const dataFormatada = formatDateBR(a.dataAgendamento);
+                appointmentsList.innerHTML += `
+      <article class="status-card admin-history-card appointment-card">
+        <div class="status-card-top">
+          <span class="client-badge">${a.cliente || "Cliente"}</span>
+          <strong>${dataFormatada}</strong>
+        </div>
+        <p><b>Data:</b> ${dataFormatada}</p>
+        <p><b>Horário:</b> ${formatTimeBR(a.horario)}</p>
+        <p><b>Serviço:</b> ${a.servico || "-"}</p>
+        <p><b>Status:</b> <span class="slot-badge">${a.status}</span></p>
+        <p><b>Endereço:</b> ${a.endereco || "-"}</p>
+        <p><b>WhatsApp:</b> ${a.whatsapp || "-"}</p>
+        <p><b>Obs:</b> ${a.observacoes || "-"}</p>
+        <div class="card-actions">
+          <button class="btn-edit" onclick="openAppointmentForm('${a.id}')">Editar</button>
+          <button class="btn-delete" onclick="confirmDeleteAppointment('${a.id}')">Excluir</button>
+        </div>
+      </article>
+    `;
+            });
+        }
+        function openAppointmentForm(id) {
+            const appt = allAppointments.find(a => String(a.id) === String(id));
+            const isNew = !appt;
+            appointmentFormTitle.textContent = isNew ? "Novo agendamento" : "Editar agendamento";
+            document.getElementById("apptId").value = appt?.id || "";
+            document.getElementById("apptRowNumber").value = appt?.rowNumber || "";
+            document.getElementById("apptOriginalDate").value = appt?.dataAgendamento || "";
+            document.getElementById("apptOriginalTime").value = appt?.horario || "";
+            document.getElementById("apptClient").value = appt?.cliente || "";
+            document.getElementById("apptWhatsapp").value = appt?.whatsapp || "";
+            document.getElementById("apptService").value = appt?.servico || "";
+            document.getElementById("apptDate").value = appt?.dataAgendamento || "";
+            document.getElementById("apptTime").value = appt?.horario || "";
+            document.getElementById("apptAddress").value = appt?.endereco || "";
+            document.getElementById("apptCep").value = appt?.cep || "";
+            document.getElementById("apptRegion").value = appt?.regiao || "";
+            document.getElementById("apptFrequency").value = appt?.frequencia || "Datas selecionadas";
+            document.getElementById("apptNotes").value = appt?.observacoes || "";
+            document.getElementById("apptStatus").value = appt?.status || "Aguardando confirmação";
+            deleteAppointmentButton.style.display = isNew ? "none" : "inline-flex";
+            appointmentFormPanel.style.display = "block";
+            appointmentFormPanel.scrollIntoView({ behavior: "smooth" });
+            apptFormMessage.textContent = "";
+            apptFormMessage.className = "form-message";
+        }
 
-            if (filteredQuotes.length === 0) {
-                quotesHistory.innerHTML = `
-                    <article class="status-card admin-history-card">
-                        <strong>Nenhum orçamento encontrado</strong>
-                        <p>Tente buscar por outro nome, serviço, data ou status.</p>
-                    </article>
-                `;
-                return;
+        function hideAppointmentForm() {
+            appointmentFormPanel.style.display = "none";
+            appointmentFormAdmin.reset();
+            document.getElementById("apptId").value = "";
+            document.getElementById("apptRowNumber").value = "";
+            document.getElementById("apptOriginalDate").value = "";
+            document.getElementById("apptOriginalTime").value = "";
+            deleteAppointmentButton.style.display = "none";
+        }
+
+        async function saveAppointmentAdmin(e) {
+            e.preventDefault();
+            const id = document.getElementById("apptId").value;
+            const rowNumber = document.getElementById("apptRowNumber").value;
+            const isNew = !id;
+            const payload = {
+                action: isNew ? "saveAppointment" : "updateAppointment",
+                id: id || undefined,
+                rowNumber: rowNumber || undefined,
+                dataEnvio: isNew ? new Date().toLocaleString("pt-BR") : undefined,
+                cliente: document.getElementById("apptClient").value.trim(),
+                whatsapp: document.getElementById("apptWhatsapp").value.trim(),
+                servico: document.getElementById("apptService").value,
+                dataAgendamento: document.getElementById("apptDate").value,
+                horario: document.getElementById("apptTime").value,
+                endereco: document.getElementById("apptAddress").value.trim(),
+                frequencia: document.getElementById("apptFrequency").value,
+                observacoes: document.getElementById("apptNotes").value.trim(),
+                status: document.getElementById("apptStatus").value,
+                tipoImovel: document.getElementById("apptService").value,
+                cep: document.getElementById("apptCep").value.trim(),
+                regiao: getRegionLabelAdmin(document.getElementById("apptRegion").value),
+                transporte: "", valorTotal: "", reserva: "", saldo: "", pagamento: ""
+            };
+            const btn = document.getElementById("saveAppointmentButton");
+            btn.disabled = true; btn.textContent = "Salvando...";
+            try {
+                await fetch(apiUrl, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
+                apptFormMessage.textContent = "Salvo com sucesso! O calendário e a planilha foram atualizados.";
+                apptFormMessage.className = "form-message active available";
+                hideAppointmentForm();
+                loadAppointmentsAdmin();
+            } catch (err) {
+                apptFormMessage.textContent = "Erro ao salvar. Tente novamente.";
+                apptFormMessage.className = "form-message active";
+            } finally {
+                btn.disabled = false; btn.textContent = "Salvar agendamento";
             }
-
-            quotesHistory.innerHTML = "";
-
-            filteredQuotes.forEach(function (item) {
-                const selectedStatus = item.statusOrcamento || item.status || "Aguardando orçamento";
-
-                quotesHistory.innerHTML += `
-                    <article class="status-card admin-history-card">
-                        <div class="status-card-top">
-                            <span class="client-badge">${item.cliente || "Cliente"}</span>
-                            <strong>${selectedStatus}</strong>
-                        </div>
-                        <p><b>Serviço:</b> ${item.servico || "-"}</p>
-                        <p><b>Datas:</b> ${item.datasSolicitadas || "-"}</p>
-                        <p><b>WhatsApp:</b> ${item.whatsapp || "-"}</p>
-                        <p><b>Metragem:</b> ${item.metragem || "-"}</p>
-                        <p><b>Desconto:</b> ${item.desconto ? formatCurrency(item.desconto) : "-"}</p>
-                        <p><b>Valor total:</b> ${item.valorTotal ? formatCurrency(item.valorTotal) : "-"}</p>
-                        <p><b>Reserva:</b> ${item.reserva ? formatCurrency(item.reserva) : "-"}</p>
-                        <p><b>Condições:</b> ${item.condicoesOrcamento || "-"}</p>
-
-                        <select class="status-select" onchange="changeCustomQuoteStatus('${item.id}', this.value)">
-                            ${quoteStatusOptions.map(function (status) {
-                    return `
-                                    <option value="${status}" ${selectedStatus === status ? "selected" : ""}>
-                                        ${status}
-                                    </option>
-                                `;
-                }).join("")}
-                        </select>
-                    </article>
-                `;
-            });
         }
 
-        function changeCustomQuoteStatus(id, newStatus) {
-            const quote = quoteRequests.find(function (item) {
-                return String(item.id) === String(id);
-            });
+        function confirmDeleteAppointment(id) {
+            if (!confirm("Tem certeza que deseja EXCLUIR este agendamento? O horário/data voltarão a ficar disponíveis no calendário.")) return;
+            deleteAppointmentAdmin(id);
+        }
 
-            if (quote) {
-                quote.status = newStatus;
-                quote.statusOrcamento = newStatus;
-                renderHistory();
+        async function deleteAppointmentAdmin(id) {
+            const appt = allAppointments.find(a => String(a.id) === String(id)) || { id, rowNumber: document.getElementById("apptRowNumber").value };
+            try {
+                await fetch(apiUrl, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "deleteAppointment", id: appt.id, rowNumber: appt.rowNumber }) });
+                alert("Agendamento excluído. O horário/data ficaram livres no calendário.");
+                hideAppointmentForm();
+                loadAppointmentsAdmin();
+            } catch (e) { alert("Erro ao excluir."); }
+        }
+
+        function getRegionLabelAdmin(v) {
+            if (v === "proxima") return "Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente";
+            if (v === "distante") return "Diadema, Santo Amaro ou Zona Sul";
+            return "Outra região - confirmar pelo WhatsApp";
+        }
+        function formatDateBR(d) {
+            if (!d) return "-";
+            const s = String(d).trim();
+            // Tenta parsear como Date (aceita ISO, yyyy-MM-dd, etc.)
+            const dt = new Date(s);
+            if (!isNaN(dt.getTime())) {
+                const day = String(dt.getDate()).padStart(2, '0');
+                const month = String(dt.getMonth() + 1).padStart(2, '0');
+                const year = dt.getFullYear();
+                return `${day}/${month}/${year}`;
             }
-
-            fetch(apiUrl, {
-                method: "POST",
-                mode: "no-cors",
-                body: JSON.stringify({
-                    action: "updateCustomQuoteStatus",
-                    id: id,
-                    status: newStatus,
-                    statusOrcamento: newStatus
-                })
-            });
+            // Se já é DD/MM/YYYY
+            if (s.includes("/")) return s;
+            return s;
         }
 
-        function getServiceLabel(serviceType) {
-            return serviceType === "posobra" ? "Limpeza Pós-Obra" : "Limpeza Residencial Personalizada";
-        }
-
-        function getProductKitLabel(value) {
-            if (Number(value) === 180) return "Kit 2 - Padrão Residencial Grande";
-            if (Number(value) === 300) return "Kit 1 - Padrão Pós-Obra";
-            return "Cliente fornece os produtos";
-        }
-
-        function formatWhatsAppNumber(value) {
-            if (!value) return "";
-            let phone = String(value).replace(/\D/g, "");
-
-            if (phone.length === 10 || phone.length === 11) {
-                phone = "55" + phone;
+        function formatTimeBR(t) {
+            if (!t) return "-";
+            const s = String(t).trim();
+            // Se é "dia-inteiro"
+            if (s === "dia-inteiro") return "Dia inteiro";
+            // Tenta parsear como Date (aceita ISO, 1899-12-30T06:00:00.000Z, etc.)
+            const dt = new Date(s);
+            if (!isNaN(dt.getTime())) {
+                const h = String(dt.getHours()).padStart(2, '0');
+                const m = String(dt.getMinutes()).padStart(2, '0');
+                return `${h}:${m}`;
             }
-
-            return phone;
+            // Se já é HH:mm ou HH:mm:ss
+            if (s.includes(":")) return s.slice(0, 5);
+            return s;
         }
-
-        function formatCurrency(value) {
-            return Number(value || 0).toLocaleString("pt-BR", {
-                style: "currency",
-                currency: "BRL"
-            });
-        }
+        window.openAppointmentForm = openAppointmentForm;
+        window.confirmDeleteAppointment = confirmDeleteAppointment;
 
         calculateAndRenderBudget();
     </script>
 </body>
 
- </html>
+</html>
