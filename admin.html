@@ -393,14 +393,54 @@
         appointmentFormAdmin.addEventListener("submit", saveAppointmentAdmin);
 
         async function loadAppointmentsAdmin() {
-            reloadAppointmentsButton.disabled = true; reloadAppointmentsButton.textContent = "Carregando...";
+            reloadAppointmentsButton.disabled = true;
+            reloadAppointmentsButton.textContent = "Carregando...";
+            appointmentsList.innerHTML = `<article class="status-card admin-history-card appointment-card"><p>Carregando agendamentos...</p></article>`;
+
             try {
-                const res = await fetch(`${apiUrl}?t=${Date.now()}`, { cache: "no-store" });
+                // Timeout de 15s pra não travar infinito
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 15000);
+
+                const res = await fetch(`${apiUrl}?t=${Date.now()}`, {
+                    cache: "no-store",
+                    signal: controller.signal
+                });
+                clearTimeout(timeout);
+
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
                 const data = await res.json();
-                allAppointments = (data || []).map(row => ({ id: row.id, rowNumber: row.rowNumber, dataEnvio: row.dataEnvio, cliente: row.cliente, servico: row.servico, dataAgendamento: row.dataAgendamento, horario: row.horario, endereco: row.endereco, frequencia: row.frequencia, observacoes: row.observacoes, whatsapp: row.whatsapp || "", status: row.status || "Aguardando confirmação", tipoImovel: row.tipoImovel || "", cep: row.cep || "", regiao: row.regiao || "", transporte: row.transporte || "", valorTotal: row.valorTotal || "", reserva: row.reserva || "", saldo: row.saldo || "", pagamento: row.pagamento || "" }));
+                allAppointments = (data || []).map(row => ({
+                    id: row.id,
+                    rowNumber: row.rowNumber,
+                    dataEnvio: row.dataEnvio,
+                    cliente: row.cliente,
+                    servico: row.servico,
+                    dataAgendamento: row.dataAgendamento,
+                    horario: row.horario,
+                    endereco: row.endereco,
+                    frequencia: row.frequencia,
+                    observacoes: row.observacoes,
+                    whatsapp: row.whatsapp || "",
+                    status: row.status || "Aguardando confirmação",
+                    tipoImovel: row.tipoImovel || "",
+                    cep: row.cep || "",
+                    regiao: row.regiao || "",
+                    transporte: row.transporte || "",
+                    valorTotal: row.valorTotal || "",
+                    reserva: row.reserva || "",
+                    saldo: row.saldo || "",
+                    pagamento: row.pagamento || ""
+                }));
                 renderAppointmentsList();
-            } catch (e) { appointmentsList.innerHTML = `<article class="status-card admin-history-card"><strong>Erro ao carregar</strong><p>Tente novamente.</p></article>`; }
-            finally { reloadAppointmentsButton.disabled = false; reloadAppointmentsButton.textContent = "Atualizar lista"; }
+            } catch (e) {
+                console.error("Erro ao carregar agendamentos:", e);
+                appointmentsList.innerHTML = `<article class="status-card admin-history-card appointment-card"><strong>Erro ao carregar</strong><p>${e.message || "Tente clicar em Atualizar lista."}</p></article>`;
+            } finally {
+                reloadAppointmentsButton.disabled = false;
+                reloadAppointmentsButton.textContent = "Atualizar lista";
+            }
         }
 
         function renderAppointmentsList() {
@@ -521,13 +561,23 @@
         }
 
         async function deleteAppointmentAdmin(id) {
-            const appt = allAppointments.find(a => String(a.id) === String(id)) || { id, rowNumber: document.getElementById("apptRowNumber").value };
+            // Busca o appointment atualizado na lista (garante id fresco)
+            const appt = allAppointments.find(a => String(a.id) === String(id));
+            if (!appt) { alert("Agendamento não encontrado na lista."); return; }
+
             try {
-                await fetch(apiUrl, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "deleteAppointment", id: appt.id, rowNumber: appt.rowNumber }) });
+                // Envia SÓ o id (mais confiável que rowNumber)
+                await fetch(apiUrl, {
+                    method: "POST",
+                    mode: "no-cors",
+                    body: JSON.stringify({ action: "deleteAppointment", id: appt.id })
+                });
                 alert("Agendamento excluído. O horário/data ficaram livres no calendário.");
                 hideAppointmentForm();
-                loadAppointmentsAdmin();
-            } catch (e) { alert("Erro ao excluir."); }
+                loadAppointmentsAdmin(); // recarrega do zero
+            } catch (e) {
+                alert("Erro ao excluir. Tente novamente.");
+            }
         }
 
         function getRegionLabelAdmin(v) {
