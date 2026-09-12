@@ -483,8 +483,8 @@
             const appt = allAppointments.find(a => String(a.id) === String(id));
             const isNew = !appt;
             appointmentFormTitle.textContent = isNew ? "Novo agendamento" : "Editar agendamento";
-            document.getElementById("apptId").value = appt?.id || "";
-            document.getElementById("apptRowNumber").value = appt?.rowNumber || "";
+            document.getElementById("apptId").value = appt?.id ? String(appt.id) : "";
+            document.getElementById("apptRowNumber").value = appt?.rowNumber ? String(appt.rowNumber) : "";
             document.getElementById("apptOriginalDate").value = appt?.dataAgendamento || "";
             document.getElementById("apptOriginalTime").value = appt?.horario || "";
             document.getElementById("apptClient").value = appt?.cliente || "";
@@ -519,11 +519,14 @@
             e.preventDefault();
             const id = document.getElementById("apptId").value;
             const rowNumber = document.getElementById("apptRowNumber").value;
-            const isNew = !id;
+            // Trata vazio ou "0" como novo
+            const isNew = !id || id === "0";
+
             const payload = {
                 action: isNew ? "saveAppointment" : "updateAppointment",
-                id: id || undefined,
-                rowNumber: rowNumber || undefined,
+                // Só manda id/rowNumber no UPDATE (string)
+                id: isNew ? undefined : String(id),
+                rowNumber: isNew ? undefined : String(rowNumber),
                 dataEnvio: isNew ? new Date().toLocaleString("pt-BR") : undefined,
                 cliente: document.getElementById("apptClient").value.trim(),
                 whatsapp: document.getElementById("apptWhatsapp").value.trim(),
@@ -539,8 +542,10 @@
                 regiao: getRegionLabelAdmin(document.getElementById("apptRegion").value),
                 transporte: "", valorTotal: "", reserva: "", saldo: "", pagamento: ""
             };
+
             const btn = document.getElementById("saveAppointmentButton");
             btn.disabled = true; btn.textContent = "Salvando...";
+
             try {
                 await fetch(apiUrl, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
                 apptFormMessage.textContent = "Salvo com sucesso! O calendário e a planilha foram atualizados.";
@@ -560,23 +565,27 @@
             deleteAppointmentAdmin(id);
         }
 
-        async function deleteAppointmentAdmin(id) {
-            // Busca o appointment atualizado na lista (garante id fresco)
+         async function deleteAppointmentAdmin(id) {
             const appt = allAppointments.find(a => String(a.id) === String(id));
             if (!appt) { alert("Agendamento não encontrado na lista."); return; }
 
             try {
-                // Envia SÓ o id (mais confiável que rowNumber)
-                await fetch(apiUrl, {
+                const res = await fetch(apiUrl, {
                     method: "POST",
-                    mode: "no-cors",
+                    // mode: "no-cors",  // <-- REMOVIDO pra poder ler a resposta
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ action: "deleteAppointment", id: appt.id })
                 });
+                const result = await res.json();
+                console.log("Delete result:", result);  // <-- OLHE NO CONSOLE (F12)
+                if (!result.success) { alert("Erro: " + (result.message || "ID não encontrado na planilha")); return; }
+
                 alert("Agendamento excluído. O horário/data ficaram livres no calendário.");
                 hideAppointmentForm();
-                loadAppointmentsAdmin(); // recarrega do zero
+                loadAppointmentsAdmin();
             } catch (e) {
-                alert("Erro ao excluir. Tente novamente.");
+                console.error("Erro no fetch:", e);
+                alert("Erro de rede ao excluir: " + e.message);
             }
         }
 
