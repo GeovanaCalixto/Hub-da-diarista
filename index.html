@@ -74,6 +74,16 @@
                             required /></label>
                     <label>WhatsApp da cliente<input id="whatsapp" type="tel" placeholder="Ex: 11999999999"
                             required /></label>
+                    <label>
+                        E-mail da cliente
+                        <input id="email" type="email" placeholder="Ex: nome@email.com" />
+                    </label>
+
+                    <label>
+                        CPF da cliente
+                        <input id="cpf" type="text" inputmode="numeric" placeholder="Somente números" />
+                    </label>
+
                     <label>Tipo de serviço/imóvel<select id="propertyType" required>
                             <option value="">Selecione</option>
                             <option value="ate40">Apto/Casa até 40m²</option>
@@ -178,9 +188,18 @@
             if (selectedDates.length === 0) { alert("Selecione pelo menos uma data disponível na agenda."); return; }
 
             const selectedPropertyType = document.getElementById("propertyType").value;
+            const email = document.getElementById("email").value.trim();
+            const cpf = document.getElementById("cpf").value.replace(/\D/g, "");
+
+            if (!isCustomQuoteType(selectedPropertyType) && (!email || cpf.length !== 11)) {
+                alert("Para gerar o pagamento Pix, informe um e-mail e um CPF válido com 11 números.");
+                return;
+            }
             const baseAppointment = {
                 client: document.getElementById("client").value.trim(),
                 whatsapp: document.getElementById("whatsapp").value.trim(),
+                email: email,
+                cpf: cpf,
                 service: getPropertyLabel(selectedPropertyType),
                 propertyType: selectedPropertyType,
                 cep: document.getElementById("cep").value.trim(),
