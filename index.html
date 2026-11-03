@@ -7,6 +7,7 @@
     <title>Hub da Diarista</title>
     <link rel="icon" type="image/png" href="imagens/icon.png" />
     <link rel="stylesheet" href="hubdadiarista.css" />
+
 </head>
 
 <body>
@@ -295,7 +296,24 @@
                 return isWithinStatusWindow(item.date);
             }).slice().sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`));
             if (!filtered.length) { appointmentsTable.innerHTML = `<article class="status-card"><strong>Nenhum agendamento encontrado</strong><p>Tente buscar por outro nome, data ou informação.</p></article>`; return; }
-            filtered.forEach(item => { appointmentsTable.innerHTML += `<article class="status-card"><div class="status-card-top"><span class="client-badge">${item.client || "Cliente"}</span><strong>${formatDate(item.date)}</strong></div><p><b>Horário:</b> ${formatTime(item.time)}</p><p><b>Serviço:</b> ${item.service || "-"}</p><p><b>Tipo:</b> ${item.contractType || "-"}</p><select class="status-select" onchange="changeStatus('${item.id}', this.value)">${statusOptions.map(s => `<option value="${s}" ${item.status === s ? "selected" : ""}>${s}</option>`).join("")}</select></article>`; });
+            filtered.forEach(item => {
+                appointmentsTable.innerHTML += `
+        <article class="status-card">
+            <div class="status-card-top">
+                <span class="client-badge">${item.client || "Cliente"}</span>
+                <strong>${formatDate(item.date)}</strong>
+            </div>
+
+            <p><b>Horário:</b> ${formatTime(item.time)}</p>
+            <p><b>Serviço:</b> ${item.service || "-"}</p>
+            <p><b>Tipo:</b> ${item.contractType || "-"}</p>
+
+            <span class="status-select">
+                ${item.status || "Aguardando confirmação"}
+            </span>
+        </article>
+    `;
+            });
         }
 
         function changeStatus(id, newStatus) {

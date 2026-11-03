@@ -7,6 +7,8 @@
     <title>Admin - Hub da Diarista</title>
     <link rel="icon" type="image/png" href="imagens/icon.png" />
     <link rel="stylesheet" href="hubdadiarista.css" />
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 </head>
 
 <body class="admin-page">
@@ -20,10 +22,19 @@
     <main>
         <section id="loginPanel" class="admin-login-card">
             <h1>Painel administrativo</h1>
-            <p class="section-note">Acesso restrito para geração de orçamentos personalizados.</p>
+            <p class="section-note">Acesso restrito para gerenciamento de agendamentos e orçamentos.</p>
+
             <form id="loginForm">
-                <label>Usuário<input id="adminUser" type="text" required /></label>
-                <label>Senha<input id="adminPassword" type="password" required /></label>
+                <label>
+                    E-mail
+                    <input id="adminEmail" type="email" autocomplete="username" placeholder="nome@email.com" required />
+                </label>
+
+                <label>
+                    Senha
+                    <input id="adminPassword" type="password" autocomplete="current-password" required />
+                </label>
+
                 <button type="submit">Entrar</button>
                 <p id="loginMessage" class="form-message" aria-live="polite"></p>
             </form>
@@ -213,14 +224,113 @@
 
     <script>
         const apiUrl = "https://script.google.com/macros/s/AKfycbyo-_RD8L9wT4-mpDZSV9_OB5xlAWo_qBKcTamrvGNgCaB4IF6O8k1LED24nW0B7lxh/exec";
-        const ADMIN_USER = "admin", ADMIN_PASSWORD = "mepoupe20";
-        const quoteStatusOptions = ["Orçamento solicitado", "Orçamento em análise", "Orçamento enviado para cliente", "Aguardando retorno da cliente", "Aguardando confirmação do orçamento", "Orçamento aprovado", "Orçamento recusado", "Serviço agendado", "Serviço finalizado", "Pagamento realizado"];
 
-        // LOGIN
-        const loginPanel = document.getElementById("loginPanel"), adminContent = document.getElementById("adminContent"), loginForm = document.getElementById("loginForm"), loginMessage = document.getElementById("loginMessage");
-        loginForm.addEventListener("submit", e => { e.preventDefault(); const u = document.getElementById("adminUser").value.trim(), p = document.getElementById("adminPassword").value.trim(); if (u === ADMIN_USER && p === ADMIN_PASSWORD) { sessionStorage.setItem("hubAdminLogged", "true"); showAdmin(); } else { loginMessage.textContent = "Usuário ou senha inválidos."; loginMessage.classList.add("active"); } });
-        function showAdmin() { loginPanel.classList.add("hidden"); adminContent.classList.remove("hidden"); loadCustomQuoteRequests(); loadAppointmentsAdmin(); }
-        if (sessionStorage.getItem("hubAdminLogged") === "true") showAdmin();
+        const firebaseConfig = {
+            apiKey: "AIzaSyCan31dyjIwP4ni22IDOqC0VD5jiW2vnwk",
+            authDomain: "hub-da-diarista.firebaseapp.com",
+            projectId: "hub-da-diarista",
+            storageBucket: "hub-da-diarista.firebasestorage.app",
+            messagingSenderId: "262676996933",
+            appId: "1:262676996933:web:265d1b4f99e08392f5542c"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+
+        const firebaseAuth = firebase.auth();
+
+        const quoteStatusOptions = [
+            "Orçamento solicitado",
+            "Orçamento em análise",
+            "Orçamento enviado para cliente",
+            "Aguardando retorno da cliente",
+            "Aguardando confirmação do orçamento",
+            "Orçamento aprovado",
+            "Orçamento recusado",
+            "Serviço agendado",
+            "Serviço finalizado",
+            "Pagamento realizado"
+        ];
+
+        const loginPanel = document.getElementById("loginPanel");
+        const adminContent = document.getElementById("adminContent");
+        const loginForm = document.getElementById("loginForm");
+        const loginMessage = document.getElementById("loginMessage");
+
+        let adminStarted = false;
+
+        loginForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const email = document.getElementById("adminEmail").value.trim();
+            const password = document.getElementById("adminPassword").value;
+
+            loginMessage.textContent = "Verificando acesso...";
+            loginMessage.className = "form-message active";
+
+            try {
+                await firebaseAuth.signInWithEmailAndPassword(email, password);
+            } catch (error) {
+                loginMessage.textContent = "E-mail ou senha inválidos.";
+                loginMessage.className = "form-message active";
+            }
+        });
+
+        firebaseAuth.onAuthStateChanged(async function (user) {
+            if (!user) {
+                adminContent.classList.add("hidden");
+                loginPanel.classList.remove("hidden");
+                return;
+            }
+
+            try {
+                await adminRequest("getAdminAppointments");
+
+                loginPanel.classList.add("hidden");
+                adminContent.classList.remove("hidden");
+
+                if (!adminStarted) {
+                    adminStarted = true;
+                    loadCustomQuoteRequests();
+                    loadAppointmentsAdmin();
+                }
+            } catch (error) {
+                await firebaseAuth.signOut();
+
+                loginMessage.textContent =
+                    "Este e-mail não possui autorização para acessar o painel.";
+                loginMessage.className = "form-message active";
+            }
+        });
+
+        async function adminRequest(action, payload = {}) {
+            const user = firebaseAuth.currentUser;
+
+            if (!user) {
+                throw new Error("Faça login para continuar.");
+            }
+
+            const adminToken = await user.getIdToken();
+
+            const response = await fetch(apiUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
+                body: JSON.stringify({
+                    ...payload,
+                    action: action,
+                    adminToken: adminToken
+                })
+            });
+
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.message || "Ação não autorizada.");
+            }
+
+            return data;
+        }
 
         // ORÇAMENTOS (ORIGINAL)
         const quoteRequestSelect = document.getElementById("quoteRequestSelect"), clientPreview = document.getElementById("clientPreview"), budgetSummary = document.getElementById("budgetSummary"), quotesHistory = document.getElementById("quotesHistory"), historySearchInput = document.getElementById("historySearch"), historyPrevButton = document.getElementById("historyPrev"), historyNextButton = document.getElementById("historyNext"), reloadRequestsButton = document.getElementById("reloadRequestsButton"), copyPixButton = document.getElementById("copyPixButton"), saveBudgetButton = document.getElementById("saveBudgetButton"), sendBudgetButton = document.getElementById("sendBudgetButton"), printBudgetButton = document.getElementById("printBudgetButton"), budgetInputs = ["budgetServiceType", "squareMeters", "productKit", "appliances", "discount", "quoteStatus", "furnished", "rubble", "budgetNotes", "budgetConditions"];
@@ -236,15 +346,91 @@
         sendBudgetButton.addEventListener("click", sendBudgetToWhatsApp);
         printBudgetButton.addEventListener("click", () => window.print());
 
-        function loadCustomQuoteRequests() { quoteRequestSelect.innerHTML = `<option value="">Carregando solicitações...</option>`; fetch(`${apiUrl}?action=getCustomQuoteRequests`).then(r => r.json()).then(data => { quoteRequests = data || []; renderQuoteOptions(); renderHistory(); }).catch(() => quoteRequestSelect.innerHTML = `<option value="">Não foi possível carregar.</option>`); }
+        async function loadCustomQuoteRequests() {
+            quoteRequestSelect.innerHTML =
+                `<option value="">Carregando solicitações...</option>`;
+
+            try {
+                const data = await adminRequest("getCustomQuoteRequests");
+
+                quoteRequests = data.requests || [];
+                renderQuoteOptions();
+                renderHistory();
+            } catch (error) {
+                quoteRequestSelect.innerHTML =
+                    `<option value="">Não foi possível carregar solicitações.</option>`;
+            }
+        }
         function renderQuoteOptions() { if (!quoteRequests.length) { quoteRequestSelect.innerHTML = `<option value="">Nenhuma solicitação encontrada.</option>`; return; } quoteRequestSelect.innerHTML = `<option value="">Selecione uma cliente</option>`; quoteRequests.slice().reverse().forEach(item => { quoteRequestSelect.innerHTML += `<option value="${item.id}">${item.cliente || "Cliente"} - ${item.servico || "Serviço"} - ${item.statusOrcamento || item.status || "Aguardando orçamento"}</option>`; }); }
         function fillSelectedQuote() { if (!selectedQuote) { clientPreview.innerHTML = "Nenhuma solicitação selecionada."; return; } const st = String(selectedQuote.servico || "").toLowerCase().includes("pós") ? "posobra" : "residencial"; document.getElementById("budgetServiceType").value = st; document.getElementById("quoteStatus").value = selectedQuote.statusOrcamento || selectedQuote.status || "Orçamento solicitado"; document.getElementById("discount").value = selectedQuote.desconto || 0; document.getElementById("budgetConditions").value = selectedQuote.condicoesOrcamento || ""; if (selectedQuote.metragem) document.getElementById("squareMeters").value = selectedQuote.metragem; clientPreview.innerHTML = `<strong>${selectedQuote.cliente || "Cliente"}</strong><span>WhatsApp: ${selectedQuote.whatsapp || "-"}</span><span>Serviço solicitado: ${selectedQuote.servico || "-"}</span><span>Datas: ${selectedQuote.datasSolicitadas || "-"}</span><span>Endereço: ${selectedQuote.endereco || "-"}</span><span>CEP: ${selectedQuote.cep || "-"}</span><span>Região: ${selectedQuote.regiao || "-"}</span><span>Status do orçamento: ${selectedQuote.statusOrcamento || selectedQuote.status || "Aguardando orçamento"}</span><span>Observações: ${selectedQuote.observacoes || "-"}</span>`; }
         function calculateAndRenderBudget() { const r = calculateBudget(); currentBudget = r; budgetSummary.innerHTML = `<p><b>Tipo:</b> ${getServiceLabel(r.serviceType)}</p><p><b>Metragem:</b> ${r.squareMeters}m²</p><p><b>Valor por m²:</b> ${formatCurrency(r.pricePerMeter)}</p><p><b>Status:</b> ${r.statusOrcamento}</p><hr><p class="summary-line"><span>Valor bruto:</span> <strong>${formatCurrency(r.grossValue)}</strong></p><p class="summary-line"><span>Acréscimo mobiliado:</span> <strong>${formatCurrency(r.furnishedFee)}</strong></p><p class="summary-line"><span>Entulho/lixo pesado:</span> <strong>${formatCurrency(r.rubbleFee)}</strong></p><p class="summary-line"><span>Eletrodomésticos:</span> <strong>${formatCurrency(r.appliancesFee)}</strong></p><p class="summary-line"><span>Produtos:</span> <strong>${formatCurrency(r.productKit)}</strong></p><p class="summary-line"><span>Desconto:</span> <strong>${formatCurrency(r.discount)}</strong></p><hr><p class="summary-line"><span>Valor antes do desconto:</span> <strong>${formatCurrency(r.totalBeforeDiscount)}</strong></p><p class="summary-line"><span>Valor total:</span> <strong>${formatCurrency(r.total)}</strong></p><p class="summary-line reserve"><span>40% antecipado:</span> <strong>${formatCurrency(r.reservation)}</strong></p><p class="summary-line pay-now"><span>Valor para reserva:</span> <strong>${formatCurrency(r.reservation)}</strong></p><p class="summary-balance">Saldo após conclusão:<br><strong>${formatCurrency(r.balance)}</strong></p><hr><p><b>Condições:</b><br>${r.conditions || "-"}</p>`; }
         function calculateBudget() { const st = document.getElementById("budgetServiceType").value, sm = Number(document.getElementById("squareMeters").value || 0), pk = Number(document.getElementById("productKit").value || 0), furn = document.getElementById("furnished").checked, rub = document.getElementById("rubble").checked, app = Number(document.getElementById("appliances").value || 0), disc = Math.max(Number(document.getElementById("discount").value || 0), 0), statusOrc = document.getElementById("quoteStatus").value, cond = document.getElementById("budgetConditions").value.trim(), ppm = st === "posobra" ? 15.50 : 8.50, gv = sm * ppm, ff = furn ? gv * 0.15 : 0, rf = rub ? 80 : 0, af = app * 30, add = ff + rf + af + pk, tbd = gv + add, tot = Math.max(tbd - disc, 0), res = tot * 0.4, bal = tot - res; return { serviceType: st, squareMeters: sm, pricePerMeter: ppm, productKit: pk, furnished: furn, rubble: rub, appliances: app, grossValue: gv, furnishedFee: ff, rubbleFee: rf, appliancesFee: af, additions: add, discount: disc, totalBeforeDiscount: tbd, total: tot, reservation: res, balance: bal, statusOrcamento: statusOrc, conditions: cond }; }
-        function saveBudget() { if (!selectedQuote) { alert("Selecione uma solicitação antes de salvar."); return; } calculateAndRenderBudget(); fetch(apiUrl, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "saveCustomQuoteResult", id: selectedQuote.id, status: currentBudget.statusOrcamento, statusOrcamento: currentBudget.statusOrcamento, metragem: currentBudget.squareMeters, produtos: getProductKitLabel(currentBudget.productKit), mobiliado: currentBudget.furnished ? "Sim" : "Não", entulho: currentBudget.rubble ? "Sim" : "Não", qtdEletrodomesticos: currentBudget.appliances, valorBruto: currentBudget.grossValue, acrescimos: currentBudget.additions, desconto: currentBudget.discount, valorTotal: currentBudget.total, reserva: currentBudget.reservation, saldo: currentBudget.balance, condicoesOrcamento: currentBudget.conditions, dataOrcamento: new Date().toLocaleString("pt-BR") }) }); alert("Orçamento salvo na planilha."); selectedQuote.status = currentBudget.statusOrcamento; selectedQuote.statusOrcamento = currentBudget.statusOrcamento; selectedQuote.desconto = currentBudget.discount; selectedQuote.condicoesOrcamento = currentBudget.conditions; selectedQuote.valorTotal = currentBudget.total; selectedQuote.reserva = currentBudget.reservation; selectedQuote.saldo = currentBudget.balance; renderHistory(); }
+        async function saveBudget() {
+            if (!selectedQuote) {
+                alert("Selecione uma solicitação antes de salvar.");
+                return;
+            }
+
+            calculateAndRenderBudget();
+
+            try {
+                await adminRequest("saveCustomQuoteResult", {
+                    id: selectedQuote.id,
+                    status: currentBudget.statusOrcamento,
+                    statusOrcamento: currentBudget.statusOrcamento,
+                    metragem: currentBudget.squareMeters,
+                    produtos: getProductKitLabel(currentBudget.productKit),
+                    mobiliado: currentBudget.furnished ? "Sim" : "Não",
+                    entulho: currentBudget.rubble ? "Sim" : "Não",
+                    qtdEletrodomesticos: currentBudget.appliances,
+                    valorBruto: currentBudget.grossValue,
+                    acrescimos: currentBudget.additions,
+                    desconto: currentBudget.discount,
+                    valorTotal: currentBudget.total,
+                    reserva: currentBudget.reservation,
+                    saldo: currentBudget.balance,
+                    condicoesOrcamento: currentBudget.conditions,
+                    dataOrcamento: new Date().toLocaleString("pt-BR")
+                });
+
+                selectedQuote.status = currentBudget.statusOrcamento;
+                selectedQuote.statusOrcamento = currentBudget.statusOrcamento;
+                selectedQuote.desconto = currentBudget.discount;
+                selectedQuote.condicoesOrcamento = currentBudget.conditions;
+                selectedQuote.valorTotal = currentBudget.total;
+                selectedQuote.reserva = currentBudget.reservation;
+                selectedQuote.saldo = currentBudget.balance;
+
+                renderHistory();
+                alert("Orçamento salvo na planilha.");
+            } catch (error) {
+                alert("Não foi possível salvar o orçamento. Faça login novamente e tente.");
+            }
+        }
         function sendBudgetToWhatsApp() { if (!selectedQuote || !currentBudget) { alert("Selecione uma solicitação e gere o orçamento primeiro."); return; } const phone = formatWhatsAppNumber(selectedQuote.whatsapp); if (!phone) { alert("WhatsApp da cliente não encontrado."); return; } const dt = currentBudget.discount > 0 ? `Desconto aplicado: ${formatCurrency(currentBudget.discount)}\n` : "", ct = currentBudget.conditions ? `\nCondições do orçamento:\n${currentBudget.conditions}\n` : "", msg = `Olá, ${selectedQuote.cliente}! Segue o orçamento personalizado:\n\nServiço: ${getServiceLabel(currentBudget.serviceType)}\nDatas solicitadas: ${selectedQuote.datasSolicitadas || "-"}\nMetragem considerada: ${currentBudget.squareMeters}m²\n\nValor antes do desconto: ${formatCurrency(currentBudget.totalBeforeDiscount)}${dt}Valor total: ${formatCurrency(currentBudget.total)}\nReserva de 40%: ${formatCurrency(currentBudget.reservation)}\nSaldo após conclusão do serviço: ${formatCurrency(currentBudget.balance)}\n\nStatus do orçamento: ${currentBudget.statusOrcamento}\n\nDetalhes:\n- Produtos: ${getProductKitLabel(currentBudget.productKit)}\n- Imóvel mobiliado: ${currentBudget.furnished ? "Sim" : "Não"}\n- Entulho/lixo pesado: ${currentBudget.rubble ? "Sim" : "Não"}\n- Eletrodomésticos internos: ${currentBudget.appliances}${ct}Pix copia e cola:\n${document.getElementById("pixCode").value}\n\nApós o pagamento da reserva, o agendamento fica pendente de confirmação.`; window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank"); }
         function renderHistory() { const term = historySearchInput.value.trim().toLowerCase(); const filtered = quoteRequests.filter(item => !term || [item.cliente, item.whatsapp, item.servico, item.tipoImovel, item.datasSolicitadas, item.horario, item.endereco, item.cep, item.regiao, item.observacoes, item.status, item.statusOrcamento, item.metragem, item.desconto, item.valorTotal, item.reserva, item.saldo, item.condicoesOrcamento, item.dataOrcamento].join(" ").toLowerCase().includes(term)).slice().reverse(); if (!filtered.length) { quotesHistory.innerHTML = `<article class="status-card admin-history-card"><strong>Nenhum orçamento encontrado</strong><p>Tente buscar por outro nome, serviço, data ou status.</p></article>`; return; } quotesHistory.innerHTML = ""; filtered.forEach(item => { const sel = item.statusOrcamento || item.status || "Aguardando orçamento"; quotesHistory.innerHTML += `<article class="status-card admin-history-card"><div class="status-card-top"><span class="client-badge">${item.cliente || "Cliente"}</span><strong>${sel}</strong></div><p><b>Serviço:</b> ${item.servico || "-"}</p><p><b>Datas:</b> ${item.datasSolicitadas || "-"}</p><p><b>WhatsApp:</b> ${item.whatsapp || "-"}</p><p><b>Metragem:</b> ${item.metragem || "-"}</p><p><b>Desconto:</b> ${item.desconto ? formatCurrency(item.desconto) : "-"}</p><p><b>Valor total:</b> ${item.valorTotal ? formatCurrency(item.valorTotal) : "-"}</p><p><b>Reserva:</b> ${item.reserva ? formatCurrency(item.reserva) : "-"}</p><p><b>Condições:</b> ${item.condicoesOrcamento || "-"}</p><select class="status-select" onchange="changeCustomQuoteStatus('${item.id}',this.value)">${quoteStatusOptions.map(s => `<option value="${s}" ${sel === s ? "selected" : ""}>${s}</option>`).join("")}</select></article>`; }); }
-        function changeCustomQuoteStatus(id, ns) { const q = quoteRequests.find(i => String(i.id) === String(id)); if (q) { q.status = ns; q.statusOrcamento = ns; renderHistory(); } fetch(apiUrl, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "updateCustomQuoteStatus", id, status: ns, statusOrcamento: ns }) }); }
+        async function changeCustomQuoteStatus(id, newStatus) {
+            try {
+                await adminRequest("updateCustomQuoteStatus", {
+                    id: id,
+                    status: newStatus,
+                    statusOrcamento: newStatus
+                });
+
+                const quote = quoteRequests.find(function (item) {
+                    return String(item.id) === String(id);
+                });
+
+                if (quote) {
+                    quote.status = newStatus;
+                    quote.statusOrcamento = newStatus;
+                }
+
+                renderHistory();
+            } catch (error) {
+                alert("Não foi possível atualizar o status do orçamento.");
+            }
+        }
         function getServiceLabel(t) { return t === "posobra" ? "Limpeza Pós-Obra" : "Limpeza Residencial Personalizada"; }
         function getProductKitLabel(v) { if (Number(v) === 180) return "Kit 2 - Padrão Residencial Grande"; if (Number(v) === 300) return "Kit 1 - Padrão Pós-Obra"; return "Cliente fornece os produtos"; }
         function formatWhatsAppNumber(v) { if (!v) return ""; let p = String(v).replace(/\D/g, ""); if (p.length === 10 || p.length === 11) p = "55" + p; return p; }
@@ -262,18 +448,55 @@
         appointmentFormAdmin.addEventListener("submit", saveAppointmentAdmin);
 
         async function loadAppointmentsAdmin() {
-            reloadAppointmentsButton.disabled = true; reloadAppointmentsButton.textContent = "Carregando...";
-            appointmentsList.innerHTML = `<article class="status-card admin-history-card appointment-card"><p>Carregando agendamentos...</p></article>`;
+            reloadAppointmentsButton.disabled = true;
+            reloadAppointmentsButton.textContent = "Carregando...";
+
+            appointmentsList.innerHTML = `
+        <article class="status-card admin-history-card appointment-card">
+            <p>Carregando agendamentos...</p>
+        </article>
+    `;
+
             try {
-                const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), 15000);
-                const res = await fetch(`${apiUrl}?t=${Date.now()}`, { cache: "no-store", signal: controller.signal });
-                clearTimeout(timeout);
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const data = await res.json();
-                allAppointments = (data || []).map(row => ({ id: row.id, rowNumber: row.rowNumber, dataEnvio: row.dataEnvio, cliente: row.cliente, servico: row.servico, dataAgendamento: row.dataAgendamento, horario: row.horario, endereco: row.endereco, frequencia: row.frequencia, observacoes: row.observacoes, whatsapp: row.whatsapp || "", status: row.status || "Aguardando confirmação", tipoImovel: row.tipoImovel || "", cep: row.cep || "", regiao: row.regiao || "", transporte: row.transporte || "", valorTotal: row.valorTotal || "", reserva: row.reserva || "", saldo: row.saldo || "", pagamento: row.pagamento || "" }));
+                const data = await adminRequest("getAdminAppointments");
+
+                allAppointments = (data.appointments || []).map(function (row) {
+                    return {
+                        id: row.id,
+                        rowNumber: row.rowNumber,
+                        dataEnvio: row.dataEnvio,
+                        cliente: row.cliente,
+                        servico: row.servico,
+                        dataAgendamento: row.dataAgendamento,
+                        horario: row.horario,
+                        endereco: row.endereco,
+                        frequencia: row.frequencia,
+                        observacoes: row.observacoes,
+                        whatsapp: row.whatsapp || "",
+                        status: row.status || "Aguardando confirmação",
+                        tipoImovel: row.tipoImovel || "",
+                        cep: row.cep || "",
+                        regiao: row.regiao || "",
+                        transporte: row.transporte || "",
+                        valorTotal: row.valorTotal || "",
+                        reserva: row.reserva || "",
+                        saldo: row.saldo || "",
+                        pagamento: row.pagamento || ""
+                    };
+                });
+
                 renderAppointmentsList();
-            } catch (e) { console.error("Erro ao carregar agendamentos:", e); appointmentsList.innerHTML = `<article class="status-card admin-history-card appointment-card"><strong>Erro ao carregar</strong><p>${e.message || "Tente clicar em Atualizar lista."}</p></article>`; }
-            finally { reloadAppointmentsButton.disabled = false; reloadAppointmentsButton.textContent = "Atualizar lista"; }
+            } catch (error) {
+                appointmentsList.innerHTML = `
+            <article class="status-card admin-history-card appointment-card">
+                <strong>Não foi possível carregar</strong>
+                <p>Faça login novamente ou tente atualizar a lista.</p>
+            </article>
+        `;
+            } finally {
+                reloadAppointmentsButton.disabled = false;
+                reloadAppointmentsButton.textContent = "Atualizar lista";
+            }
         }
 
         function renderAppointmentsList() {
@@ -318,35 +541,84 @@
             deleteAppointmentButton.style.display = "none";
         }
 
-        async function saveAppointmentAdmin(e) {
-            e.preventDefault();
-            const id = document.getElementById("apptId").value, rowNumber = document.getElementById("apptRowNumber").value, isNew = !id || id === "0";
-            const payload = { action: isNew ? "saveAppointment" : "updateAppointment", id: isNew ? undefined : String(id), rowNumber: isNew ? undefined : String(rowNumber), dataEnvio: isNew ? new Date().toLocaleString("pt-BR") : undefined, cliente: document.getElementById("apptClient").value.trim(), whatsapp: document.getElementById("apptWhatsapp").value.trim(), servico: document.getElementById("apptService").value, dataAgendamento: document.getElementById("apptDate").value, horario: document.getElementById("apptTime").value, endereco: document.getElementById("apptAddress").value.trim(), frequencia: document.getElementById("apptFrequency").value, observacoes: document.getElementById("apptNotes").value.trim(), status: document.getElementById("apptStatus").value, tipoImovel: document.getElementById("apptService").value, cep: document.getElementById("apptCep").value.trim(), regiao: getRegionLabelAdmin(document.getElementById("apptRegion").value), transporte: "", valorTotal: "", reserva: "", saldo: "", pagamento: "" };
-            const btn = document.getElementById("saveAppointmentButton");
-            btn.disabled = true; btn.textContent = "Salvando...";
+        async function saveAppointmentAdmin(event) {
+            event.preventDefault();
+
+            const id = document.getElementById("apptId").value;
+            const rowNumber = document.getElementById("apptRowNumber").value;
+            const isNew = !id || id === "0";
+
+            const payload = {
+                action: isNew ? "saveAppointment" : "updateAppointment",
+                id: isNew ? undefined : String(id),
+                rowNumber: isNew ? undefined : String(rowNumber),
+                dataEnvio: isNew ? new Date().toLocaleString("pt-BR") : undefined,
+                cliente: document.getElementById("apptClient").value.trim(),
+                whatsapp: document.getElementById("apptWhatsapp").value.trim(),
+                servico: document.getElementById("apptService").value,
+                dataAgendamento: document.getElementById("apptDate").value,
+                horario: document.getElementById("apptTime").value,
+                endereco: document.getElementById("apptAddress").value.trim(),
+                frequencia: document.getElementById("apptFrequency").value,
+                observacoes: document.getElementById("apptNotes").value.trim(),
+                status: document.getElementById("apptStatus").value,
+                tipoImovel: document.getElementById("apptService").value,
+                cep: document.getElementById("apptCep").value.trim(),
+                regiao: getRegionLabelAdmin(document.getElementById("apptRegion").value),
+                transporte: "",
+                valorTotal: "",
+                reserva: "",
+                saldo: "",
+                pagamento: ""
+            };
+
+            const button = document.getElementById("saveAppointmentButton");
+
+            button.disabled = true;
+            button.textContent = "Salvando...";
+
             try {
-                await fetch(apiUrl, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
-                apptFormMessage.textContent = "Salvo com sucesso! O calendário e a planilha foram atualizados.";
-                apptFormMessage.className = "form-message active available";
+                await adminRequest(payload.action, payload);
+
                 hideAppointmentForm();
-                loadAppointmentsAdmin();
-            } catch (err) {
-                apptFormMessage.textContent = "Erro ao salvar. Tente novamente.";
+                await loadAppointmentsAdmin();
+
+                alert("Agendamento salvo. Calendário e planilha atualizados.");
+            } catch (error) {
+                apptFormMessage.textContent =
+                    "Não foi possível salvar. Faça login novamente e tente.";
                 apptFormMessage.className = "form-message active";
-            } finally { btn.disabled = false; btn.textContent = "Salvar agendamento"; }
+            } finally {
+                button.disabled = false;
+                button.textContent = "Salvar agendamento";
+            }
         }
 
         function confirmDeleteAppointment(id) { if (!confirm("Tem certeza que deseja EXCLUIR este agendamento? O horário/data voltarão a ficar disponíveis no calendário.")) return; deleteAppointmentAdmin(id); }
 
         async function deleteAppointmentAdmin(id) {
-            const appt = allAppointments.find(a => String(a.id) === String(id));
-            if (!appt) { alert("Agendamento não encontrado na lista."); return; }
+            const appointment = allAppointments.find(function (item) {
+                return String(item.id) === String(id);
+            });
+
+            if (!appointment) {
+                alert("Agendamento não encontrado na lista.");
+                return;
+            }
+
             try {
-                await fetch(apiUrl, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "deleteAppointment", id: appt.id }) });
-                alert("Exclusão enviada. Atualizando lista...");
+                await adminRequest("deleteAppointment", {
+                    id: appointment.id,
+                    rowNumber: appointment.rowNumber
+                });
+
                 hideAppointmentForm();
-                loadAppointmentsAdmin();
-            } catch (e) { console.error("Erro no fetch:", e); alert("Erro de rede ao excluir: " + e.message); }
+                await loadAppointmentsAdmin();
+
+                alert("Agendamento excluído. A data foi liberada no calendário.");
+            } catch (error) {
+                alert("Não foi possível excluir o agendamento. Faça login novamente e tente.");
+            }
         }
 
         function getRegionLabelAdmin(v) { if (v === "proxima") return "Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente"; if (v === "distante") return "Diadema, Santo Amaro ou Zona Sul"; return "Outra região - confirmar pelo WhatsApp"; }
