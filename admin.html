@@ -45,23 +45,46 @@
             <section>
                 <div class="admin-title-row">
                     <div>
-                        <h2>Gerenciar agendamentos (manual)</h2>
-                        <p class="section-note">Adicione, edite ou cancele agendamentos direto no painel. As alterações
-                            sincronizam com o calendário e a planilha.</p>
+                        <h2>Gerenciar agendamentos</h2>
+                        <p class="section-note">
+                            Adicione, edite, exclua ou bloqueie datas. As alterações sincronizam
+                            com o calendário e a planilha.
+                        </p>
                     </div>
-                    <button type="button" id="reloadAppointmentsButton">Atualizar lista</button>
+
+                    <div class="admin-title-actions">
+                        <button type="button" id="blockDateButton" class="secondary">
+                            Bloquear data
+                        </button>
+
+                        <button type="button" id="reloadAppointmentsButton">
+                            Atualizar lista
+                        </button>
+                    </div>
                 </div>
 
                 <div id="appointmentFormPanel" class="admin-client-preview" style="display:none;">
                     <h3 id="appointmentFormTitle">Novo agendamento</h3>
+
                     <form id="appointmentFormAdmin">
-                        <input type="hidden" id="apptId" /><input type="hidden" id="apptRowNumber" /><input
-                            type="hidden" id="apptOriginalDate" /><input type="hidden" id="apptOriginalTime" />
-                        <label>Cliente<input id="apptClient" type="text" placeholder="Nome da cliente"
-                                required /></label>
-                        <label>WhatsApp<input id="apptWhatsapp" type="tel" placeholder="Ex: 11999999999"
-                                required /></label>
-                        <label>Serviço<select id="apptService" required>
+                        <input type="hidden" id="apptId" />
+                        <input type="hidden" id="apptRowNumber" />
+                        <input type="hidden" id="apptOriginalDate" />
+                        <input type="hidden" id="apptOriginalTime" />
+
+                        <label>
+                            Cliente
+                            <input id="apptClient" type="text" placeholder="Nome da cliente" required />
+                        </label>
+
+                        <label>
+                            WhatsApp
+                            <input id="apptWhatsapp" type="tel" placeholder="Ex: 11999999999" required />
+                        </label>
+
+                        <label>
+                            Serviço
+                            <select id="apptService" required>
                                 <option value="">Selecione</option>
                                 <option value="Apto/Casa até 40m²">Apto/Casa até 40m²</option>
                                 <option value="Apto/Casa de 40m² até 55m²">Apto/Casa de 40m² até 55m²</option>
@@ -70,35 +93,65 @@
                                 <option value="Apto/Casa acima de 150m²">Apto/Casa acima de 150m²</option>
                                 <option value="Pós-obras">Pós-obras</option>
                                 <option value="Orçamento personalizado">Orçamento personalizado</option>
-                            </select></label>
-                        <label>Data do agendamento<input id="apptDate" type="date" required /></label>
-                        <label>Horário<select id="apptTime" required>
+                            </select>
+                        </label>
+
+                        <label>
+                            Data do agendamento
+                            <input id="apptDate" type="date" required />
+                        </label>
+
+                        <label>
+                            Horário
+                            <select id="apptTime" required>
                                 <option value="">Selecione</option>
                                 <option value="06:00">06:00</option>
                                 <option value="07:00">07:00</option>
                                 <option value="08:00">08:00</option>
                                 <option value="dia-inteiro">Dia inteiro (bloqueio)</option>
-                            </select></label>
-                        <label>Endereço<input id="apptAddress" type="text" placeholder="Rua, número e bairro"
-                                required /></label>
-                        <label>CEP<input id="apptCep" type="text" placeholder="Ex: 03200-000" /></label>
-                        <label>Região<select id="apptRegion">
+                            </select>
+                        </label>
+
+                        <label>
+                            Endereço
+                            <input id="apptAddress" type="text" placeholder="Rua, número e bairro" required />
+                        </label>
+
+                        <label>
+                            CEP
+                            <input id="apptCep" type="text" placeholder="Ex: 03200-000" />
+                        </label>
+
+                        <label>
+                            Região
+                            <select id="apptRegion">
                                 <option value="">Selecione</option>
                                 <option value="proxima">Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente
                                 </option>
                                 <option value="distante">Diadema, Santo Amaro ou Zona Sul</option>
                                 <option value="custom">Outra região</option>
-                            </select></label>
-                        <label>Frequência / Tipo<select id="apptFrequency">
+                            </select>
+                        </label>
+
+                        <label>
+                            Frequência / Tipo
+                            <select id="apptFrequency">
                                 <option value="Datas selecionadas">Datas selecionadas</option>
                                 <option value="Semanal">Semanal</option>
                                 <option value="Quinzenal">Quinzenal</option>
                                 <option value="Mensal">Mensal</option>
                                 <option value="Orçamento personalizado">Orçamento personalizado</option>
-                            </select></label>
-                        <label>Observações<textarea id="apptNotes"
-                                placeholder="Ex: tenho pets, preferência de acesso..."></textarea></label>
-                        <label>Status<select id="apptStatus">
+                            </select>
+                        </label>
+
+                        <label>
+                            Observações
+                            <textarea id="apptNotes" placeholder="Ex: tenho pets, preferência de acesso..."></textarea>
+                        </label>
+
+                        <label>
+                            Status
+                            <select id="apptStatus">
                                 <option value="Aguardando confirmação">Aguardando confirmação</option>
                                 <option value="Serviço agendado">Serviço agendado</option>
                                 <option value="Serviço em andamento">Serviço em andamento</option>
@@ -107,13 +160,17 @@
                                 <option value="Não concluído">Não concluído</option>
                                 <option value="Indisponível">Indisponível (bloqueio)</option>
                                 <option value="Cancelado">Cancelado</option>
-                            </select></label>
+                            </select>
+                        </label>
+
                         <div class="admin-actions">
                             <button type="submit" id="saveAppointmentButton">Salvar agendamento</button>
                             <button type="button" id="cancelAppointmentFormButton" class="secondary">Cancelar</button>
-                            <button type="button" id="deleteAppointmentButton" class="danger"
-                                style="display:none;">Excluir agendamento</button>
+                            <button type="button" id="deleteAppointmentButton" class="danger" style="display:none;">
+                                Excluir agendamento
+                            </button>
                         </div>
+
                         <p id="apptFormMessage" class="form-message" aria-live="polite"></p>
                     </form>
                 </div>
@@ -121,14 +178,38 @@
                 <div class="status-header">
                     <div>
                         <h3>Agendamentos existentes</h3>
-                        <p class="section-note">Clique em "Editar" para alterar cliente, data, horário ou status. Ao
-                            salvar, o calendário atualiza automaticamente.</p>
+                        <p class="section-note">
+                            Edite, exclua ou filtre os registros sem precisar entrar na planilha.
+                        </p>
                     </div>
-                    <div class="status-controls"><button type="button" id="apptListPrev">&lsaquo;</button><button
-                            type="button" id="apptListNext">&rsaquo;</button></div>
+
+                    <div class="status-controls">
+                        <button type="button" id="apptListPrev">&lsaquo;</button>
+                        <button type="button" id="apptListNext">&rsaquo;</button>
+                    </div>
                 </div>
-                <label class="search-box">Buscar agendamento<input id="apptSearch" type="search"
-                        placeholder="Nome, data, serviço, status..." /></label>
+
+                <div class="appointment-filters">
+                    <label class="search-box">
+                        Buscar por nome ou informação
+                        <input id="apptSearch" type="search" placeholder="Nome, serviço, status ou endereço" />
+                    </label>
+
+                    <label>
+                        Data de
+                        <input id="apptDateFrom" type="date" />
+                    </label>
+
+                    <label>
+                        Data até
+                        <input id="apptDateTo" type="date" />
+                    </label>
+
+                    <button type="button" id="clearAppointmentFilters" class="secondary">
+                        Limpar filtros
+                    </button>
+                </div>
+
                 <div id="appointmentsList" class="status-carousel admin-history"></div>
             </section>
 
@@ -437,15 +518,51 @@
         function formatCurrency(v) { return Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); }
 
         // GERENCIAR AGENDAMENTOS
-        const reloadAppointmentsButton = document.getElementById("reloadAppointmentsButton"), appointmentFormPanel = document.getElementById("appointmentFormPanel"), appointmentFormTitle = document.getElementById("appointmentFormTitle"), appointmentFormAdmin = document.getElementById("appointmentFormAdmin"), cancelAppointmentFormButton = document.getElementById("cancelAppointmentFormButton"), deleteAppointmentButton = document.getElementById("deleteAppointmentButton"), apptFormMessage = document.getElementById("apptFormMessage"), appointmentsList = document.getElementById("appointmentsList"), apptSearch = document.getElementById("apptSearch"), apptListPrev = document.getElementById("apptListPrev"), apptListNext = document.getElementById("apptListNext");
+        const reloadAppointmentsButton = document.getElementById("reloadAppointmentsButton");
+        const blockDateButton = document.getElementById("blockDateButton");
+        const appointmentFormPanel = document.getElementById("appointmentFormPanel");
+        const appointmentFormTitle = document.getElementById("appointmentFormTitle");
+        const appointmentFormAdmin = document.getElementById("appointmentFormAdmin");
+        const cancelAppointmentFormButton = document.getElementById("cancelAppointmentFormButton");
+        const deleteAppointmentButton = document.getElementById("deleteAppointmentButton");
+        const apptFormMessage = document.getElementById("apptFormMessage");
+        const appointmentsList = document.getElementById("appointmentsList");
+        const apptSearch = document.getElementById("apptSearch");
+        const apptDateFrom = document.getElementById("apptDateFrom");
+        const apptDateTo = document.getElementById("apptDateTo");
+        const clearAppointmentFiltersButton = document.getElementById("clearAppointmentFilters");
+        const apptListPrev = document.getElementById("apptListPrev");
+        const apptListNext = document.getElementById("apptListNext");
+
         let allAppointments = [];
+        let appointmentSearchTimer;
+
         reloadAppointmentsButton.addEventListener("click", loadAppointmentsAdmin);
-        apptSearch.addEventListener("input", renderAppointmentsList);
-        apptListPrev.addEventListener("click", () => appointmentsList.scrollBy({ left: -320, behavior: "smooth" }));
-        apptListNext.addEventListener("click", () => appointmentsList.scrollBy({ left: 320, behavior: "smooth" }));
+        blockDateButton.addEventListener("click", openDateBlockForm);
         cancelAppointmentFormButton.addEventListener("click", hideAppointmentForm);
         deleteAppointmentButton.addEventListener("click", deleteAppointmentAdmin);
         appointmentFormAdmin.addEventListener("submit", saveAppointmentAdmin);
+
+        apptListPrev.addEventListener("click", function () {
+            appointmentsList.scrollBy({ left: -320, behavior: "smooth" });
+        });
+
+        apptListNext.addEventListener("click", function () {
+            appointmentsList.scrollBy({ left: 320, behavior: "smooth" });
+        });
+
+        apptSearch.addEventListener("input", function () {
+            clearTimeout(appointmentSearchTimer);
+
+            appointmentSearchTimer = setTimeout(function () {
+                renderAppointmentsList();
+            }, 250);
+        });
+
+        apptDateFrom.addEventListener("change", renderAppointmentsList);
+        apptDateTo.addEventListener("change", renderAppointmentsList);
+
+        clearAppointmentFiltersButton.addEventListener("click", clearAppointmentFilters);
 
         async function loadAppointmentsAdmin() {
             reloadAppointmentsButton.disabled = true;
@@ -501,43 +618,168 @@
 
         function renderAppointmentsList() {
             const term = apptSearch.value.trim().toLowerCase();
-            const filtered = allAppointments.filter(a => { if (!term) return true; const dn = formatDateBR(a.dataAgendamento).toLowerCase(); return [a.cliente, a.servico, dn, a.horario, a.status, a.endereco, a.whatsapp].join(" ").toLowerCase().includes(term); }).sort((a, b) => `${a.dataAgendamento}${a.horario}`.localeCompare(`${b.dataAgendamento}${b.horario}`));
-            if (!filtered.length) { appointmentsList.innerHTML = `<article class="status-card admin-history-card appointment-card"><strong>Nenhum agendamento</strong><p>Use a busca ou clique em Atualizar lista.</p></article>`; return; }
+            const dateFrom = apptDateFrom.value;
+            const dateTo = apptDateTo.value;
+
+            const filtered = allAppointments
+                .filter(function (appointment) {
+                    const appointmentDate = String(
+                        appointment.dataAgendamento || ""
+                    ).slice(0, 10);
+
+                    if (dateFrom && (!appointmentDate || appointmentDate < dateFrom)) {
+                        return false;
+                    }
+
+                    if (dateTo && (!appointmentDate || appointmentDate > dateTo)) {
+                        return false;
+                    }
+
+                    if (!term) {
+                        return true;
+                    }
+
+                    return [
+                        appointment.cliente,
+                        appointment.servico,
+                        formatDateBR(appointment.dataAgendamento),
+                        appointment.horario,
+                        appointment.status,
+                        appointment.endereco,
+                        appointment.whatsapp
+                    ].join(" ").toLowerCase().includes(term);
+                })
+                .sort(function (a, b) {
+                    return `${a.dataAgendamento}${a.horario}`.localeCompare(
+                        `${b.dataAgendamento}${b.horario}`
+                    );
+                });
+
+            if (!filtered.length) {
+                appointmentsList.innerHTML = `
+            <article class="status-card admin-history-card appointment-card">
+                <strong>Nenhum agendamento</strong>
+                <p>Use a busca ou ajuste o período selecionado.</p>
+            </article>
+        `;
+                return;
+            }
+
             appointmentsList.innerHTML = "";
-            filtered.forEach(a => { const df = formatDateBR(a.dataAgendamento); appointmentsList.innerHTML += `<article class="status-card admin-history-card appointment-card"><div class="status-card-top"><span class="client-badge">${a.cliente || "Cliente"}</span><strong>${df}</strong></div><p><b>Data:</b> ${df}</p><p><b>Horário:</b> ${formatTimeBR(a.horario)}</p><p><b>Serviço:</b> ${a.servico || "-"}</p><p><b>Status:</b> <span class="slot-badge">${a.status}</span></p><p><b>Endereço:</b> ${a.endereco || "-"}</p><p><b>WhatsApp:</b> ${a.whatsapp || "-"}</p><p><b>Obs:</b> ${a.observacoes || "-"}</p><div class="card-actions"><button class="btn-edit" onclick="openAppointmentForm('${a.id}')">Editar</button><button class="btn-delete" onclick="confirmDeleteAppointment('${a.id}')">Excluir</button></div></article>`; });
+
+            filtered.forEach(function (appointment) {
+                const formattedDate = formatDateBR(appointment.dataAgendamento);
+
+                appointmentsList.innerHTML += `
+            <article class="status-card admin-history-card appointment-card">
+                <div class="status-card-top">
+                    <span class="client-badge">${appointment.cliente || "Cliente"}</span>
+                    <strong>${formattedDate}</strong>
+                </div>
+
+                <p><b>Horário:</b> ${formatTimeBR(appointment.horario)}</p>
+                <p><b>Serviço:</b> ${appointment.servico || "-"}</p>
+                <p><b>Status:</b> <span class="slot-badge">${appointment.status}</span></p>
+                <p><b>Endereço:</b> ${appointment.endereco || "-"}</p>
+                <p><b>WhatsApp:</b> ${appointment.whatsapp || "-"}</p>
+                <p><b>Obs:</b> ${appointment.observacoes || "-"}</p>
+
+                <div class="card-actions">
+                    <button class="btn-edit" onclick="openAppointmentForm('${appointment.id}')">
+                        Editar
+                    </button>
+
+                    <button class="btn-delete" onclick="confirmDeleteAppointment('${appointment.id}')">
+                        Excluir
+                    </button>
+                </div>
+            </article>
+        `;
+            });
+        }
+
+        function clearAppointmentFilters() {
+            apptSearch.value = "";
+            apptDateFrom.value = "";
+            apptDateTo.value = "";
+
+            renderAppointmentsList();
+        }
+
+        function openDateBlockForm() {
+            openAppointmentForm("");
+
+            appointmentFormTitle.textContent = "Bloquear data para agendamento";
+
+            document.getElementById("apptClient").value = "Bloqueio administrativo";
+            document.getElementById("apptWhatsapp").value = "00000000000";
+            document.getElementById("apptService").value = "Orçamento personalizado";
+            document.getElementById("apptTime").value = "dia-inteiro";
+            document.getElementById("apptAddress").value = "Indisponibilidade administrativa";
+            document.getElementById("apptFrequency").value = "Datas selecionadas";
+            document.getElementById("apptNotes").value = "Dia bloqueado pela administração.";
+            document.getElementById("apptStatus").value = "Indisponível";
+
+            document.getElementById("apptDate").focus();
         }
 
         function openAppointmentForm(id) {
-            const appt = allAppointments.find(a => String(a.id) === String(id)), isNew = !appt;
-            appointmentFormTitle.textContent = isNew ? "Novo agendamento" : "Editar agendamento";
-            document.getElementById("apptId").value = appt?.id ? String(appt.id) : "";
-            document.getElementById("apptRowNumber").value = appt?.rowNumber ? String(appt.rowNumber) : "";
-            document.getElementById("apptOriginalDate").value = appt?.dataAgendamento || "";
-            document.getElementById("apptOriginalTime").value = appt?.horario || "";
-            document.getElementById("apptClient").value = appt?.cliente || "";
-            document.getElementById("apptWhatsapp").value = appt?.whatsapp || "";
-            document.getElementById("apptService").value = appt?.servico || "";
-            document.getElementById("apptDate").value = appt?.dataAgendamento || "";
-            document.getElementById("apptTime").value = appt?.horario || "";
-            document.getElementById("apptAddress").value = appt?.endereco || "";
-            document.getElementById("apptCep").value = appt?.cep || "";
-            document.getElementById("apptRegion").value = appt?.regiao || "";
-            document.getElementById("apptFrequency").value = appt?.frequencia || "Datas selecionadas";
-            document.getElementById("apptNotes").value = appt?.observacoes || "";
-            document.getElementById("apptStatus").value = appt?.status || "Aguardando confirmação";
+            const appointment = allAppointments.find(function (item) {
+                return String(item.id) === String(id);
+            });
+
+            const isNew = !appointment;
+
+            appointmentFormTitle.textContent = isNew
+                ? "Novo agendamento"
+                : "Editar agendamento";
+
+            document.getElementById("apptId").value = appointment?.id ? String(appointment.id) : "";
+            document.getElementById("apptRowNumber").value = appointment?.rowNumber ? String(appointment.rowNumber) : "";
+            document.getElementById("apptOriginalDate").value = appointment?.dataAgendamento || "";
+            document.getElementById("apptOriginalTime").value = appointment?.horario || "";
+            document.getElementById("apptClient").value = appointment?.cliente || "";
+            document.getElementById("apptWhatsapp").value = appointment?.whatsapp || "";
+            document.getElementById("apptService").value = appointment?.servico || "";
+            document.getElementById("apptDate").value = appointment?.dataAgendamento || "";
+            document.getElementById("apptTime").value = appointment?.horario || "";
+            document.getElementById("apptAddress").value = appointment?.endereco || "";
+            document.getElementById("apptCep").value = appointment?.cep || "";
+
+            const regionValues = {
+                proxima: "proxima",
+                distante: "distante",
+                custom: "custom",
+                "Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente": "proxima",
+                "Diadema, Santo Amaro ou Zona Sul": "distante",
+                "Outra região - confirmar pelo WhatsApp": "custom"
+            };
+
+            document.getElementById("apptRegion").value =
+                regionValues[appointment?.regiao] || "";
+
+            document.getElementById("apptFrequency").value =
+                appointment?.frequencia || "Datas selecionadas";
+            document.getElementById("apptNotes").value = appointment?.observacoes || "";
+            document.getElementById("apptStatus").value = appointment?.status || "Aguardando confirmação";
+
             deleteAppointmentButton.style.display = isNew ? "none" : "inline-flex";
             appointmentFormPanel.style.display = "block";
             appointmentFormPanel.scrollIntoView({ behavior: "smooth" });
-            apptFormMessage.textContent = ""; apptFormMessage.className = "form-message";
+
+            apptFormMessage.textContent = "";
+            apptFormMessage.className = "form-message";
         }
 
         function hideAppointmentForm() {
             appointmentFormPanel.style.display = "none";
             appointmentFormAdmin.reset();
+
             document.getElementById("apptId").value = "";
             document.getElementById("apptRowNumber").value = "";
             document.getElementById("apptOriginalDate").value = "";
             document.getElementById("apptOriginalTime").value = "";
+
             deleteAppointmentButton.style.display = "none";
         }
 
@@ -594,7 +836,13 @@
             }
         }
 
-        function confirmDeleteAppointment(id) { if (!confirm("Tem certeza que deseja EXCLUIR este agendamento? O horário/data voltarão a ficar disponíveis no calendário.")) return; deleteAppointmentAdmin(id); }
+        function confirmDeleteAppointment(id) {
+            if (!confirm("Tem certeza que deseja excluir este agendamento? A data voltará a ficar disponível.")) {
+                return;
+            }
+
+            deleteAppointmentAdmin(id);
+        }
 
         async function deleteAppointmentAdmin(id) {
             const appointment = allAppointments.find(function (item) {
@@ -621,7 +869,18 @@
             }
         }
 
-        function getRegionLabelAdmin(v) { if (v === "proxima") return "Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente"; if (v === "distante") return "Diadema, Santo Amaro ou Zona Sul"; return "Outra região - confirmar pelo WhatsApp"; }
+        function getRegionLabelAdmin(value) {
+            if (value === "proxima") {
+                return "Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente";
+            }
+
+            if (value === "distante") {
+                return "Diadema, Santo Amaro ou Zona Sul";
+            }
+
+            return "Outra região - confirmar pelo WhatsApp";
+        }
+
         function formatDateBR(d) { if (!d) return "-"; const s = String(d).trim(), dt = new Date(s); if (!isNaN(dt.getTime())) { const day = String(dt.getDate()).padStart(2, '0'), month = String(dt.getMonth() + 1).padStart(2, '0'), year = dt.getFullYear(); return `${day}/${month}/${year}`; } if (s.includes("/")) return s; return s; }
         function formatTimeBR(t) { if (!t) return "-"; const s = String(t).trim(); if (s === "dia-inteiro") return "Dia inteiro"; const dt = new Date(s); if (!isNaN(dt.getTime())) { const h = String(dt.getHours()).padStart(2, '0'), m = String(dt.getMinutes()).padStart(2, '0'); return `${h}:${m}`; } if (s.includes(":")) return s.slice(0, 5); return s; }
 
