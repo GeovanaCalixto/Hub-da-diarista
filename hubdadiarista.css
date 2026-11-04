@@ -1491,3 +1491,152 @@ button[type="submit"]:disabled,
         width: 100%;
     }
 }
+
+/* Checkout: ajuste para celular */
+@media (max-width: 700px) {
+    .checkout-page {
+        overflow-x: hidden;
+    }
+
+    .checkout-top,
+    .checkout-main {
+        width: calc(100% - 20px);
+    }
+
+    .checkout-main {
+        padding: 12px;
+        overflow: hidden;
+    }
+
+    .checkout-title h1 {
+        font-size: 24px;
+    }
+
+    .checkout-title p {
+        font-size: 14px;
+    }
+
+    .checkout-box {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+    }
+
+    .checkout-left,
+    .checkout-card,
+    .checkout-summary-card,
+    .pix-area,
+    .pix-area label {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .checkout-card,
+    .checkout-summary-card {
+        padding: 14px;
+    }
+
+    .checkout-card h2,
+    .checkout-summary-card h2 {
+        font-size: 21px;
+    }
+
+    .pix-area {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .pix-qrcode {
+        display: block;
+        width: min(170px, 100%);
+        height: auto;
+        margin: 0 auto;
+    }
+
+    .pix-area textarea {
+        width: 100%;
+        min-height: 88px;
+        max-width: 100%;
+        padding: 10px;
+        font-size: 11px;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+        word-break: break-all;
+    }
+
+    .copy-pix-button {
+        min-height: 42px;
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+
+    .checkout-benefits {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .checkout-benefits span {
+        min-height: 44px;
+        padding: 8px;
+        font-size: 13px;
+    }
+
+    .checkout-summary-list {
+        gap: 7px;
+    }
+
+    .checkout-summary-list p {
+        font-size: 14px;
+        overflow-wrap: anywhere;
+    }
+
+    .summary-line {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+        padding: 10px;
+    }
+
+    .summary-line span {
+        font-size: 14px;
+        line-height: 1.3;
+    }
+
+    .summary-line strong {
+        font-size: 16px;
+        white-space: nowrap;
+    }
+
+    .summary-line.reserve,
+    .summary-line.pay-now {
+        padding: 12px;
+    }
+
+    .summary-balance {
+        font-size: 14px;
+        line-height: 1.4;
+        text-align: left;
+        overflow-wrap: anywhere;
+    }
+
+    .summary-balance strong {
+        margin-top: 4px;
+        font-size: 21px;
+        text-align: right;
+    }
+
+    .checkout-policy {
+        padding: 13px;
+    }
+
+    .checkout-policy p {
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .confirm-payment-button {
+        min-height: 48px;
+        padding: 12px;
+        font-size: 15px;
+    }
+}
