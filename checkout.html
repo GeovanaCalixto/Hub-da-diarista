@@ -45,6 +45,8 @@
                     <p id="paymentStatusMessage" class="form-message active" aria-live="polite">
                         Criando cobrança segura...
                     </p>
+
+                    <p id="paymentCountdown" class="payment-countdown" aria-live="polite"></p>
                 </div>
 
                 <div class="checkout-benefits">
@@ -84,6 +86,7 @@
         const pixCode = document.getElementById("pixCode");
         const pixInstructions = document.getElementById("pixInstructions");
         const paymentStatusMessage = document.getElementById("paymentStatusMessage");
+        const paymentCountdown = document.getElementById("paymentCountdown");
 
         const pendingAppointments = JSON.parse(
             sessionStorage.getItem("pendingAppointments") || "[]"
@@ -97,6 +100,7 @@
 
         let paymentRecord = null;
         let paymentInterval = null;
+        let countdownInterval = null;
 
         if (pendingAppointments.length === 0) {
             checkoutSummary.innerHTML = `
@@ -185,7 +189,7 @@
                 showPixData();
 
                 setPaymentMessage(
-                    `Pix criado. Sua reserva fica separada por 20 minutos enquanto aguardamos o pagamento.`,
+                    "Pix criado. Sua reserva fica separada por 20 minutos enquanto aguardamos o pagamento.",
                     "success"
                 );
 
@@ -367,12 +371,46 @@
             confirmPaymentButton.textContent = "Confirmar agendamento no WhatsApp";
         }
 
+        function updatePaymentCountdown() {
+            if (!paymentRecord || !paymentRecord.expiresAt) {
+                paymentCountdown.textContent = "";
+                return;
+            }
+
+            const remaining = new Date(paymentRecord.expiresAt).getTime() - Date.now();
+
+            if (remaining <= 0) {
+                paymentCountdown.textContent = "Este Pix expirou.";
+                setPaymentMessage(
+                    "O prazo de pagamento terminou e a reserva foi liberada.",
+                    "error"
+                );
+
+                sessionStorage.removeItem("pagBankPayment");
+                hideConfirmButton();
+                stopPaymentPolling();
+                return;
+            }
+
+            const minutes = Math.floor(remaining / 60000);
+            const seconds = Math.floor((remaining % 60000) / 1000);
+
+            paymentCountdown.textContent =
+                `Este Pix vence em ${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.`;
+        }
+
         function startPaymentPolling() {
             stopPaymentPolling();
 
             paymentInterval = setInterval(function () {
                 checkPaymentStatus(false);
             }, 10000);
+
+            updatePaymentCountdown();
+
+            countdownInterval = setInterval(function () {
+                updatePaymentCountdown();
+            }, 1000);
         }
 
         function stopPaymentPolling() {
@@ -380,10 +418,16 @@
                 clearInterval(paymentInterval);
                 paymentInterval = null;
             }
+
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
         }
 
         function completeConfirmedBooking() {
             if (!paymentRecord || !paymentRecord.paid) return;
+
             const firstAppointment = pendingAppointments[0];
             const payment = paymentRecord.payment;
             const ticket = paymentRecord.ticket;

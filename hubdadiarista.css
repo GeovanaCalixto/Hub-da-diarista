@@ -1640,3 +1640,11 @@ button[type="submit"]:disabled,
         font-size: 15px;
     }
 }
+
+.payment-countdown {
+    margin: 8px 0 0;
+    color: #a24b57;
+    font-size: 14px;
+    font-weight: 700;
+}
+
