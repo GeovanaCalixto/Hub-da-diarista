@@ -229,22 +229,52 @@
             setTimeout(() => { window.location.href = "checkout.html"; }, 500);
         });
 
-        function loadAppointments() {
-            fetch(apiUrl).then(r => r.json()).then(data => {
-                appointments.length = 0;
-                const seenSlots = new Set();
-                (data || []).forEach(item => {
-                    const normalizedDate = normalizeDate(item.dataAgendamento);
-                    const normalizedTime = normalizeTime(item.horario);
-                    const slotKey = `${normalizedDate}-${normalizedTime}`;
-                    if (!normalizedDate || !normalizedTime || seenSlots.has(slotKey)) return;
-                    seenSlots.add(slotKey);
-                    appointments.push({ id: item.id, client: item.cliente, whatsapp: item.whatsapp || "", service: item.servico, date: normalizedDate, time: normalizedTime, address: item.endereco, contractType: item.frequencia, notes: item.observacoes, status: item.status || "Aguardando confirmação" });
-                });
-                render();
-            }).catch(render);
-        }
+      function loadAppointments() {
+    fetch(`${apiUrl}?t=${Date.now()}`, {
+        cache: "no-store"
+    })
+        .then(function (response) {
+            return response.json();
+        })
+        .then(function (data) {
+            appointments.length = 0;
 
+            const seenSlots = new Set();
+
+            (data || []).forEach(function (item) {
+                const status = String(item.status || "").trim().toLowerCase();
+
+                if (status === "cancelado") {
+                    return;
+                }
+
+                const normalizedDate = normalizeDate(item.dataAgendamento);
+                const normalizedTime = normalizeTime(item.horario);
+                const slotKey = `${normalizedDate}-${normalizedTime}`;
+
+                if (!normalizedDate || !normalizedTime || seenSlots.has(slotKey)) {
+                    return;
+                }
+
+                seenSlots.add(slotKey);
+
+                appointments.push({
+                    id: item.id,
+                    client: item.cliente,
+                    service: item.servico,
+                    date: normalizedDate,
+                    time: normalizedTime,
+                    contractType: item.frequencia,
+                    status: item.status || "Aguardando confirmação"
+                });
+            });
+
+            render();
+        })
+        .catch(function () {
+            render();
+        });
+     }
         function render() { renderMonthlyCalendar(); renderMiniCalendar(); renderAppointmentsTable(); updateSelectedDatesText(); }
 
         function renderMonthlyCalendar() {
