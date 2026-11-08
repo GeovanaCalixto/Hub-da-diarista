@@ -26,20 +26,11 @@
         <section class="checkout-box">
             <div class="checkout-left">
                 <div class="checkout-card pix-card">
-                    <h2>Pagamento Pix</h2>
-                    <p id="pixInstructions">Estamos preparando seu Pix exclusivo. Aguarde um instante.</p>
+                    <h2>Pagamento seguro pelo PicPay</h2>
+                    <p id="pixInstructions">Estamos preparando seu link de pagamento. Aguarde um instante.</p>
 
-                    <div class="pix-area">
-                        <img id="pixQrCode" alt="QR Code Pix para pagamento" class="pix-qrcode" hidden />
-
-                        <label>
-                            Pix copia e cola
-                            <textarea id="pixCode" readonly placeholder="Gerando Pix..."></textarea>
-                        </label>
-                    </div>
-
-                    <button type="button" id="copyPixButton" class="copy-pix-button" disabled>
-                        Copiar código Pix
+                    <button type="button" id="picPayPaymentButton" class="copy-pix-button" disabled>
+                        Preparando pagamento...
                     </button>
 
                     <p id="paymentStatusMessage" class="form-message active" aria-live="polite">
@@ -57,10 +48,8 @@
 
                 <div class="checkout-policy">
                     <strong>Regras de cancelamento</strong>
-                    <p>Cancelamentos realizados até 3 dias antes da data agendada terão o valor antecipado reembolsado.
-                    </p>
-                    <p>Após esse prazo, o valor antecipado será mantido como garantia do serviço reservado e não será
-                        reembolsado.</p>
+                    <p>Cancelamentos realizados até 3 dias antes da data agendada terão o valor antecipado reembolsado.</p>
+                    <p>Após esse prazo, o valor antecipado será mantido como garantia do serviço reservado e não será reembolsado.</p>
                 </div>
             </div>
 
@@ -80,10 +69,8 @@
         const whatsappNumber = "5511932118634";
 
         const checkoutSummary = document.getElementById("checkoutSummary");
-        const copyPixButton = document.getElementById("copyPixButton");
+        const picPayPaymentButton = document.getElementById("picPayPaymentButton");
         const confirmPaymentButton = document.getElementById("confirmPaymentButton");
-        const pixQrCode = document.getElementById("pixQrCode");
-        const pixCode = document.getElementById("pixCode");
         const pixInstructions = document.getElementById("pixInstructions");
         const paymentStatusMessage = document.getElementById("paymentStatusMessage");
         const paymentCountdown = document.getElementById("paymentCountdown");
@@ -116,7 +103,7 @@
             initializeCheckout();
         }
 
-        copyPixButton.addEventListener("click", copyPixCode);
+        picPayPaymentButton.addEventListener("click", openPicPayPayment);
         confirmPaymentButton.addEventListener("click", handleConfirmButton);
 
         async function initializeCheckout() {
@@ -130,18 +117,23 @@
             ) {
                 paymentRecord = savedPayment;
                 renderCheckout(paymentRecord.payment);
-                showPixData();
+                showPicPayPayment();
                 checkPaymentStatus(false);
                 startPaymentPolling();
                 return;
             }
 
-            await createDynamicPix();
+            await createPicPayPayment();
         }
 
-        async function createDynamicPix() {
-            setButtonLoading(true, "Gerando Pix...");
-            setPaymentMessage("Criando uma reserva temporária para suas datas.", "loading");
+        async function createPicPayPayment() {
+            picPayPaymentButton.disabled = true;
+            picPayPaymentButton.textContent = "Preparando pagamento...";
+
+            setPaymentMessage(
+                "Criando uma reserva temporária para suas datas.",
+                "loading"
+            );
 
             try {
                 const firstAppointment = pendingAppointments[0];
@@ -152,7 +144,7 @@
                         "Content-Type": "text/plain;charset=utf-8"
                     },
                     body: JSON.stringify({
-                        action: "createPagBankPayment",
+                        action: "createPicPayPayment",
                         appointments: pendingAppointments,
                         customer: {
                             name: firstAppointment.client,
@@ -166,30 +158,30 @@
                 const data = await response.json();
 
                 if (!data.success) {
-                    throw new Error(data.message || "Não foi possível gerar o Pix.");
+                    throw new Error(
+                        data.message || "Não foi possível criar o pagamento."
+                    );
                 }
 
                 paymentRecord = {
                     fingerprint: paymentFingerprint,
                     ticket: data.ticket,
-                    orderId: data.orderId,
-                    qrCode: data.qrCode,
-                    qrImage: data.qrImage,
+                    paymentLink: data.paymentLink,
                     expiresAt: data.expiresAt,
                     payment: data.payment,
                     paid: false
                 };
 
                 sessionStorage.setItem(
-                    "pagBankPayment",
+                    "picPayPayment",
                     JSON.stringify(paymentRecord)
                 );
 
                 renderCheckout(paymentRecord.payment);
-                showPixData();
+                showPicPayPayment();
 
                 setPaymentMessage(
-                    "Pix criado. Sua reserva fica separada por 20 minutos enquanto aguardamos o pagamento.",
+                    "Link criado. Sua reserva fica separada por 20 minutos enquanto aguardamos o pagamento.",
                     "success"
                 );
 
@@ -199,33 +191,35 @@
                 console.error(error);
 
                 setPaymentMessage(
-                    error.message || "Não foi possível gerar o Pix. Tente novamente.",
+                    error.message || "Não foi possível criar o pagamento. Tente novamente.",
                     "error"
                 );
 
-                setButtonLoading(false, "Tentar gerar Pix");
+                picPayPaymentButton.disabled = false;
+                picPayPaymentButton.textContent = "Tentar gerar pagamento";
             }
         }
 
         function getSavedPayment() {
             try {
-                return JSON.parse(sessionStorage.getItem("pagBankPayment") || "null");
+                return JSON.parse(
+                    sessionStorage.getItem("picPayPayment") || "null"
+                );
             } catch (error) {
                 return null;
             }
         }
 
-        function showPixData() {
-            if (!paymentRecord) return;
-
-            pixCode.value = paymentRecord.qrCode || "";
-            pixQrCode.src = paymentRecord.qrImage || "";
-            pixQrCode.hidden = !paymentRecord.qrImage;
+        function showPicPayPayment() {
+            if (!paymentRecord) {
+                return;
+            }
 
             pixInstructions.textContent =
-                "Escaneie o QR Code ou copie o código Pix abaixo. O agendamento será confirmado automaticamente após o pagamento.";
+                "Clique abaixo para pagar pelo checkout seguro do PicPay. Aceita Pix, cartão e carteira PicPay.";
 
-            copyPixButton.disabled = !paymentRecord.qrCode;
+            picPayPaymentButton.disabled = !paymentRecord.paymentLink;
+            picPayPaymentButton.textContent = "Ir para pagamento seguro";
         }
 
         function renderCheckout(payment) {
@@ -265,15 +259,15 @@
                 <p>
                     <b>Datas:</b><br>
                     ${pendingAppointments.map(function (appointment) {
-                return `• ${formatDate(appointment.date)} às ${formatTime(appointment.time)}`;
-            }).join("<br>")}
+                        return `• ${formatDate(appointment.date)} às ${formatTime(appointment.time)}`;
+                    }).join("<br>")}
                 </p>
             `;
         }
 
         async function handleConfirmButton() {
             if (!paymentRecord) {
-                await createDynamicPix();
+                await createPicPayPayment();
                 return;
             }
 
@@ -287,7 +281,9 @@
         }
 
         async function checkPaymentStatus(showWaitingMessage) {
-            if (!paymentRecord || !paymentRecord.ticket) return;
+            if (!paymentRecord || !paymentRecord.ticket) {
+                return;
+            }
 
             try {
                 const response = await fetch(
@@ -303,7 +299,7 @@
                     paymentRecord.paid = true;
 
                     sessionStorage.setItem(
-                        "pagBankPayment",
+                        "picPayPayment",
                         JSON.stringify(paymentRecord)
                     );
 
@@ -332,12 +328,13 @@
                     );
 
                     confirmPaymentButton.disabled = true;
+                    picPayPaymentButton.disabled = true;
                     return;
                 }
 
                 if (showWaitingMessage) {
                     setPaymentMessage(
-                        "O pagamento ainda não foi identificado. Após pagar, aguarde alguns segundos e tente novamente.",
+                        "O pagamento ainda não foi identificado. Após pagar, aguarde alguns segundos.",
                         "loading"
                     );
                 }
@@ -348,12 +345,12 @@
 
                 if (showWaitingMessage) {
                     setPaymentMessage(
-                        "Não foi possível consultar o pagamento agora. Aguarde alguns segundos e tente novamente.",
+                        "Não foi possível consultar o pagamento agora. Aguarde alguns segundos.",
                         "error"
                     );
                 }
 
-                setButtonLoading(false, "Já efetuei o pagamento");
+                hideConfirmButton();
             }
         }
 
@@ -361,14 +358,16 @@
             confirmPaymentButton.hidden = false;
             confirmPaymentButton.disabled = false;
             confirmPaymentButton.classList.remove("is-loading");
-            confirmPaymentButton.textContent = "Confirmar agendamento no WhatsApp";
+            confirmPaymentButton.textContent =
+                "Confirmar agendamento no WhatsApp";
         }
 
         function hideConfirmButton() {
             confirmPaymentButton.hidden = true;
             confirmPaymentButton.disabled = true;
             confirmPaymentButton.classList.remove("is-loading");
-            confirmPaymentButton.textContent = "Confirmar agendamento no WhatsApp";
+            confirmPaymentButton.textContent =
+                "Confirmar agendamento no WhatsApp";
         }
 
         function updatePaymentCountdown() {
@@ -377,17 +376,21 @@
                 return;
             }
 
-            const remaining = new Date(paymentRecord.expiresAt).getTime() - Date.now();
+            const remaining =
+                new Date(paymentRecord.expiresAt).getTime() - Date.now();
 
             if (remaining <= 0) {
-                paymentCountdown.textContent = "Este Pix expirou.";
+                paymentCountdown.textContent =
+                    "Este link de pagamento expirou.";
+
                 setPaymentMessage(
                     "O prazo de pagamento terminou e a reserva foi liberada.",
                     "error"
                 );
 
-                sessionStorage.removeItem("pagBankPayment");
+                sessionStorage.removeItem("picPayPayment");
                 hideConfirmButton();
+                picPayPaymentButton.disabled = true;
                 stopPaymentPolling();
                 return;
             }
@@ -396,7 +399,7 @@
             const seconds = Math.floor((remaining % 60000) / 1000);
 
             paymentCountdown.textContent =
-                `Este Pix vence em ${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.`;
+                `Esta reserva vence em ${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.`;
         }
 
         function startPaymentPolling() {
@@ -426,7 +429,9 @@
         }
 
         function completeConfirmedBooking() {
-            if (!paymentRecord || !paymentRecord.paid) return;
+            if (!paymentRecord || !paymentRecord.paid) {
+                return;
+            }
 
             const firstAppointment = pendingAppointments[0];
             const payment = paymentRecord.payment;
@@ -439,7 +444,7 @@
                 .join("\n");
 
             const message = `
-Olá! Pagamento PagBank identificado e agendamento confirmado:
+Olá! Pagamento PicPay identificado e agendamento confirmado:
 
 Ticket: ${ticket}
 Status: Serviço agendado
@@ -468,29 +473,24 @@ Transporte estimado: ${formatCurrency(payment.transportTotal)}
             );
 
             sessionStorage.removeItem("pendingAppointments");
-            sessionStorage.removeItem("pagBankPayment");
+            sessionStorage.removeItem("picPayPayment");
 
             alert("Agendamento confirmado com sucesso.");
-
             window.location.href = "index.html";
         }
 
-        function copyPixCode() {
-            if (!pixCode.value) return;
+        function openPicPayPayment() {
+            if (!paymentRecord || !paymentRecord.paymentLink) {
+                createPicPayPayment();
+                return;
+            }
 
-            navigator.clipboard.writeText(pixCode.value)
-                .then(function () {
-                    copyPixButton.textContent = "Código Pix copiado!";
+            window.open(paymentRecord.paymentLink, "_blank", "noopener");
 
-                    setTimeout(function () {
-                        copyPixButton.textContent = "Copiar código Pix";
-                    }, 2200);
-                })
-                .catch(function () {
-                    pixCode.select();
-                    document.execCommand("copy");
-                    alert("Código Pix copiado!");
-                });
+            setPaymentMessage(
+                "Pagamento aberto em uma nova aba. Depois de pagar, volte aqui: a confirmação acontece automaticamente.",
+                "loading"
+            );
         }
 
         function setButtonLoading(loading, text) {
