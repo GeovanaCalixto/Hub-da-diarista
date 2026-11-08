@@ -47,8 +47,7 @@
                     <div>
                         <h2>Gerenciar agendamentos</h2>
                         <p class="section-note">
-                            Adicione, edite, exclua ou bloqueie datas. As alterações sincronizam
-                            com o calendário e a planilha.
+                            Adicione, edite, exclua ou bloqueie datas. As alterações sincronizam com o calendário e a planilha.
                         </p>
                     </div>
 
@@ -271,18 +270,14 @@
                 <div class="checkout-card pix-card">
                     <h2>Pagamento Pix</h2>
                     <p>Use o QR Code ou o código Pix para enviar junto com o orçamento.</p>
-                    <div class="pix-area"><img src="imagens/pix-qrcode.jpeg" alt="QR Code Pix"
-                            class="pix-qrcode" /><label>Pix copia e cola<textarea id="pixCode"
+                    <div class="pix-area"><img src="imagens/pix-qrcode.jpeg" alt="QR Code Pix" class="pix-qrcode" /><label>Pix copia e cola<textarea id="pixCode"
                                 readonly>00020126580014br.gov.bcb.pix013633d462cf-81ab-47a7-a90a-9e598856f43b27600016BR.COM.PAGSEGURO013653F9B06E-05AA-4633-BDD1-E37F75A9ECE35204549953039865802BR5925FRANCISCA ELIEUDA CALIXTO6009Sao Paulo62290525PAGS00000000026062911297163041922</textarea></label>
                     </div>
                     <button type="button" id="copyPixButton" class="copy-pix-button">Copiar código Pix</button>
                 </div>
                 <aside class="checkout-summary-card admin-summary">
                     <h2>Resumo do orçamento</h2>
-                    <div id="budgetSummary" class="checkout-summary-list"></div><button type="button"
-                        id="saveBudgetButton">Salvar orçamento</button><button type="button"
-                        id="sendBudgetButton">Enviar pelo WhatsApp</button><button type="button"
-                        id="printBudgetButton">Gerar PDF / imprimir</button>
+                    <div id="budgetSummary" class="checkout-summary-list"></div><button type="button" id="saveBudgetButton">Salvar orçamento</button><button type="button" id="sendBudgetButton">Enviar pelo WhatsApp</button><button type="button" id="printBudgetButton">Gerar PDF / imprimir</button>
                 </aside>
             </section>
 
@@ -290,11 +285,9 @@
                 <div class="status-header">
                     <div>
                         <h2>Histórico de orçamentos personalizados</h2>
-                        <p class="section-note">Use a busca para encontrar orçamento por cliente, serviço, data, status
-                            ou valor.</p>
+                        <p class="section-note">Use a busca para encontrar orçamento por cliente, serviço, data, status ou valor.</p>
                     </div>
-                    <div class="status-controls"><button type="button" id="historyPrev">&lsaquo;</button><button
-                            type="button" id="historyNext">&rsaquo;</button></div>
+                    <div class="status-controls"><button type="button" id="historyPrev">&lsaquo;</button><button type="button" id="historyNext">&rsaquo;</button></div>
                 </div>
                 <label class="search-box">Buscar orçamento<input id="historySearch" type="search"
                         placeholder="Digite nome, serviço, data, status ou valor" /></label>
@@ -339,7 +332,7 @@
 
         let adminStarted = false;
 
-        loginForm.addEventListener("submit", async function (event) {
+        loginForm.addEventListener("submit", async function(event) {
             event.preventDefault();
 
             const email = document.getElementById("adminEmail").value.trim();
@@ -356,7 +349,7 @@
             }
         });
 
-        firebaseAuth.onAuthStateChanged(async function (user) {
+        firebaseAuth.onAuthStateChanged(async function(user) {
             if (!user) {
                 adminContent.classList.add("hidden");
                 loginPanel.classList.remove("hidden");
@@ -414,14 +407,42 @@
         }
 
         // ORÇAMENTOS (ORIGINAL)
-        const quoteRequestSelect = document.getElementById("quoteRequestSelect"), clientPreview = document.getElementById("clientPreview"), budgetSummary = document.getElementById("budgetSummary"), quotesHistory = document.getElementById("quotesHistory"), historySearchInput = document.getElementById("historySearch"), historyPrevButton = document.getElementById("historyPrev"), historyNextButton = document.getElementById("historyNext"), reloadRequestsButton = document.getElementById("reloadRequestsButton"), copyPixButton = document.getElementById("copyPixButton"), saveBudgetButton = document.getElementById("saveBudgetButton"), sendBudgetButton = document.getElementById("sendBudgetButton"), printBudgetButton = document.getElementById("printBudgetButton"), budgetInputs = ["budgetServiceType", "squareMeters", "productKit", "appliances", "discount", "quoteStatus", "furnished", "rubble", "budgetNotes", "budgetConditions"];
-        let quoteRequests = [], selectedQuote = null, currentBudget = null;
+        const quoteRequestSelect = document.getElementById("quoteRequestSelect"),
+            clientPreview = document.getElementById("clientPreview"),
+            budgetSummary = document.getElementById("budgetSummary"),
+            quotesHistory = document.getElementById("quotesHistory"),
+            historySearchInput = document.getElementById("historySearch"),
+            historyPrevButton = document.getElementById("historyPrev"),
+            historyNextButton = document.getElementById("historyNext"),
+            reloadRequestsButton = document.getElementById("reloadRequestsButton"),
+            copyPixButton = document.getElementById("copyPixButton"),
+            saveBudgetButton = document.getElementById("saveBudgetButton"),
+            sendBudgetButton = document.getElementById("sendBudgetButton"),
+            printBudgetButton = document.getElementById("printBudgetButton"),
+            budgetInputs = ["budgetServiceType", "squareMeters", "productKit", "appliances", "discount", "quoteStatus", "furnished", "rubble", "budgetNotes", "budgetConditions"];
+        let quoteRequests = [],
+            selectedQuote = null,
+            currentBudget = null;
         reloadRequestsButton.addEventListener("click", loadCustomQuoteRequests);
         historySearchInput.addEventListener("input", renderHistory);
-        historyPrevButton.addEventListener("click", () => quotesHistory.scrollBy({ left: -320, behavior: "smooth" }));
-        historyNextButton.addEventListener("click", () => quotesHistory.scrollBy({ left: 320, behavior: "smooth" }));
-        quoteRequestSelect.addEventListener("change", () => { selectedQuote = quoteRequests.find(i => String(i.id) === String(quoteRequestSelect.value)) || null; fillSelectedQuote(); calculateAndRenderBudget(); });
-        budgetInputs.forEach(id => { const el = document.getElementById(id); el.addEventListener("input", calculateAndRenderBudget); el.addEventListener("change", calculateAndRenderBudget); });
+        historyPrevButton.addEventListener("click", () => quotesHistory.scrollBy({
+            left: -320,
+            behavior: "smooth"
+        }));
+        historyNextButton.addEventListener("click", () => quotesHistory.scrollBy({
+            left: 320,
+            behavior: "smooth"
+        }));
+        quoteRequestSelect.addEventListener("change", () => {
+            selectedQuote = quoteRequests.find(i => String(i.id) === String(quoteRequestSelect.value)) || null;
+            fillSelectedQuote();
+            calculateAndRenderBudget();
+        });
+        budgetInputs.forEach(id => {
+            const el = document.getElementById(id);
+            el.addEventListener("input", calculateAndRenderBudget);
+            el.addEventListener("change", calculateAndRenderBudget);
+        });
         copyPixButton.addEventListener("click", () => navigator.clipboard.writeText(document.getElementById("pixCode").value).then(() => alert("Código Pix copiado!")));
         saveBudgetButton.addEventListener("click", saveBudget);
         sendBudgetButton.addEventListener("click", sendBudgetToWhatsApp);
@@ -442,10 +463,80 @@
                     `<option value="">Não foi possível carregar solicitações.</option>`;
             }
         }
-        function renderQuoteOptions() { if (!quoteRequests.length) { quoteRequestSelect.innerHTML = `<option value="">Nenhuma solicitação encontrada.</option>`; return; } quoteRequestSelect.innerHTML = `<option value="">Selecione uma cliente</option>`; quoteRequests.slice().reverse().forEach(item => { quoteRequestSelect.innerHTML += `<option value="${item.id}">${item.cliente || "Cliente"} - ${item.servico || "Serviço"} - ${item.statusOrcamento || item.status || "Aguardando orçamento"}</option>`; }); }
-        function fillSelectedQuote() { if (!selectedQuote) { clientPreview.innerHTML = "Nenhuma solicitação selecionada."; return; } const st = String(selectedQuote.servico || "").toLowerCase().includes("pós") ? "posobra" : "residencial"; document.getElementById("budgetServiceType").value = st; document.getElementById("quoteStatus").value = selectedQuote.statusOrcamento || selectedQuote.status || "Orçamento solicitado"; document.getElementById("discount").value = selectedQuote.desconto || 0; document.getElementById("budgetConditions").value = selectedQuote.condicoesOrcamento || ""; if (selectedQuote.metragem) document.getElementById("squareMeters").value = selectedQuote.metragem; clientPreview.innerHTML = `<strong>${selectedQuote.cliente || "Cliente"}</strong><span>WhatsApp: ${selectedQuote.whatsapp || "-"}</span><span>Serviço solicitado: ${selectedQuote.servico || "-"}</span><span>Datas: ${selectedQuote.datasSolicitadas || "-"}</span><span>Endereço: ${selectedQuote.endereco || "-"}</span><span>CEP: ${selectedQuote.cep || "-"}</span><span>Região: ${selectedQuote.regiao || "-"}</span><span>Status do orçamento: ${selectedQuote.statusOrcamento || selectedQuote.status || "Aguardando orçamento"}</span><span>Observações: ${selectedQuote.observacoes || "-"}</span>`; }
-        function calculateAndRenderBudget() { const r = calculateBudget(); currentBudget = r; budgetSummary.innerHTML = `<p><b>Tipo:</b> ${getServiceLabel(r.serviceType)}</p><p><b>Metragem:</b> ${r.squareMeters}m²</p><p><b>Valor por m²:</b> ${formatCurrency(r.pricePerMeter)}</p><p><b>Status:</b> ${r.statusOrcamento}</p><hr><p class="summary-line"><span>Valor bruto:</span> <strong>${formatCurrency(r.grossValue)}</strong></p><p class="summary-line"><span>Acréscimo mobiliado:</span> <strong>${formatCurrency(r.furnishedFee)}</strong></p><p class="summary-line"><span>Entulho/lixo pesado:</span> <strong>${formatCurrency(r.rubbleFee)}</strong></p><p class="summary-line"><span>Eletrodomésticos:</span> <strong>${formatCurrency(r.appliancesFee)}</strong></p><p class="summary-line"><span>Produtos:</span> <strong>${formatCurrency(r.productKit)}</strong></p><p class="summary-line"><span>Desconto:</span> <strong>${formatCurrency(r.discount)}</strong></p><hr><p class="summary-line"><span>Valor antes do desconto:</span> <strong>${formatCurrency(r.totalBeforeDiscount)}</strong></p><p class="summary-line"><span>Valor total:</span> <strong>${formatCurrency(r.total)}</strong></p><p class="summary-line reserve"><span>40% antecipado:</span> <strong>${formatCurrency(r.reservation)}</strong></p><p class="summary-line pay-now"><span>Valor para reserva:</span> <strong>${formatCurrency(r.reservation)}</strong></p><p class="summary-balance">Saldo após conclusão:<br><strong>${formatCurrency(r.balance)}</strong></p><hr><p><b>Condições:</b><br>${r.conditions || "-"}</p>`; }
-        function calculateBudget() { const st = document.getElementById("budgetServiceType").value, sm = Number(document.getElementById("squareMeters").value || 0), pk = Number(document.getElementById("productKit").value || 0), furn = document.getElementById("furnished").checked, rub = document.getElementById("rubble").checked, app = Number(document.getElementById("appliances").value || 0), disc = Math.max(Number(document.getElementById("discount").value || 0), 0), statusOrc = document.getElementById("quoteStatus").value, cond = document.getElementById("budgetConditions").value.trim(), ppm = st === "posobra" ? 15.50 : 8.50, gv = sm * ppm, ff = furn ? gv * 0.15 : 0, rf = rub ? 80 : 0, af = app * 30, add = ff + rf + af + pk, tbd = gv + add, tot = Math.max(tbd - disc, 0), res = tot * 0.4, bal = tot - res; return { serviceType: st, squareMeters: sm, pricePerMeter: ppm, productKit: pk, furnished: furn, rubble: rub, appliances: app, grossValue: gv, furnishedFee: ff, rubbleFee: rf, appliancesFee: af, additions: add, discount: disc, totalBeforeDiscount: tbd, total: tot, reservation: res, balance: bal, statusOrcamento: statusOrc, conditions: cond }; }
+
+        function renderQuoteOptions() {
+            if (!quoteRequests.length) {
+                quoteRequestSelect.innerHTML = `<option value="">Nenhuma solicitação encontrada.</option>`;
+                return;
+            }
+            quoteRequestSelect.innerHTML = `<option value="">Selecione uma cliente</option>`;
+            quoteRequests.slice().reverse().forEach(item => {
+                quoteRequestSelect.innerHTML += `<option value="${item.id}">${item.cliente || "Cliente"} - ${item.servico || "Serviço"} - ${item.statusOrcamento || item.status || "Aguardando orçamento"}</option>`;
+            });
+        }
+
+        function fillSelectedQuote() {
+            if (!selectedQuote) {
+                clientPreview.innerHTML = "Nenhuma solicitação selecionada.";
+                return;
+            }
+            const st = String(selectedQuote.servico || "").toLowerCase().includes("pós") ? "posobra" : "residencial";
+            document.getElementById("budgetServiceType").value = st;
+            document.getElementById("quoteStatus").value = selectedQuote.statusOrcamento || selectedQuote.status || "Orçamento solicitado";
+            document.getElementById("discount").value = selectedQuote.desconto || 0;
+            document.getElementById("budgetConditions").value = selectedQuote.condicoesOrcamento || "";
+            if (selectedQuote.metragem) document.getElementById("squareMeters").value = selectedQuote.metragem;
+            clientPreview.innerHTML = `<strong>${selectedQuote.cliente || "Cliente"}</strong><span>WhatsApp: ${selectedQuote.whatsapp || "-"}</span><span>Serviço solicitado: ${selectedQuote.servico || "-"}</span><span>Datas: ${selectedQuote.datasSolicitadas || "-"}</span><span>Endereço: ${selectedQuote.endereco || "-"}</span><span>CEP: ${selectedQuote.cep || "-"}</span><span>Região: ${selectedQuote.regiao || "-"}</span><span>Status do orçamento: ${selectedQuote.statusOrcamento || selectedQuote.status || "Aguardando orçamento"}</span><span>Observações: ${selectedQuote.observacoes || "-"}</span>`;
+        }
+
+        function calculateAndRenderBudget() {
+            const r = calculateBudget();
+            currentBudget = r;
+            budgetSummary.innerHTML = `<p><b>Tipo:</b> ${getServiceLabel(r.serviceType)}</p><p><b>Metragem:</b> ${r.squareMeters}m²</p><p><b>Valor por m²:</b> ${formatCurrency(r.pricePerMeter)}</p><p><b>Status:</b> ${r.statusOrcamento}</p><hr><p class="summary-line"><span>Valor bruto:</span> <strong>${formatCurrency(r.grossValue)}</strong></p><p class="summary-line"><span>Acréscimo mobiliado:</span> <strong>${formatCurrency(r.furnishedFee)}</strong></p><p class="summary-line"><span>Entulho/lixo pesado:</span> <strong>${formatCurrency(r.rubbleFee)}</strong></p><p class="summary-line"><span>Eletrodomésticos:</span> <strong>${formatCurrency(r.appliancesFee)}</strong></p><p class="summary-line"><span>Produtos:</span> <strong>${formatCurrency(r.productKit)}</strong></p><p class="summary-line"><span>Desconto:</span> <strong>${formatCurrency(r.discount)}</strong></p><hr><p class="summary-line"><span>Valor antes do desconto:</span> <strong>${formatCurrency(r.totalBeforeDiscount)}</strong></p><p class="summary-line"><span>Valor total:</span> <strong>${formatCurrency(r.total)}</strong></p><p class="summary-line reserve"><span>40% antecipado:</span> <strong>${formatCurrency(r.reservation)}</strong></p><p class="summary-line pay-now"><span>Valor para reserva:</span> <strong>${formatCurrency(r.reservation)}</strong></p><p class="summary-balance">Saldo após conclusão:<br><strong>${formatCurrency(r.balance)}</strong></p><hr><p><b>Condições:</b><br>${r.conditions || "-"}</p>`;
+        }
+
+        function calculateBudget() {
+            const st = document.getElementById("budgetServiceType").value,
+                sm = Number(document.getElementById("squareMeters").value || 0),
+                pk = Number(document.getElementById("productKit").value || 0),
+                furn = document.getElementById("furnished").checked,
+                rub = document.getElementById("rubble").checked,
+                app = Number(document.getElementById("appliances").value || 0),
+                disc = Math.max(Number(document.getElementById("discount").value || 0), 0),
+                statusOrc = document.getElementById("quoteStatus").value,
+                cond = document.getElementById("budgetConditions").value.trim(),
+                ppm = st === "posobra" ? 15.50 : 8.50,
+                gv = sm * ppm,
+                ff = furn ? gv * 0.15 : 0,
+                rf = rub ? 80 : 0,
+                af = app * 30,
+                add = ff + rf + af + pk,
+                tbd = gv + add,
+                tot = Math.max(tbd - disc, 0),
+                res = tot * 0.4,
+                bal = tot - res;
+            return {
+                serviceType: st,
+                squareMeters: sm,
+                pricePerMeter: ppm,
+                productKit: pk,
+                furnished: furn,
+                rubble: rub,
+                appliances: app,
+                grossValue: gv,
+                furnishedFee: ff,
+                rubbleFee: rf,
+                appliancesFee: af,
+                additions: add,
+                discount: disc,
+                totalBeforeDiscount: tbd,
+                total: tot,
+                reservation: res,
+                balance: bal,
+                statusOrcamento: statusOrc,
+                conditions: cond
+            };
+        }
         async function saveBudget() {
             if (!selectedQuote) {
                 alert("Selecione uma solicitação antes de salvar.");
@@ -488,8 +579,34 @@
                 alert("Não foi possível salvar o orçamento. Faça login novamente e tente.");
             }
         }
-        function sendBudgetToWhatsApp() { if (!selectedQuote || !currentBudget) { alert("Selecione uma solicitação e gere o orçamento primeiro."); return; } const phone = formatWhatsAppNumber(selectedQuote.whatsapp); if (!phone) { alert("WhatsApp da cliente não encontrado."); return; } const dt = currentBudget.discount > 0 ? `Desconto aplicado: ${formatCurrency(currentBudget.discount)}\n` : "", ct = currentBudget.conditions ? `\nCondições do orçamento:\n${currentBudget.conditions}\n` : "", msg = `Olá, ${selectedQuote.cliente}! Segue o orçamento personalizado:\n\nServiço: ${getServiceLabel(currentBudget.serviceType)}\nDatas solicitadas: ${selectedQuote.datasSolicitadas || "-"}\nMetragem considerada: ${currentBudget.squareMeters}m²\n\nValor antes do desconto: ${formatCurrency(currentBudget.totalBeforeDiscount)}${dt}Valor total: ${formatCurrency(currentBudget.total)}\nReserva de 40%: ${formatCurrency(currentBudget.reservation)}\nSaldo após conclusão do serviço: ${formatCurrency(currentBudget.balance)}\n\nStatus do orçamento: ${currentBudget.statusOrcamento}\n\nDetalhes:\n- Produtos: ${getProductKitLabel(currentBudget.productKit)}\n- Imóvel mobiliado: ${currentBudget.furnished ? "Sim" : "Não"}\n- Entulho/lixo pesado: ${currentBudget.rubble ? "Sim" : "Não"}\n- Eletrodomésticos internos: ${currentBudget.appliances}${ct}Pix copia e cola:\n${document.getElementById("pixCode").value}\n\nApós o pagamento da reserva, o agendamento fica pendente de confirmação.`; window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank"); }
-        function renderHistory() { const term = historySearchInput.value.trim().toLowerCase(); const filtered = quoteRequests.filter(item => !term || [item.cliente, item.whatsapp, item.servico, item.tipoImovel, item.datasSolicitadas, item.horario, item.endereco, item.cep, item.regiao, item.observacoes, item.status, item.statusOrcamento, item.metragem, item.desconto, item.valorTotal, item.reserva, item.saldo, item.condicoesOrcamento, item.dataOrcamento].join(" ").toLowerCase().includes(term)).slice().reverse(); if (!filtered.length) { quotesHistory.innerHTML = `<article class="status-card admin-history-card"><strong>Nenhum orçamento encontrado</strong><p>Tente buscar por outro nome, serviço, data ou status.</p></article>`; return; } quotesHistory.innerHTML = ""; filtered.forEach(item => { const sel = item.statusOrcamento || item.status || "Aguardando orçamento"; quotesHistory.innerHTML += `<article class="status-card admin-history-card"><div class="status-card-top"><span class="client-badge">${item.cliente || "Cliente"}</span><strong>${sel}</strong></div><p><b>Serviço:</b> ${item.servico || "-"}</p><p><b>Datas:</b> ${item.datasSolicitadas || "-"}</p><p><b>WhatsApp:</b> ${item.whatsapp || "-"}</p><p><b>Metragem:</b> ${item.metragem || "-"}</p><p><b>Desconto:</b> ${item.desconto ? formatCurrency(item.desconto) : "-"}</p><p><b>Valor total:</b> ${item.valorTotal ? formatCurrency(item.valorTotal) : "-"}</p><p><b>Reserva:</b> ${item.reserva ? formatCurrency(item.reserva) : "-"}</p><p><b>Condições:</b> ${item.condicoesOrcamento || "-"}</p><select class="status-select" onchange="changeCustomQuoteStatus('${item.id}',this.value)">${quoteStatusOptions.map(s => `<option value="${s}" ${sel === s ? "selected" : ""}>${s}</option>`).join("")}</select></article>`; }); }
+
+        function sendBudgetToWhatsApp() {
+            if (!selectedQuote || !currentBudget) {
+                alert("Selecione uma solicitação e gere o orçamento primeiro.");
+                return;
+            }
+            const phone = formatWhatsAppNumber(selectedQuote.whatsapp);
+            if (!phone) {
+                alert("WhatsApp da cliente não encontrado.");
+                return;
+            }
+            const dt = currentBudget.discount > 0 ? `Desconto aplicado: ${formatCurrency(currentBudget.discount)}\n` : "",
+                ct = currentBudget.conditions ? `\nCondições do orçamento:\n${currentBudget.conditions}\n` : "",
+                msg = `Olá, ${selectedQuote.cliente}! Segue o orçamento personalizado:\n\nServiço: ${getServiceLabel(currentBudget.serviceType)}\nDatas solicitadas: ${selectedQuote.datasSolicitadas || "-"}\nMetragem considerada: ${currentBudget.squareMeters}m²\n\nValor antes do desconto: ${formatCurrency(currentBudget.totalBeforeDiscount)}${dt}Valor total: ${formatCurrency(currentBudget.total)}\nReserva de 40%: ${formatCurrency(currentBudget.reservation)}\nSaldo após conclusão do serviço: ${formatCurrency(currentBudget.balance)}\n\nStatus do orçamento: ${currentBudget.statusOrcamento}\n\nDetalhes:\n- Produtos: ${getProductKitLabel(currentBudget.productKit)}\n- Imóvel mobiliado: ${currentBudget.furnished ? "Sim" : "Não"}\n- Entulho/lixo pesado: ${currentBudget.rubble ? "Sim" : "Não"}\n- Eletrodomésticos internos: ${currentBudget.appliances}${ct}Pix copia e cola:\n${document.getElementById("pixCode").value}\n\nApós o pagamento da reserva, o agendamento fica pendente de confirmação.`;
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
+        }
+
+        function renderHistory() {
+            const term = historySearchInput.value.trim().toLowerCase();
+            const filtered = quoteRequests.filter(item => !term || [item.cliente, item.whatsapp, item.servico, item.tipoImovel, item.datasSolicitadas, item.horario, item.endereco, item.cep, item.regiao, item.observacoes, item.status, item.statusOrcamento, item.metragem, item.desconto, item.valorTotal, item.reserva, item.saldo, item.condicoesOrcamento, item.dataOrcamento].join(" ").toLowerCase().includes(term)).slice().reverse();
+            if (!filtered.length) {
+                quotesHistory.innerHTML = `<article class="status-card admin-history-card"><strong>Nenhum orçamento encontrado</strong><p>Tente buscar por outro nome, serviço, data ou status.</p></article>`;
+                return;
+            }
+            quotesHistory.innerHTML = "";
+            filtered.forEach(item => {
+                        const sel = item.statusOrcamento || item.status || "Aguardando orçamento";
+                        quotesHistory.innerHTML += `<article class="status-card admin-history-card"><div class="status-card-top"><span class="client-badge">${item.cliente || "Cliente"}</span><strong>${sel}</strong></div><p><b>Serviço:</b> ${item.servico || "-"}</p><p><b>Datas:</b> ${item.datasSolicitadas || "-"}</p><p><b>WhatsApp:</b> ${item.whatsapp || "-"}</p><p><b>Metragem:</b> ${item.metragem || "-"}</p><p><b>Desconto:</b> ${item.desconto ? formatCurrency(item.desconto) : "-"}</p><p><b>Valor total:</b> ${item.valorTotal ? formatCurrency(item.valorTotal) : "-"}</p><p><b>Reserva:</b> ${item.reserva ? formatCurrency(item.reserva) : "-"}</p><p><b>Condições:</b> ${item.condicoesOrcamento || "-"}</p><select class="status-select" onchange="changeCustomQuoteStatus('${item.id}',this.value)">${quoteStatusOptions.map(s => `<option value="${s}" ${sel === s ? "selected" : ""}>${s}</option>`).join("")}</select></article>`; }); }
         async function changeCustomQuoteStatus(id, newStatus) {
             try {
                 await adminRequest("updateCustomQuoteStatus", {
@@ -881,8 +998,23 @@
             return "Outra região - confirmar pelo WhatsApp";
         }
 
-        function formatDateBR(d) { if (!d) return "-"; const s = String(d).trim(), dt = new Date(s); if (!isNaN(dt.getTime())) { const day = String(dt.getDate()).padStart(2, '0'), month = String(dt.getMonth() + 1).padStart(2, '0'), year = dt.getFullYear(); return `${day}/${month}/${year}`; } if (s.includes("/")) return s; return s; }
-        function formatTimeBR(t) { if (!t) return "-"; const s = String(t).trim(); if (s === "dia-inteiro") return "Dia inteiro"; const dt = new Date(s); if (!isNaN(dt.getTime())) { const h = String(dt.getHours()).padStart(2, '0'), m = String(dt.getMinutes()).padStart(2, '0'); return `${h}:${m}`; } if (s.includes(":")) return s.slice(0, 5); return s; }
+function formatDateBR(d) {
+    if (!d) return "-";
+
+    const value = String(d).trim();
+    const dateOnly = value.includes("T") ? value.split("T")[0] : value;
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
+        const parts = dateOnly.split("-");
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    if (value.includes("/")) {
+        return value;
+    }
+
+    return value;
+}        function formatTimeBR(t) { if (!t) return "-"; const s = String(t).trim(); if (s === "dia-inteiro") return "Dia inteiro"; const dt = new Date(s); if (!isNaN(dt.getTime())) { const h = String(dt.getHours()).padStart(2, '0'), m = String(dt.getMinutes()).padStart(2, '0'); return `${h}:${m}`; } if (s.includes(":")) return s.slice(0, 5); return s; }
 
         window.openAppointmentForm = openAppointmentForm;
         window.confirmDeleteAppointment = confirmDeleteAppointment;
