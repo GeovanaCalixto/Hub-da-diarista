@@ -26,10 +26,10 @@
         <section class="checkout-box">
             <div class="checkout-left">
                 <div class="checkout-card pix-card">
-                    <h2>Pagamento seguro pelo PicPay</h2>
+                    <h2>Pagamento seguro pelo Mercado Pago</h2>
                     <p id="pixInstructions">Estamos preparando seu link de pagamento. Aguarde um instante.</p>
 
-                    <button type="button" id="picPayPaymentButton" class="copy-pix-button" disabled>
+                    <button type="button" id="mercadoPagoPaymentButton" class="copy-pix-button" disabled>
                         Preparando pagamento...
                     </button>
 
@@ -69,7 +69,7 @@
         const whatsappNumber = "5511932118634";
 
         const checkoutSummary = document.getElementById("checkoutSummary");
-        const picPayPaymentButton = document.getElementById("picPayPaymentButton");
+        const mercadoPagoPaymentButton = document.getElementById("mercadoPagoPaymentButton");
         const confirmPaymentButton = document.getElementById("confirmPaymentButton");
         const pixInstructions = document.getElementById("pixInstructions");
         const paymentStatusMessage = document.getElementById("paymentStatusMessage");
@@ -80,7 +80,7 @@
         );
 
         const paymentFingerprint = pendingAppointments
-            .map(function (appointment) {
+            .map(function(appointment) {
                 return `${appointment.id}-${appointment.date}`;
             })
             .join("|");
@@ -103,7 +103,7 @@
             initializeCheckout();
         }
 
-        picPayPaymentButton.addEventListener("click", openPicPayPayment);
+        mercadoPagoPaymentButton.addEventListener("click", openMercadoPagoPayment);
         confirmPaymentButton.addEventListener("click", handleConfirmButton);
 
         async function initializeCheckout() {
@@ -117,18 +117,18 @@
             ) {
                 paymentRecord = savedPayment;
                 renderCheckout(paymentRecord.payment);
-                showPicPayPayment();
+                showMercadoPagoPayment();
                 checkPaymentStatus(false);
                 startPaymentPolling();
                 return;
             }
 
-            await createPicPayPayment();
+            await createMercadoPagoPayment();
         }
 
-        async function createPicPayPayment() {
-            picPayPaymentButton.disabled = true;
-            picPayPaymentButton.textContent = "Preparando pagamento...";
+        async function createMercadoPagoPayment() {
+            mercadoPagoPaymentButton.disabled = true;
+            mercadoPagoPaymentButton.textContent = "Preparando pagamento...";
 
             setPaymentMessage(
                 "Criando uma reserva temporária para suas datas.",
@@ -144,7 +144,7 @@
                         "Content-Type": "text/plain;charset=utf-8"
                     },
                     body: JSON.stringify({
-                        action: "createPicPayPayment",
+                        action: "createMercadoPagoPayment",
                         appointments: pendingAppointments,
                         customer: {
                             name: firstAppointment.client,
@@ -173,12 +173,12 @@
                 };
 
                 sessionStorage.setItem(
-                    "picPayPayment",
+                    "mercadoPagoPayment",
                     JSON.stringify(paymentRecord)
                 );
 
                 renderCheckout(paymentRecord.payment);
-                showPicPayPayment();
+                showMercadoPagoPayment();
 
                 setPaymentMessage(
                     "Link criado. Sua reserva fica separada por 20 minutos enquanto aguardamos o pagamento.",
@@ -195,31 +195,31 @@
                     "error"
                 );
 
-                picPayPaymentButton.disabled = false;
-                picPayPaymentButton.textContent = "Tentar gerar pagamento";
+                mercadoPagoPaymentButton.disabled = false;
+                mercadoPagoPaymentButton.textContent = "Tentar gerar pagamento";
             }
         }
 
         function getSavedPayment() {
             try {
                 return JSON.parse(
-                    sessionStorage.getItem("picPayPayment") || "null"
+                    sessionStorage.getItem("mercadoPagoPayment") || "null"
                 );
             } catch (error) {
                 return null;
             }
         }
 
-        function showPicPayPayment() {
+        function showMercadoPagoPayment() {
             if (!paymentRecord) {
                 return;
             }
 
             pixInstructions.textContent =
-                "Clique abaixo para pagar pelo checkout seguro do PicPay. Aceita Pix, cartão e carteira PicPay.";
+                "Clique abaixo para pagar pelo checkout seguro do Mercado Pago. Aceita Pix, cartão e os meios disponíveis no Mercado Pago.";
 
-            picPayPaymentButton.disabled = !paymentRecord.paymentLink;
-            picPayPaymentButton.textContent = "Ir para pagamento seguro";
+            mercadoPagoPaymentButton.disabled = !paymentRecord.paymentLink;
+            mercadoPagoPaymentButton.textContent = "Ir para pagamento seguro";
         }
 
         function renderCheckout(payment) {
@@ -267,7 +267,7 @@
 
         async function handleConfirmButton() {
             if (!paymentRecord) {
-                await createPicPayPayment();
+                await createMercadoPagoPayment();
                 return;
             }
 
@@ -299,7 +299,7 @@
                     paymentRecord.paid = true;
 
                     sessionStorage.setItem(
-                        "picPayPayment",
+                        "mercadoPagoPayment",
                         JSON.stringify(paymentRecord)
                     );
 
@@ -328,7 +328,7 @@
                     );
 
                     confirmPaymentButton.disabled = true;
-                    picPayPaymentButton.disabled = true;
+                    mercadoPagoPaymentButton.disabled = true;
                     return;
                 }
 
@@ -388,9 +388,9 @@
                     "error"
                 );
 
-                sessionStorage.removeItem("picPayPayment");
+                sessionStorage.removeItem("mercadoPagoPayment");
                 hideConfirmButton();
-                picPayPaymentButton.disabled = true;
+                mercadoPagoPaymentButton.disabled = true;
                 stopPaymentPolling();
                 return;
             }
@@ -444,7 +444,7 @@
                 .join("\n");
 
             const message = `
-Olá! Pagamento PicPay identificado e agendamento confirmado:
+Olá! Pagamento Mercado Pago identificado e agendamento confirmado:
 
 Ticket: ${ticket}
 Status: Serviço agendado
@@ -473,15 +473,15 @@ Transporte estimado: ${formatCurrency(payment.transportTotal)}
             );
 
             sessionStorage.removeItem("pendingAppointments");
-            sessionStorage.removeItem("picPayPayment");
+            sessionStorage.removeItem("mercadoPagoPayment");
 
             alert("Agendamento confirmado com sucesso.");
             window.location.href = "index.html";
         }
 
-        function openPicPayPayment() {
+        function openMercadoPagoPayment() {
             if (!paymentRecord || !paymentRecord.paymentLink) {
-                createPicPayPayment();
+                createMercadoPagoPayment();
                 return;
             }
 
