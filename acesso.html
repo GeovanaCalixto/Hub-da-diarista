@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Acesso da Cliente - Hub da Diarista</title>
+    <link rel="icon" type="image/png" href="imagens/icon.png" />
+    <link rel="stylesheet" href="hubdadiarista.css" />
+</head>
+
+<body class="account-page">
+    <header class="site-header">
+        <div class="header-content">
+            <div class="brand-area">
+                <a class="brand" href="index.html">
+                    <img src="imagens/Logotipo-hub.png" alt="Hub da Diarista" />
+                </a>
+                <a class="admin-under-logo" href="admin.html">Admin</a>
+            </div>
+
+            <nav class="main-nav">
+                <a href="index.html">Agendamento</a>
+                <a href="regulamentos.html">Regulamentos</a>
+            </nav>
+
+            <a class="header-button" href="index.html">Ver agenda</a>
+        </div>
+    </header>
+
+    <main class="account-main">
+        <section class="account-card">
+            <div class="account-intro">
+                <h1>Minha conta</h1>
+                <p>Entre para solicitar novos agendamentos sem preencher seus dados novamente.</p>
+            </div>
+
+            <div class="account-tabs">
+                <button type="button" id="showLoginButton" class="account-tab active">
+                    Entrar
+                </button>
+                <button type="button" id="showRegisterButton" class="account-tab">
+                    Criar cadastro
+                </button>
+            </div>
+
+            <form id="loginForm" class="account-form">
+                <label>
+                    E-mail
+                    <input id="loginEmail" type="email" autocomplete="email" required />
+                </label>
+
+                <label>
+                    Senha
+                    <input id="loginPassword" type="password" autocomplete="current-password" required />
+                </label>
+
+                <p id="loginMessage" class="form-message" aria-live="polite"></p>
+
+                <button type="submit" id="loginButton">Entrar e agendar</button>
+            </form>
+
+            <form id="registerForm" class="account-form hidden">
+                <label>
+                    Nome completo
+                    <input id="registerName" type="text" autocomplete="name" required />
+                </label>
+
+                <label>
+                    WhatsApp
+                    <input id="registerWhatsapp" type="tel" inputmode="numeric"
+                        placeholder="Ex: 11999999999" required />
+                </label>
+
+                <label>
+                    E-mail
+                    <input id="registerEmail" type="email" autocomplete="email" required />
+                </label>
+
+                <label>
+                    Crie uma senha
+                    <input id="registerPassword" type="password" minlength="6"
+                        autocomplete="new-password" required />
+                </label>
+
+                <label>
+                    CEP
+                    <input id="registerCep" type="text" placeholder="Ex: 03200-000" required />
+                </label>
+
+                <label>
+                    Região para deslocamento
+                    <select id="registerRegion" required>
+                        <option value="">Selecione</option>
+                        <option value="proxima">
+                            Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente
+                        </option>
+                        <option value="distante">Diadema, Santo Amaro ou Zona Sul</option>
+                        <option value="custom">Outra região</option>
+                    </select>
+                </label>
+
+                <label>
+                    Endereço
+                    <input id="registerAddress" type="text"
+                        placeholder="Rua, número e bairro" required />
+                </label>
+
+                <p id="registerMessage" class="form-message" aria-live="polite"></p>
+
+                <button type="submit" id="registerButton">Criar cadastro e agendar</button>
+            </form>
+        </section>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"; import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"; const firebaseConfig = { apiKey: "AIzaSyCan31dyjIwP4ni22IDOqC0VD5jiW2vnwk", authDomain: "hub-da-diarista.firebaseapp.com",
+        projectId: "hub-da-diarista", storageBucket: "hub-da-diarista.firebasestorage.app", messagingSenderId: "262676996933", appId: "1:262676996933:web:265d1b4f99e08392f5542c" }; const app = initializeApp(firebaseConfig); const auth = getAuth(app);
+        const db = getFirestore(app); const loginForm = document.getElementById("loginForm"); const registerForm = document.getElementById("registerForm"); const showLoginButton = document.getElementById("showLoginButton"); const showRegisterButton =
+        document.getElementById("showRegisterButton"); showLoginButton.addEventListener("click", function () { loginForm.classList.remove("hidden"); registerForm.classList.add("hidden"); showLoginButton.classList.add("active"); showRegisterButton.classList.remove("active");
+        }); showRegisterButton.addEventListener("click", function () { registerForm.classList.remove("hidden"); loginForm.classList.add("hidden"); showRegisterButton.classList.add("active"); showLoginButton.classList.remove("active"); }); loginForm.addEventListener("submit",
+        async function (event) { event.preventDefault(); const button = document.getElementById("loginButton"); const message = document.getElementById("loginMessage"); setLoading(button, true, "Entrando..."); setMessage(message, ""); try { await signInWithEmailAndPassword(
+        auth, document.getElementById("loginEmail").value.trim(), document.getElementById("loginPassword").value ); window.location.href = "index.html#appointmentForm"; } catch (error) { setMessage(message, getAuthErrorMessage(error), "error"); setLoading(button,
+        false, "Entrar e agendar"); } }); registerForm.addEventListener("submit", async function (event) { event.preventDefault(); const button = document.getElementById("registerButton"); const message = document.getElementById("registerMessage"); setLoading(button,
+        true, "Criando cadastro..."); setMessage(message, ""); try { const name = document.getElementById("registerName").value.trim(); const email = document.getElementById("registerEmail").value.trim(); const password = document.getElementById("registerPassword").value;
+        const credential = await createUserWithEmailAndPassword(auth, email, password); await updateProfile(credential.user, { displayName: name }); await setDoc(doc(db, "clientes", credential.user.uid), { nome: name, whatsapp: document.getElementById("registerWhatsapp").value.replace(/\D/g,
+        ""), email: email, cep: document.getElementById("registerCep").value.trim(), regiao: document.getElementById("registerRegion").value, endereco: document.getElementById("registerAddress").value.trim(), criadoEm: serverTimestamp(), atualizadoEm:
+        serverTimestamp() }); window.location.href = "index.html#appointmentForm"; } catch (error) { setMessage(message, getAuthErrorMessage(error), "error"); setLoading(button, false, "Criar cadastro e agendar"); } }); function setLoading(button, loading,
+        text) { button.disabled = loading; button.textContent = text; } function setMessage(element, text, type) { element.textContent = text; element.className = text ? `form-message active ${type || ""}` : "form-message"; } function getAuthErrorMessage(error)
+        { const code = error && error.code ? error.code : ""; if (code === "auth/email-already-in-use") { return "Este e-mail já possui cadastro. Use a opção Entrar."; } if (code === "auth/invalid-credential") { return "E-mail ou senha incorretos."; }
+        if (code === "auth/weak-password") { return "Crie uma senha com pelo menos 6 caracteres."; } if (code === "auth/invalid-email") { return "Digite um e-mail válido."; } return "Não foi possível concluir agora. Tente novamente em instantes."; }
+    </script>
+</body>
+
+</html>

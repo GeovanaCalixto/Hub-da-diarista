@@ -45,6 +45,7 @@ button {
     display: none !important;
 }
 
+
 /* Header */
 
 .site-header {
@@ -134,6 +135,7 @@ button {
     text-align: center;
 }
 
+
 /* Base */
 
 main {
@@ -178,6 +180,7 @@ h3 {
     font-size: 11px;
     line-height: 1.35;
 }
+
 
 /* Home */
 
@@ -242,6 +245,7 @@ body:has(#appointmentForm) main>section:nth-of-type(3) {
     width: 100%;
 }
 
+
 /* Formularios */
 
 form {
@@ -300,6 +304,7 @@ button[type="submit"]:disabled,
     opacity: 0.65;
     cursor: not-allowed;
 }
+
 
 /* Calendario */
 
@@ -460,6 +465,7 @@ button[type="submit"]:disabled,
     color: var(--branco);
 }
 
+
 /* Mini calendario */
 
 .mini-calendar-box {
@@ -534,6 +540,7 @@ button[type="submit"]:disabled,
     color: var(--verde);
 }
 
+
 /* Status */
 
 .search-box {
@@ -605,6 +612,7 @@ button[type="submit"]:disabled,
     font-size: 10px;
     font-weight: 900;
 }
+
 
 /* Checkout */
 
@@ -810,6 +818,7 @@ button[type="submit"]:disabled,
     font-weight: 900;
 }
 
+
 /* Admin */
 
 .admin-page main {
@@ -866,6 +875,7 @@ button[type="submit"]:disabled,
     background: linear-gradient(135deg, var(--coral-forte), var(--coral));
 }
 
+
 /* Responsivo */
 
 @media (max-width: 980px) {
@@ -873,27 +883,22 @@ button[type="submit"]:disabled,
         flex-direction: column;
         text-align: center;
     }
-
     .brand-area {
         align-items: center;
     }
-
     .main-nav {
         gap: 20px;
     }
-
     .header-button {
         width: 80%;
         max-width: 360px;
     }
-
     body:has(#appointmentForm) main {
         width: 100%;
         margin: 0;
         padding: 10px;
         grid-template-columns: 1fr;
     }
-
     body:has(#appointmentForm) .home-left-column,
     body:has(#appointmentForm) .appointment-side-panel,
     body:has(#appointmentForm) main>section:nth-of-type(1),
@@ -904,12 +909,10 @@ button[type="submit"]:disabled,
         position: static;
         width: 100%;
     }
-
     .checkout-box,
     .admin-budget-layout {
         grid-template-columns: 1fr;
     }
-
     .checkout-summary-card {
         position: static;
     }
@@ -919,120 +922,97 @@ button[type="submit"]:disabled,
     .header-content {
         padding: 18px 0;
     }
-
     main {
         width: 100%;
         margin-top: 0;
         padding: 10px;
     }
-
     section {
         padding: 14px;
     }
-
     .brand img {
         width: 220px;
     }
-
     .main-nav a {
         font-size: 18px;
     }
-
     .header-button {
         font-size: 15px;
     }
-
     .calendar-header,
     .status-header {
         flex-direction: column;
         align-items: stretch;
         text-align: center;
     }
-
     .calendar-controls {
         justify-content: space-between;
     }
-
     .calendar-controls strong {
         min-width: 0;
         flex: 1;
         font-size: 18px;
     }
-
     .calendar-weekdays,
     .calendar-month,
     .mini-calendar {
         gap: 4px;
     }
-
     .calendar-cell {
         min-height: 90px;
         padding: 6px 3px;
     }
-
     .calendar-day-number {
         font-size: 17px;
     }
-
     .calendar-day-status {
         font-size: 10px;
     }
-
     .calendar-slots span {
         font-size: 15px;
     }
-
     .mini-calendar .calendar-cell {
         min-height: 72px;
     }
-
     .mini-calendar .calendar-day-number {
         font-size: 14px;
     }
-
     .mini-calendar .calendar-slots span {
         font-size: 15px;
     }
-
     .status-card,
     .admin-history-card {
         flex-basis: 250px;
         max-width: 250px;
     }
-
     .pix-area {
         grid-template-columns: 1fr;
     }
-
     .pix-qrcode {
         width: 220px;
         margin: 0 auto;
     }
-
     .summary-line {
         align-items: flex-start;
     }
-
     .summary-line strong {
         font-size: 18px;
         white-space: nowrap;
     }
 }
 
+
 /* PDF admin */
 
 @media print {
-
     body.admin-page,
     body.admin-page * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
-
     body.admin-page {
         background: #ffffff !important;
     }
-
     body.admin-page .site-header {
         display: block !important;
         width: 100% !important;
@@ -1042,17 +1022,14 @@ button[type="submit"]:disabled,
         border-radius: 14px !important;
         box-shadow: none !important;
     }
-
     body.admin-page .header-content {
         justify-content: center !important;
         min-height: auto !important;
         padding: 0 !important;
     }
-
     body.admin-page .brand img {
         width: 210px !important;
     }
-
     body.admin-page .admin-under-logo,
     body.admin-page .main-nav,
     body.admin-page .header-button,
@@ -1069,7 +1046,6 @@ button[type="submit"]:disabled,
     body.admin-page #quotesHistory {
         display: none !important;
     }
-
     body.admin-page main {
         width: 100% !important;
         max-width: 980px !important;
@@ -1079,22 +1055,20 @@ button[type="submit"]:disabled,
         border: none !important;
         box-shadow: none !important;
     }
-
     body.admin-page section {
         break-inside: avoid;
         page-break-inside: avoid;
         box-shadow: none !important;
     }
-
     body.admin-page .admin-budget-layout {
         grid-template-columns: 1.1fr 0.9fr !important;
     }
 }
 
+
 /* Ajuste fino do calendario no celular */
 
 @media (max-width: 700px) {
-
     .calendar-month,
     .mini-calendar {
         width: 100%;
@@ -1104,7 +1078,6 @@ button[type="submit"]:disabled,
         grid-template-columns: repeat(7, minmax(0, 1fr));
         gap: 1px;
     }
-
     .calendar-month .calendar-cell,
     .mini-calendar .calendar-cell {
         width: 100%;
@@ -1114,26 +1087,22 @@ button[type="submit"]:disabled,
         padding: 2px 1px;
         overflow: hidden;
     }
-
     .calendar-month .calendar-day-number,
     .mini-calendar .calendar-day-number {
         font-size: 9px;
         line-height: 1;
     }
-
     .calendar-month .calendar-day-status,
     .mini-calendar .calendar-day-status {
         margin-top: 1px;
         font-size: 5px;
         line-height: 1;
     }
-
     .calendar-month .calendar-slots,
     .mini-calendar .calendar-slots {
         margin-top: 2px;
         gap: 1px;
     }
-
     .calendar-month .calendar-slots span,
     .mini-calendar .calendar-slots span {
         width: 100%;
@@ -1147,7 +1116,9 @@ button[type="submit"]:disabled,
     }
 }
 
+
 /* Admin appointments */
+
 .admin-client-preview h3 {
     margin: 0 0 10px;
     font-size: 15px;
@@ -1256,7 +1227,9 @@ button[type="submit"]:disabled,
     margin-top: 4px;
 }
 
+
 /* ===== ADMIN APPOINTMENTS ===== */
+
 .admin-client-preview h3 {
     margin: 0 0 10px;
     font-size: 15px;
@@ -1365,27 +1338,25 @@ button[type="submit"]:disabled,
     margin-top: 4px;
 }
 
+
 /* ===== RESPONSIVO ADMIN ===== */
+
 @media (max-width: 980px) {
     .admin-budget-layout {
         grid-template-columns: 1fr;
     }
-
     .admin-summary {
         position: static;
     }
-
     .appointment-card {
         flex-basis: 90%;
         max-width: 90%;
     }
-
     .admin-title-row {
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
     }
-
     .admin-title-row button {
         width: 100%;
     }
@@ -1395,54 +1366,43 @@ button[type="submit"]:disabled,
     .admin-content {
         gap: 14px;
     }
-
     .admin-client-preview {
         padding: 12px;
     }
-
     .admin-grid-form input,
     .admin-grid-form select,
     .admin-grid-form textarea {
         font-size: 13px;
         min-height: 38px;
     }
-
     .admin-actions {
         flex-direction: column;
     }
-
     .admin-actions button {
         width: 100%;
     }
-
     .appointment-card {
         flex-basis: 100%;
         max-width: 100%;
     }
-
     .card-actions {
         flex-direction: column;
     }
-
     .card-actions button {
         width: 100%;
     }
-
     .status-header {
         flex-direction: column;
         align-items: stretch;
         text-align: center;
     }
-
     .status-controls {
         justify-content: center;
     }
-
     .search-box input {
         max-width: 100%;
     }
 }
-
 
 .admin-title-actions,
 .appointment-filters {
@@ -1474,53 +1434,46 @@ button[type="submit"]:disabled,
 }
 
 @media (max-width: 640px) {
-
     .admin-title-actions,
     .appointment-filters {
         align-items: stretch;
     }
-
     .appointment-filters label,
     .appointment-filters .search-box {
         width: 100%;
         flex-basis: 100%;
     }
-
     .appointment-filters button,
     .admin-title-actions button {
         width: 100%;
     }
 }
 
+
 /* Checkout: ajuste para celular */
+
 @media (max-width: 700px) {
     .checkout-page {
         overflow-x: hidden;
     }
-
     .checkout-top,
     .checkout-main {
         width: calc(100% - 20px);
     }
-
     .checkout-main {
         padding: 12px;
         overflow: hidden;
     }
-
     .checkout-title h1 {
         font-size: 24px;
     }
-
     .checkout-title p {
         font-size: 14px;
     }
-
     .checkout-box {
         grid-template-columns: minmax(0, 1fr);
         gap: 14px;
     }
-
     .checkout-left,
     .checkout-card,
     .checkout-summary-card,
@@ -1529,29 +1482,24 @@ button[type="submit"]:disabled,
         min-width: 0;
         width: 100%;
     }
-
     .checkout-card,
     .checkout-summary-card {
         padding: 14px;
     }
-
     .checkout-card h2,
     .checkout-summary-card h2 {
         font-size: 21px;
     }
-
     .pix-area {
         grid-template-columns: 1fr;
         gap: 12px;
     }
-
     .pix-qrcode {
         display: block;
         width: min(170px, 100%);
         height: auto;
         margin: 0 auto;
     }
-
     .pix-area textarea {
         width: 100%;
         min-height: 88px;
@@ -1562,33 +1510,27 @@ button[type="submit"]:disabled,
         overflow-wrap: anywhere;
         word-break: break-all;
     }
-
     .copy-pix-button {
         min-height: 42px;
         padding: 10px 12px;
         font-size: 14px;
     }
-
     .checkout-benefits {
         grid-template-columns: 1fr;
         gap: 8px;
     }
-
     .checkout-benefits span {
         min-height: 44px;
         padding: 8px;
         font-size: 13px;
     }
-
     .checkout-summary-list {
         gap: 7px;
     }
-
     .checkout-summary-list p {
         font-size: 14px;
         overflow-wrap: anywhere;
     }
-
     .summary-line {
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;
@@ -1596,44 +1538,36 @@ button[type="submit"]:disabled,
         align-items: center;
         padding: 10px;
     }
-
     .summary-line span {
         font-size: 14px;
         line-height: 1.3;
     }
-
     .summary-line strong {
         font-size: 16px;
         white-space: nowrap;
     }
-
     .summary-line.reserve,
     .summary-line.pay-now {
         padding: 12px;
     }
-
     .summary-balance {
         font-size: 14px;
         line-height: 1.4;
         text-align: left;
         overflow-wrap: anywhere;
     }
-
     .summary-balance strong {
         margin-top: 4px;
         font-size: 21px;
         text-align: right;
     }
-
     .checkout-policy {
         padding: 13px;
     }
-
     .checkout-policy p {
         font-size: 13px;
         line-height: 1.4;
     }
-
     .confirm-payment-button {
         min-height: 48px;
         padding: 12px;
@@ -1648,3 +1582,289 @@ button[type="submit"]:disabled,
     font-weight: 700;
 }
 
+
+/* Cadastro e acesso de clientes */
+
+.account-main {
+    width: min(100% - 18px, 560px);
+    margin: 34px auto;
+}
+
+.account-card {
+    padding: 26px;
+    box-shadow: var(--sombra);
+}
+
+.account-intro {
+    margin-bottom: 22px;
+}
+
+.account-intro h1 {
+    margin-bottom: 8px;
+    font-size: 28px;
+}
+
+.account-intro p {
+    margin: 0;
+    color: var(--cinza);
+    line-height: 1.5;
+}
+
+.account-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.account-tab {
+    min-height: 42px;
+    padding: 8px 10px;
+    border: 1px solid var(--linha);
+    border-radius: 8px;
+    background: var(--branco);
+    color: var(--texto);
+    font-weight: 800;
+}
+
+.account-tab.active {
+    border-color: var(--coral-forte);
+    background: var(--rosa-claro);
+    color: var(--coral-forte);
+}
+
+.account-form {
+    display: grid;
+    gap: 13px;
+}
+
+.account-form label {
+    display: grid;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.account-form input,
+.account-form select {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid var(--linha);
+    border-radius: 8px;
+    background: var(--branco);
+    color: var(--texto);
+}
+
+.account-form button {
+    min-height: 46px;
+    border: 0;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--coral-forte), var(--coral));
+    color: var(--branco);
+    font-weight: 900;
+}
+
+.account-form button:disabled {
+    cursor: wait;
+    opacity: 0.7;
+}
+
+.form-message.error {
+    color: var(--vermelho);
+}
+
+@media (max-width: 700px) {
+    .account-main {
+        width: min(100% - 24px, 560px);
+        margin: 18px auto;
+    }
+    .account-card {
+        padding: 18px;
+    }
+}
+
+
+/* Cadastro de clientes dentro da tela de agendamento */
+
+.hidden {
+    display: none !important;
+}
+
+.account-required-notice,
+.client-account-panel {
+    margin: 0 0 16px;
+    padding: 16px;
+    border: 1px solid #efd9dc;
+    border-radius: 12px;
+    background: #fffafa;
+}
+
+.account-required-notice h3,
+.client-account-panel strong {
+    display: block;
+    margin: 0 0 6px;
+    color: var(--azul);
+}
+
+.account-required-notice p,
+.client-account-panel span {
+    display: block;
+    margin: 0 0 12px;
+    color: #647184;
+    font-size: 14px;
+}
+
+.account-required-notice .header-button {
+    display: inline-flex;
+    width: auto;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.client-account-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.client-account-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.secondary-action {
+    width: auto;
+    min-height: 38px;
+    margin: 0;
+    padding: 8px 12px;
+    border: 1px solid var(--coral);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--azul);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.secondary-action:hover {
+    background: #fff1f2;
+}
+
+#saveProfileButton {
+    margin: -2px 0 4px;
+}
+
+.profile-bound-field input:disabled,
+.profile-bound-field select:disabled {
+    cursor: default;
+    opacity: .8;
+    background: #f6f3f2;
+}
+
+@media (max-width: 640px) {
+    .client-account-panel {
+        align-items: flex-start;
+    }
+    .client-account-actions {
+        width: 100%;
+    }
+    .client-account-actions .secondary-action {
+        flex: 1 1 140px;
+    }
+}
+
+.hidden {
+    display: none !important;
+}
+
+.account-required-notice,
+.client-account-panel {
+    margin: 0 0 16px;
+    padding: 16px;
+    border: 1px solid #efd9dc;
+    border-radius: 12px;
+    background: #fffafa;
+}
+
+.account-required-notice h3,
+.client-account-panel strong {
+    display: block;
+    margin: 0 0 6px;
+    color: var(--azul);
+}
+
+.account-required-notice p,
+.client-account-panel span {
+    display: block;
+    margin: 0 0 12px;
+    color: #647184;
+    font-size: 14px;
+}
+
+.account-required-notice .header-button {
+    display: inline-flex;
+    width: auto;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.client-account-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.client-account-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.secondary-action {
+    width: auto;
+    min-height: 38px;
+    margin: 0;
+    padding: 8px 12px;
+    border: 1px solid var(--coral);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--azul);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.secondary-action:hover {
+    background: #fff1f2;
+}
+
+#saveProfileButton {
+    margin: -2px 0 4px;
+}
+
+.profile-bound-field input:disabled,
+.profile-bound-field select:disabled {
+    cursor: default;
+    opacity: 0.8;
+    background: #f6f3f2;
+}
+
+@media (max-width: 640px) {
+    .client-account-panel {
+        align-items: flex-start;
+    }
+    .client-account-actions {
+        width: 100%;
+    }
+    .client-account-actions .secondary-action {
+        flex: 1 1 140px;
+    }
+}

@@ -7,7 +7,6 @@
     <title>Hub da Diarista</title>
     <link rel="icon" type="image/png" href="imagens/icon.png" />
     <link rel="stylesheet" href="hubdadiarista.css" />
-
 </head>
 
 <body>
@@ -19,11 +18,15 @@
                 </a>
                 <a class="admin-under-logo" href="admin.html">Admin</a>
             </div>
+
             <nav class="main-nav">
                 <a href="index.html">Agendamento</a>
                 <a href="regulamentos.html">Regulamentos</a>
             </nav>
-            <a class="header-button" href="#appointmentForm">Solicitar agendamento</a>
+
+            <a class="header-button" id="accountHeaderButton" href="acesso.html">
+                Entrar / criar cadastro
+            </a>
         </div>
     </header>
 
@@ -36,17 +39,20 @@
                             <h2>Calendário de agendamentos</h2>
                             <p class="section-note">Dias preenchidos aparecem como indisponíveis.</p>
                         </div>
+
                         <div class="calendar-controls">
                             <button type="button" id="prevMonth">&lsaquo;</button>
                             <strong id="currentMonthLabel"></strong>
                             <button type="button" id="nextMonth">&rsaquo;</button>
-                            <button type="button" id="refreshCalendar" title="Atualizar calendário"
-                                style="margin-left:8px;">⟳</button>
+                            <button type="button" id="refreshCalendar" title="Atualizar calendário" style="margin-left:8px;">⟳</button>
                         </div>
                     </div>
+
                     <div class="calendar-weekdays">
-                        <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+                        <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span>
+                        <span>Qui</span><span>Sex</span><span>Sáb</span>
                     </div>
+
                     <div id="calendar" class="calendar-month"></div>
                 </section>
 
@@ -54,38 +60,79 @@
                     <div class="status-header">
                         <div>
                             <h2>Status dos agendamentos</h2>
-                            <p class="section-note">Por padrão, aparecem os agendamentos mais recentes. Use a busca para
-                                encontrar qualquer registro.</p>
+                            <p class="section-note">
+                                Por padrão, aparecem os agendamentos mais recentes.
+                            </p>
                         </div>
+
                         <div class="status-controls">
                             <button type="button" id="statusPrev">&lsaquo;</button>
                             <button type="button" id="statusNext">&rsaquo;</button>
                         </div>
                     </div>
-                    <label class="search-box">Buscar agendamento<input id="statusSearch" type="search"
-                            placeholder="Digite nome, data, serviço, endereço ou status" /></label>
+
+                    <label class="search-box">
+                        Consultar disponibilidade
+                        <input id="statusSearch" type="search" placeholder="Digite uma data ou status" />
+                    </label>
+
                     <div id="appointmentsTable" class="status-carousel"></div>
                 </section>
             </div>
 
             <section class="appointment-side-panel">
                 <h2>Solicitar agendamento</h2>
-                <form id="appointmentForm">
-                    <label>Nome da cliente<input id="client" type="text" placeholder="Digite seu nome"
-                            required /></label>
-                    <label>WhatsApp da cliente<input id="whatsapp" type="tel" placeholder="Ex: 11999999999"
-                            required /></label>
-                    <label>
+
+                <div id="accountRequiredNotice" class="account-required-notice">
+                    <h3>Entre para agendar</h3>
+                    <p>
+                        Crie seu cadastro uma vez para continuar com os dados já preenchidos nos próximos agendamentos.
+                    </p>
+                    <a class="header-button" href="acesso.html">Entrar ou criar cadastro</a>
+                </div>
+
+                <div id="clientAccountPanel" class="client-account-panel hidden">
+                    <div>
+                        <strong id="clientAccountName">Cliente</strong>
+                        <span id="clientAccountEmail"></span>
+                    </div>
+
+                    <div class="client-account-actions">
+                        <button type="button" id="editProfileButton" class="secondary-action">
+                            Editar cadastro
+                        </button>
+                        <button type="button" id="logoutButton" class="secondary-action">
+                            Sair
+                        </button>
+                    </div>
+
+                    <p id="profileMessage" class="form-message" aria-live="polite"></p>
+                </div>
+
+                <form id="appointmentForm" class="hidden">
+                    <label class="profile-bound-field">
+                        Nome da cliente
+                        <input id="client" type="text" placeholder="Digite seu nome" required />
+                    </label>
+
+                    <label class="profile-bound-field">
+                        WhatsApp da cliente
+                        <input id="whatsapp" type="tel" placeholder="Ex: 11999999999" required />
+                    </label>
+
+                    <label class="profile-bound-field">
                         E-mail da cliente
                         <input id="email" type="email" placeholder="Ex: nome@email.com" />
                     </label>
 
                     <label>
-                        CPF da cliente
+                        CPF para pagamento
                         <input id="cpf" type="text" inputmode="numeric" placeholder="Somente números" />
                     </label>
 
-                    <label>Tipo de serviço/imóvel<select id="propertyType" required>
+                    <label>
+                        Tipo de serviço/imóvel
+                        <select id="propertyType" required>
                             <option value="">Selecione</option>
                             <option value="ate40">Apto/Casa até 40m²</option>
                             <option value="ate55">Apto/Casa de 40m² até 55m²</option>
@@ -93,44 +140,80 @@
                             <option value="ate100">Apto/Casa de 90m² até 100m²</option>
                             <option value="acima150">Apto/Casa acima de 150m²</option>
                             <option value="posobra">Pós-obras</option>
-                        </select></label>
-                    <label>CEP do local<input id="cep" type="text" placeholder="Ex: 03200-000" required /></label>
-                    <label>Região para deslocamento<select id="region" required>
+                        </select>
+                    </label>
+
+                    <label class="profile-bound-field">
+                        CEP do local
+                        <input id="cep" type="text" placeholder="Ex: 03200-000" required />
+                    </label>
+
+                    <label class="profile-bound-field">
+                        Região para deslocamento
+                        <select id="region" required>
                             <option value="">Selecione</option>
-                            <option value="proxima">Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente
-                            </option>
+                            <option value="proxima">Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente</option>
                             <option value="distante">Diadema, Santo Amaro ou Zona Sul</option>
                             <option value="custom">Outra região</option>
-                        </select></label>
-                    <label>Horário de início<select id="time" required>
+                        </select>
+                    </label>
+
+                    <label>
+                        Horário de início
+                        <select id="time" required>
                             <option value="">Selecione</option>
                             <option value="06:00">06:00</option>
                             <option value="07:00">07:00</option>
                             <option value="08:00">08:00</option>
-                        </select></label>
+                        </select>
+                    </label>
+
                     <div class="mini-calendar-box">
                         <div class="calendar-header mini">
                             <div>
                                 <h3>Escolha as datas</h3>
-                                <p class="section-note">Clique nos dias disponíveis. Clique novamente para desmarcar.
+                                <p class="section-note">
+                                    Clique nos dias disponíveis. Clique novamente para desmarcar.
                                 </p>
                             </div>
-                            <div class="calendar-controls"><button type="button"
-                                    id="prevMiniMonth">&lsaquo;</button><strong id="miniMonthLabel"></strong><button
-                                    type="button" id="nextMiniMonth">&rsaquo;</button></div>
+
+                            <div class="calendar-controls">
+                                <button type="button" id="prevMiniMonth">&lsaquo;</button>
+                                <strong id="miniMonthLabel"></strong>
+                                <button type="button" id="nextMiniMonth">&rsaquo;</button>
+                            </div>
                         </div>
+
                         <div class="calendar-weekdays mini-weekdays">
-                            <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+                            <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span>
+                            <span>Qui</span><span>Sex</span><span>Sáb</span>
                         </div>
+
                         <div id="miniCalendar" class="mini-calendar"></div>
-                        <p id="selectedDatesText" class="selected-dates-text">Nenhuma data selecionada.</p>
+
+                        <p id="selectedDatesText" class="selected-dates-text">
+                            Nenhuma data selecionada.
+                        </p>
+
                         <p id="availabilityMessage" class="availability-message"></p>
                     </div>
-                    <label>Endereço<input id="address" type="text" placeholder="Rua, número e bairro"
-                            required /></label>
-                    <label>Observações<textarea id="notes"
-                            placeholder="Ex: tenho pets, preferência de acesso..."></textarea></label>
+
+                    <label class="profile-bound-field">
+                        Endereço
+                        <input id="address" type="text" placeholder="Rua, número e bairro" required />
+                    </label>
+
+                    <button type="button" id="saveProfileButton" class="secondary-action hidden">
+                        Salvar alterações do cadastro
+                    </button>
+
+                    <label>
+                        Observações
+                        <textarea id="notes" placeholder="Ex: tenho pets, preferência de acesso..."></textarea>
+                    </label>
+
                     <p id="formMessage" class="form-message" aria-live="polite"></p>
+
                     <button id="submitButton" type="submit">Ir para checkout</button>
                 </form>
             </section>
@@ -143,8 +226,6 @@
 
         const appointments = [];
         const selectedDates = [];
-
-        const statusOptions = ["Aguardando confirmação", "Serviço agendado", "Serviço em andamento", "Serviço concluído", "Pago", "Não concluído", "Indisponível", "Cancelado"];
 
         const form = document.getElementById("appointmentForm");
         const calendar = document.getElementById("calendar");
@@ -165,28 +246,76 @@
         const submitButton = document.getElementById("submitButton");
         const formMessage = document.getElementById("formMessage");
 
-        let visibleMonth = new Date(); visibleMonth.setDate(1);
-        let miniVisibleMonth = new Date(); miniVisibleMonth.setDate(1);
+        let visibleMonth = new Date();
+        visibleMonth.setDate(1);
 
-        prevMonthButton.addEventListener("click", () => { visibleMonth.setMonth(visibleMonth.getMonth() - 1); renderMonthlyCalendar(); });
-        nextMonthButton.addEventListener("click", () => { visibleMonth.setMonth(visibleMonth.getMonth() + 1); renderMonthlyCalendar(); });
-        prevMiniMonthButton.addEventListener("click", () => { miniVisibleMonth.setMonth(miniVisibleMonth.getMonth() - 1); renderMiniCalendar(); });
-        nextMiniMonthButton.addEventListener("click", () => { miniVisibleMonth.setMonth(miniVisibleMonth.getMonth() + 1); renderMiniCalendar(); });
-        statusPrevButton.addEventListener("click", () => appointmentsTable.scrollBy({ left: -320, behavior: "smooth" }));
-        statusNextButton.addEventListener("click", () => appointmentsTable.scrollBy({ left: 320, behavior: "smooth" }));
+        let miniVisibleMonth = new Date();
+        miniVisibleMonth.setDate(1);
+
+        prevMonthButton.addEventListener("click", () => {
+            visibleMonth.setMonth(visibleMonth.getMonth() - 1);
+            renderMonthlyCalendar();
+        });
+
+        nextMonthButton.addEventListener("click", () => {
+            visibleMonth.setMonth(visibleMonth.getMonth() + 1);
+            renderMonthlyCalendar();
+        });
+
+        prevMiniMonthButton.addEventListener("click", () => {
+            miniVisibleMonth.setMonth(miniVisibleMonth.getMonth() - 1);
+            renderMiniCalendar();
+        });
+
+        nextMiniMonthButton.addEventListener("click", () => {
+            miniVisibleMonth.setMonth(miniVisibleMonth.getMonth() + 1);
+            renderMiniCalendar();
+        });
+
+        statusPrevButton.addEventListener("click", () => {
+            appointmentsTable.scrollBy({
+                left: -320,
+                behavior: "smooth"
+            });
+        });
+
+        statusNextButton.addEventListener("click", () => {
+            appointmentsTable.scrollBy({
+                left: 320,
+                behavior: "smooth"
+            });
+        });
+
         statusSearchInput.addEventListener("input", renderAppointmentsTable);
-        timeInput.addEventListener("change", () => { renderMiniCalendar(); updateSelectedDatesText(); });
 
-        // Botão atualizar calendário
+        timeInput.addEventListener("change", () => {
+            renderMiniCalendar();
+            updateSelectedDatesText();
+        });
+
         document.getElementById("refreshCalendar").addEventListener("click", loadAppointments);
-        // Auto-refresh a cada 30s
+
         setInterval(loadAppointments, 30000);
 
-        form.addEventListener("submit", function (e) {
+        form.addEventListener("submit", function(e) {
             e.preventDefault();
+
+            if (!window.clientProfile) {
+                window.location.href = "acesso.html";
+                return;
+            }
+
             if (form.dataset.loading === "true") return;
-            if (!timeInput.value) { alert("Selecione um horário."); return; }
-            if (selectedDates.length === 0) { alert("Selecione pelo menos uma data disponível na agenda."); return; }
+
+            if (!timeInput.value) {
+                alert("Selecione um horário.");
+                return;
+            }
+
+            if (selectedDates.length === 0) {
+                alert("Selecione pelo menos uma data disponível na agenda.");
+                return;
+            }
 
             const selectedPropertyType = document.getElementById("propertyType").value;
             const email = document.getElementById("email").value.trim();
@@ -196,6 +325,7 @@
                 alert("Para gerar o pagamento Pix, informe um e-mail e um CPF válido com 11 números.");
                 return;
             }
+
             const baseAppointment = {
                 client: document.getElementById("client").value.trim(),
                 whatsapp: document.getElementById("whatsapp").value.trim(),
@@ -213,87 +343,138 @@
             };
 
             const unavailableDates = selectedDates.filter(date => isDateUnavailable(date));
-            if (unavailableDates.length > 0) { alert("Alguma data selecionada ficou indisponível. Atualize a seleção e tente novamente."); renderMiniCalendar(); return; }
 
-            const generatedAppointments = selectedDates.slice().sort().map((date, index) => ({ ...baseAppointment, id: Date.now() + index, date }));
+            if (unavailableDates.length > 0) {
+                alert("Alguma data selecionada ficou indisponível. Atualize a seleção e tente novamente.");
+                renderMiniCalendar();
+                return;
+            }
+
+            const generatedAppointments = selectedDates
+                .slice()
+                .sort()
+                .map((date, index) => ({
+                    ...baseAppointment,
+                    id: Date.now() + index,
+                    date
+                }));
 
             if (isCustomQuoteType(baseAppointment.propertyType)) {
                 setFormLoading(true, "Enviando solicitação personalizada...");
                 saveCustomQuoteRequest(baseAppointment, generatedAppointments);
-                setTimeout(() => { sendCustomQuoteToWhatsApp(baseAppointment, generatedAppointments); setFormLoading(false, ""); form.reset(); selectedDates.length = 0; updateSelectedDatesText(); renderMiniCalendar(); }, 700);
+
+                setTimeout(() => {
+                    sendCustomQuoteToWhatsApp(baseAppointment, generatedAppointments);
+                    setFormLoading(false, "");
+                    form.reset();
+                    selectedDates.length = 0;
+                    updateSelectedDatesText();
+                    renderMiniCalendar();
+                }, 700);
+
                 return;
             }
 
             setFormLoading(true, "Preparando checkout, aguarde...");
-            sessionStorage.setItem("pendingAppointments", JSON.stringify(generatedAppointments));
-            setTimeout(() => { window.location.href = "checkout.html"; }, 500);
+
+            sessionStorage.setItem(
+                "pendingAppointments",
+                JSON.stringify(generatedAppointments)
+            );
+
+            setTimeout(() => {
+                window.location.href = "checkout.html";
+            }, 500);
         });
 
-      function loadAppointments() {
-    fetch(`${apiUrl}?t=${Date.now()}`, {
-        cache: "no-store"
-    })
-        .then(function (response) {
-            return response.json();
-        })
-        .then(function (data) {
-            appointments.length = 0;
+        function loadAppointments() {
+            fetch(`${apiUrl}?t=${Date.now()}`, {
+                    cache: "no-store"
+                })
+                .then(function(response) {
+                    return response.json();
+                })
+                .then(function(data) {
+                    appointments.length = 0;
 
-            const seenSlots = new Set();
+                    const seenSlots = new Set();
 
-            (data || []).forEach(function (item) {
-                const status = String(item.status || "").trim().toLowerCase();
+                    (data || []).forEach(function(item) {
+                        const status = String(item.status || "").trim().toLowerCase();
 
-                if (status === "cancelado") {
-                    return;
-                }
+                        if (status === "cancelado") {
+                            return;
+                        }
 
-                const normalizedDate = normalizeDate(item.dataAgendamento);
-                const normalizedTime = normalizeTime(item.horario);
-                const slotKey = `${normalizedDate}-${normalizedTime}`;
+                        const normalizedDate = normalizeDate(item.dataAgendamento);
+                        const normalizedTime = normalizeTime(item.horario);
+                        const slotKey = `${normalizedDate}-${normalizedTime}`;
 
-                if (!normalizedDate || !normalizedTime || seenSlots.has(slotKey)) {
-                    return;
-                }
+                        if (!normalizedDate || !normalizedTime || seenSlots.has(slotKey)) {
+                            return;
+                        }
 
-                seenSlots.add(slotKey);
+                        seenSlots.add(slotKey);
 
-                appointments.push({
-                    id: item.id,
-                    client: item.cliente,
-                    service: item.servico,
-                    date: normalizedDate,
-                    time: normalizedTime,
-                    contractType: item.frequencia,
-                    status: item.status || "Aguardando confirmação"
+                        appointments.push({
+                            client: item.cliente || "Cliente",
+                            date: normalizedDate,
+                            time: normalizedTime,
+                            status: "Ocupado"
+                        });
+                    });
+
+                    render();
+                })
+                .catch(function() {
+                    render();
                 });
-            });
+        }
 
-            render();
-        })
-        .catch(function () {
-            render();
-        });
-     }
-        function render() { renderMonthlyCalendar(); renderMiniCalendar(); renderAppointmentsTable(); updateSelectedDatesText(); }
+        function render() {
+            renderMonthlyCalendar();
+            renderMiniCalendar();
+            renderAppointmentsTable();
+            updateSelectedDatesText();
+        }
 
         function renderMonthlyCalendar() {
             calendar.innerHTML = "";
-            const year = visibleMonth.getFullYear(), month = visibleMonth.getMonth();
-            currentMonthLabel.textContent = visibleMonth.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+
+            const year = visibleMonth.getFullYear();
+            const month = visibleMonth.getMonth();
+
+            currentMonthLabel.textContent = visibleMonth.toLocaleDateString("pt-BR", {
+                month: "long",
+                year: "numeric"
+            });
+
             renderCalendarGrid(calendar, year, month, false);
         }
 
         function renderMiniCalendar() {
             miniCalendar.innerHTML = "";
-            const year = miniVisibleMonth.getFullYear(), month = miniVisibleMonth.getMonth();
-            miniMonthLabel.textContent = miniVisibleMonth.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+
+            const year = miniVisibleMonth.getFullYear();
+            const month = miniVisibleMonth.getMonth();
+
+            miniMonthLabel.textContent = miniVisibleMonth.toLocaleDateString("pt-BR", {
+                month: "long",
+                year: "numeric"
+            });
+
             renderCalendarGrid(miniCalendar, year, month, true);
         }
 
         function renderCalendarGrid(target, year, month, isSelectable) {
-            const firstDay = new Date(year, month, 1), lastDay = new Date(year, month + 1, 0), startWeekday = firstDay.getDay();
-            for (let i = 0; i < startWeekday; i++) target.innerHTML += `<div class="calendar-cell empty"></div>`;
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startWeekday = firstDay.getDay();
+
+            for (let i = 0; i < startWeekday; i++) {
+                target.innerHTML += `<div class="calendar-cell empty"></div>`;
+            }
+
             for (let day = 1; day <= lastDay.getDate(); day++) {
                 const date = new Date(year, month, day);
                 const dateKey = formatDateKey(date);
@@ -302,110 +483,389 @@
                 const isToday = dateKey === formatDateKey(new Date());
                 const selected = selectedDates.includes(dateKey);
                 const unavailable = isDateUnavailable(dateKey);
-                const cellClass = ["calendar-cell", unavailable ? "occupied" : "available", isToday ? "today" : "", selected ? "selected" : "", isSelectable && unavailable ? "blocked" : ""].join(" ");
+
+                const cellClass = [
+                    "calendar-cell",
+                    unavailable ? "occupied" : "available",
+                    isToday ? "today" : "",
+                    selected ? "selected" : "",
+                    isSelectable && unavailable ? "blocked" : ""
+                ].join(" ");
+
                 const element = isSelectable ? "button" : "div";
                 const buttonAttribute = isSelectable ? `type="button"` : "";
-                const clickAttribute = isSelectable && !unavailable ? `onclick="toggleSelectedDate('${dateKey}')"` : "";
-                target.innerHTML += `<${element} class="${cellClass}" ${buttonAttribute} ${clickAttribute}><div class="calendar-day-number">${day}</div><div class="calendar-day-status">${selected ? "Selecionado" : isPast ? "Data passada" : unavailable ? "Ocupado" : "Livre"}</div>${unavailableSlots.length > 0 ? `<div class="calendar-slots">${unavailableSlots.map(s => `<span>${s}</span>`).join("")}</div>` : ""}</${element}>`;
+                const clickAttribute = isSelectable && !unavailable ?
+                    `onclick="toggleSelectedDate('${dateKey}')"` :
+                    "";
+
+                target.innerHTML += `
+                    <${element} class="${cellClass}" ${buttonAttribute} ${clickAttribute}>
+                        <div class="calendar-day-number">${day}</div>
+                        <div class="calendar-day-status">
+                            ${selected ? "Selecionado" : isPast ? "Data passada" : unavailable ? "Ocupado" : "Livre"}
+                        </div>
+                        ${unavailableSlots.length > 0
+                            ? `<div class="calendar-slots">${unavailableSlots.map(s => `<span>${s}</span>`).join("")}</div>`
+                            : ""
+                        }
+                    </${element}>
+                `;
             }
         }
 
         function toggleSelectedDate(dateKey) {
-            if (!timeInput.value) { alert("Selecione primeiro o horário de início."); return; }
-            if (isDateUnavailable(dateKey)) { alert("Esse dia já está indisponível."); return; }
-            const idx = selectedDates.indexOf(dateKey);
-            if (idx >= 0) selectedDates.splice(idx, 1); else selectedDates.push(dateKey);
-            renderMiniCalendar(); updateSelectedDatesText();
+            if (!timeInput.value) {
+                alert("Selecione primeiro o horário de início.");
+                return;
+            }
+
+            if (isDateUnavailable(dateKey)) {
+                alert("Esse dia já está indisponível.");
+                return;
+            }
+
+            const index = selectedDates.indexOf(dateKey);
+
+            if (index >= 0) {
+                selectedDates.splice(index, 1);
+            } else {
+                selectedDates.push(dateKey);
+            }
+
+            renderMiniCalendar();
+            updateSelectedDatesText();
         }
 
-        function renderAppointmentsTable() {
-            appointmentsTable.innerHTML = "";
-            const searchTerm = statusSearchInput.value.trim().toLowerCase();
-            const filtered = appointments.filter(item => {
-                if (searchTerm) return appointmentMatchesSearch(item, searchTerm);
-                return isWithinStatusWindow(item.date);
-            }).slice().sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`));
-            if (!filtered.length) { appointmentsTable.innerHTML = `<article class="status-card"><strong>Nenhum agendamento encontrado</strong><p>Tente buscar por outro nome, data ou informação.</p></article>`; return; }
-            filtered.forEach(item => {
-                appointmentsTable.innerHTML += `
-        <article class="status-card">
-            <div class="status-card-top">
-                <span class="client-badge">${item.client || "Cliente"}</span>
-                <strong>${formatDate(item.date)}</strong>
-            </div>
+       function renderAppointmentsTable() {
+    appointmentsTable.innerHTML = "";
 
-            <p><b>Horário:</b> ${formatTime(item.time)}</p>
-            <p><b>Serviço:</b> ${item.service || "-"}</p>
-            <p><b>Tipo:</b> ${item.contractType || "-"}</p>
+    const searchTerm = statusSearchInput.value.trim().toLowerCase();
 
-            <span class="status-select">
-                ${item.status || "Aguardando confirmação"}
-            </span>
-        </article>
-    `;
-            });
+    const filtered = appointments
+        .filter(function (item) {
+            if (searchTerm) {
+                return appointmentMatchesSearch(item, searchTerm);
+            }
+
+            return isWithinStatusWindow(item.date);
+        })
+        .slice()
+        .sort(function (a, b) {
+            return `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`);
+        });
+
+    if (!filtered.length) {
+        appointmentsTable.innerHTML = `
+            <article class="status-card">
+                <strong>Nenhum agendamento encontrado</strong>
+                <p>Consulte outra data.</p>
+            </article>
+        `;
+        return;
+    }
+
+    filtered.forEach(function (item) {
+        appointmentsTable.innerHTML += `
+            <article class="status-card">
+                <div class="status-card-top">
+                    <span class="client-badge">${item.client}</span>
+                    <strong>${formatDate(item.date)}</strong>
+                </div>
+
+                <p><b>Horário:</b> ${formatTime(item.time)}</p>
+                <span class="status-select">Ocupado</span>
+            </article>
+        `;
+    });
+}
+
+        function getPropertyLabel(type) {
+            if (type === "ate40") return "Apto/Casa até 40m²";
+            if (type === "ate55") return "Apto/Casa de 40m² até 55m²";
+            if (type === "ate90") return "Apto/Casa de 55m² até 90m²";
+            if (type === "ate100") return "Apto/Casa de 90m² até 100m²";
+            if (type === "acima150") return "Apto/Casa acima de 150m²";
+            if (type === "posobra") return "Pós-obras";
+
+            return "Não informado";
         }
 
-        function changeStatus(id, newStatus) {
-            const appt = appointments.find(i => String(i.id) === String(id));
-            if (!appt) return;
-            appt.status = newStatus; render();
-            fetch(apiUrl, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "updateStatus", id: appt.id, status: newStatus }) });
-            sendStatusToClientWhatsApp(appt, newStatus);
+        function isCustomQuoteType(type) {
+            return type === "posobra" || type === "acima150";
         }
-
-        function getPropertyLabel(t) { if (t === "ate40") return "Apto/Casa até 40m²"; if (t === "ate55") return "Apto/Casa de 40m² até 55m²"; if (t === "ate90") return "Apto/Casa de 55m² até 90m²"; if (t === "ate100") return "Apto/Casa de 90m² até 100m²"; if (t === "acima150") return "Apto/Casa acima de 150m²"; if (t === "posobra") return "Pós-obras"; return "Não informado"; }
-        function isCustomQuoteType(t) { return t === "posobra" || t === "acima150"; }
 
         function saveCustomQuoteRequest(base, generated) {
-            const datesText = generated.map(a => `${formatDate(a.date)} às ${formatTime(a.time)}`).join(", ");
+            const datesText = generated
+                .map(a => `${formatDate(a.date)} às ${formatTime(a.time)}`)
+                .join(", ");
+
             const datesList = generated.map(a => a.date);
-            fetch(apiUrl, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "saveCustomQuoteRequest", customQuote: true, id: generated[0].id, dataSolicitacao: new Date().toLocaleString("pt-BR"), cliente: base.client, whatsapp: base.whatsapp, servico: getPropertyLabel(base.propertyType), tipoImovel: getPropertyLabel(base.propertyType), dataAgendamento: generated[0].date, datasAgendamento: datesList, datasSolicitadas: datesText, horario: base.time, endereco: base.address, cep: base.cep, regiao: getRegionLabel(base.region), observacoes: base.notes, status: "Aguardando orçamento" }) });
+
+            fetch(apiUrl, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify({
+                    action: "saveCustomQuoteRequest",
+                    customQuote: true,
+                    id: generated[0].id,
+                    dataSolicitacao: new Date().toLocaleString("pt-BR"),
+                    cliente: base.client,
+                    whatsapp: base.whatsapp,
+                    servico: getPropertyLabel(base.propertyType),
+                    tipoImovel: getPropertyLabel(base.propertyType),
+                    dataAgendamento: generated[0].date,
+                    datasAgendamento: datesList,
+                    datasSolicitadas: datesText,
+                    horario: base.time,
+                    endereco: base.address,
+                    cep: base.cep,
+                    regiao: getRegionLabel(base.region),
+                    observacoes: base.notes,
+                    status: "Aguardando orçamento"
+                })
+            });
         }
 
         function sendCustomQuoteToWhatsApp(base, generated) {
             const ticket = `HD-${String(generated[0].id).slice(-6)}`;
-            const datesText = generated.map(a => `- ${formatDate(a.date)} às ${formatTime(a.time)}`).join("\n");
-            const msg = `Olá! Nova solicitação de orçamento personalizado:\n\nTicket: ${ticket}\nStatus solicitado: Aguardando orçamento\nTipo: Cotação personalizada\nServiço: ${getPropertyLabel(base.propertyType)}\n\nCliente: ${base.client}\nWhatsApp da cliente: ${base.whatsapp}\nCEP: ${base.cep}\nRegião: ${getRegionLabel(base.region)}\n\nDatas desejadas:\n${datesText}\n\nEndereço: ${base.address}\nObservações: ${base.notes || "Nenhuma"}\n\nPerguntas para fechar o orçamento:\n1. Qual a metragem aproximada do local?\n2. O imóvel está mobiliado?\n3. Há entulho, lixo pesado ou resíduo de obra?\n4. Precisa de limpeza interna de eletrodomésticos? Quantos?\n5. A cliente fornece os produtos de limpeza?\n6. Pode enviar fotos ou vídeo do local?\n\nDepois das respostas, gerar o orçamento no painel admin.`;
-            window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`, "_blank");
+
+            const datesText = generated
+                .map(a => `- ${formatDate(a.date)} às ${formatTime(a.time)}`)
+                .join("\n");
+
+            const message = `Olá! Nova solicitação de orçamento personalizado:
+
+Ticket: ${ticket}
+Status solicitado: Aguardando orçamento
+Tipo: Cotação personalizada
+Serviço: ${getPropertyLabel(base.propertyType)}
+
+Cliente: ${base.client}
+WhatsApp da cliente: ${base.whatsapp}
+CEP: ${base.cep}
+Região: ${getRegionLabel(base.region)}
+
+Datas desejadas:
+${datesText}
+
+Endereço: ${base.address}
+Observações: ${base.notes || "Nenhuma"}
+
+Perguntas para fechar o orçamento:
+1. Qual a metragem aproximada do local?
+2. O imóvel está mobiliado?
+3. Há entulho, lixo pesado ou resíduo de obra?
+4. Precisa de limpeza interna de eletrodomésticos? Quantos?
+5. A cliente fornece os produtos de limpeza?
+6. Pode enviar fotos ou vídeo do local?
+
+Depois das respostas, gerar o orçamento no painel admin.`;
+
+            window.open(
+                `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`,
+                "_blank"
+            );
+
             alert("Solicitação enviada para confirmação pelo WhatsApp.");
         }
 
-        function isWithinStatusWindow(date) { const d = parseLocalDate(normalizeDate(date)); const s = new Date(); s.setDate(1); s.setHours(0, 0, 0, 0); const e = new Date(s); e.setMonth(e.getMonth() + 3); e.setDate(0); e.setHours(23, 59, 59, 999); return d >= s && d <= e; }
+        function isWithinStatusWindow(date) {
+            const currentDate = new Date();
+            currentDate.setDate(1);
+            currentDate.setHours(0, 0, 0, 0);
 
-        function appointmentMatchesSearch(item, term) { return [item.client, item.whatsapp, item.service, item.date, formatDate(item.date), item.time, formatTime(item.time), item.address, item.contractType, item.notes, item.status].join(" ").toLowerCase().includes(term); }
+            const endDate = new Date(currentDate);
+            endDate.setMonth(endDate.getMonth() + 3);
+            endDate.setDate(0);
+            endDate.setHours(23, 59, 59, 999);
 
-        function getUnavailableSlotsByDate(dateKey) {
-            const slots = appointments.filter(a => normalizeDate(a.date) === dateKey).map(a => { const t = normalizeTime(a.time); return t === "dia-inteiro" ? `Dia inteiro - ${a.client || "Bloqueio"}` : `${formatTime(t)} - ${a.client || "Cliente"}`; });
-            if (isPastDate(dateKey)) slots.push("Indisponível");
-            if (isWeekend(dateKey)) slots.push("Domingo");
-            return [...new Set(slots)].sort();
+            const appointmentDate = parseLocalDate(normalizeDate(date));
+
+            return appointmentDate >= currentDate && appointmentDate <= endDate;
         }
 
-        function isDateUnavailable(date) { const d = normalizeDate(date); if (isPastDate(d)) return true; if (isWeekend(d)) return true; return appointments.some(a => normalizeDate(a.date) === d); }
+     function appointmentMatchesSearch(item, term) {
+    return [
+        item.client,
+        item.date,
+        formatDate(item.date),
+        item.time,
+        formatTime(item.time),
+        item.status
+    ].join(" ").toLowerCase().includes(term);
+ }
+
+      function getUnavailableSlotsByDate(dateKey) {
+    const slots = appointments
+        .filter(function (appointment) {
+            return normalizeDate(appointment.date) === dateKey;
+        })
+        .map(function (appointment) {
+            return `${formatTime(appointment.time)} - ${appointment.client}`;
+        });
+
+    if (isPastDate(dateKey)) {
+        slots.push("Indisponível");
+    }
+
+    if (isWeekend(dateKey)) {
+        slots.push("Domingo");
+    }
+
+    return [...new Set(slots)].sort();
+}
+
+        function isDateUnavailable(date) {
+            const normalizedDate = normalizeDate(date);
+
+            if (isPastDate(normalizedDate)) return true;
+            if (isWeekend(normalizedDate)) return true;
+
+            return appointments.some(a => normalizeDate(a.date) === normalizedDate);
+        }
 
         function updateSelectedDatesText() {
-            if (!selectedDates.length) { selectedDatesText.textContent = "Nenhuma data selecionada."; availabilityMessage.textContent = ""; availabilityMessage.className = "availability-message"; return; }
-            selectedDatesText.textContent = selectedDates.slice().sort().map(formatDate).join(", ");
-            availabilityMessage.textContent = `${selectedDates.length} data(s) selecionada(s).`; availabilityMessage.className = "availability-message available";
+            if (!selectedDates.length) {
+                selectedDatesText.textContent = "Nenhuma data selecionada.";
+                availabilityMessage.textContent = "";
+                availabilityMessage.className = "availability-message";
+                return;
+            }
+
+            selectedDatesText.textContent = selectedDates
+                .slice()
+                .sort()
+                .map(formatDate)
+                .join(", ");
+
+            availabilityMessage.textContent = `${selectedDates.length} data(s) selecionada(s).`;
+            availabilityMessage.className = "availability-message available";
         }
 
-        function getRegionLabel(r) { if (r === "proxima") return "Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente"; if (r === "distante") return "Diadema, Santo Amaro ou Zona Sul"; return "Outra região - confirmar pelo WhatsApp"; }
+        function getRegionLabel(region) {
+            if (region === "proxima") {
+                return "Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente";
+            }
 
-        function sendStatusToClientWhatsApp(appt, status) { const phone = formatWhatsAppNumber(appt.whatsapp); if (!phone) return; const msg = `Olá, ${appt.client}!\n\nSeu agendamento foi atualizado.\n\nData: ${formatDate(appt.date)}\nHorário: ${formatTime(appt.time)}\nServiço: ${appt.service}\nStatus: ${status}\n\nObrigada!`; window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank"); }
+            if (region === "distante") {
+                return "Diadema, Santo Amaro ou Zona Sul";
+            }
 
-        function isWeekend(date) { return parseLocalDate(date).getDay() === 0; }
-        function parseLocalDate(v) { return new Date(v + "T00:00:00"); }
-        function formatDateKey(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
-        function isPastDate(d) { return String(d) < formatDateKey(new Date()); }
-        function normalizeDate(d) { if (!d) return ""; const s = String(d); if (s.includes("T")) return s.split("T")[0]; return s; }
-        function normalizeTime(t) { if (!t) return ""; const s = String(t).trim(); if (s === "dia-inteiro") return "dia-inteiro"; if (s.includes("T")) return new Date(s).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" }); if (s.includes(":")) return s.slice(0, 5); return s; }
-        function formatWhatsAppNumber(v) { if (!v) return ""; let p = String(v).replace(/\D/g, ""); if (p.length === 10 || p.length === 11) p = "55" + p; return p; }
-        function formatDate(d) { if (!d) return ""; const s = String(d); if (s.includes("T")) { const od = s.split("T")[0]; return new Date(od + "T00:00:00").toLocaleDateString("pt-BR"); } const pd = new Date(s + "T00:00:00"); return isNaN(pd.getTime()) ? s : pd.toLocaleDateString("pt-BR"); }
-        function formatTime(t) { if (!t) return ""; const s = String(t).trim(); if (s === "dia-inteiro") return "Dia inteiro"; if (s.includes("T")) return new Date(s).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" }); if (s.includes(":")) return s.slice(0, 5); return s; }
-        function setFormLoading(loading, msg) { form.dataset.loading = loading ? "true" : "false"; submitButton.disabled = loading; submitButton.classList.toggle("is-loading", loading); submitButton.textContent = loading ? "Preparando checkout" : "Ir para checkout"; formMessage.textContent = msg || ""; formMessage.classList.toggle("active", Boolean(msg)); }
+            return "Outra região - confirmar pelo WhatsApp";
+        }
+
+        function isWeekend(date) {
+            return parseLocalDate(date).getDay() === 0;
+        }
+
+        function parseLocalDate(value) {
+            return new Date(value + "T00:00:00");
+        }
+
+        function formatDateKey(date) {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+        }
+
+        function isPastDate(date) {
+            return String(date) < formatDateKey(new Date());
+        }
+
+        function normalizeDate(date) {
+            if (!date) return "";
+
+            const textDate = String(date);
+
+            if (textDate.includes("T")) {
+                return textDate.split("T")[0];
+            }
+
+            return textDate;
+        }
+
+        function normalizeTime(time) {
+            if (!time) return "";
+
+            const textTime = String(time).trim();
+
+            if (textTime === "dia-inteiro") return "dia-inteiro";
+
+            if (textTime.includes("T")) {
+                return new Date(textTime).toLocaleTimeString("pt-BR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    timeZone: "America/Sao_Paulo"
+                });
+            }
+
+            if (textTime.includes(":")) {
+                return textTime.slice(0, 5);
+            }
+
+            return textTime;
+        }
+
+        function formatDate(date) {
+            if (!date) return "";
+
+            const textDate = String(date);
+            const onlyDate = textDate.includes("T")
+                ? textDate.split("T")[0]
+                : textDate;
+
+            const parsedDate = new Date(onlyDate + "T00:00:00");
+
+            return isNaN(parsedDate.getTime())
+                ? textDate
+                : parsedDate.toLocaleDateString("pt-BR");
+        }
+
+        function formatTime(time) {
+            if (!time) return "";
+
+            const textTime = String(time).trim();
+
+            if (textTime === "dia-inteiro") return "Dia inteiro";
+
+            if (textTime.includes(":")) {
+                return textTime.slice(0, 5);
+            }
+
+            return textTime;
+        }
+
+        function setFormLoading(loading, message) {
+            form.dataset.loading = loading ? "true" : "false";
+            submitButton.disabled = loading;
+            submitButton.classList.toggle("is-loading", loading);
+            submitButton.textContent = loading ? "Preparando checkout" : "Ir para checkout";
+            formMessage.textContent = message || "";
+            formMessage.classList.toggle("active", Boolean(message));
+        }
 
         loadAppointments();
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"; import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"; import { getFirestore, doc, getDoc, updateDoc,
+        serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"; const firebaseConfig = { apiKey: "AIzaSyCan31dyjIwP4ni22IDOqC0VD5jiW2vnwk", authDomain: "hub-da-diarista.firebaseapp.com", projectId: "hub-da-diarista",
+        storageBucket: "hub-da-diarista.firebasestorage.app", messagingSenderId: "262676996933", appId: "1:262676996933:web:265d1b4f99e08392f5542c" }; const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app);
+        const bookingForm = document.getElementById("appointmentForm"); const accountNotice = document.getElementById("accountRequiredNotice"); const accountPanel = document.getElementById("clientAccountPanel"); const headerButton = document.getElementById("accountHeaderButton");
+        const editProfileButton = document.getElementById("editProfileButton"); const saveProfileButton = document.getElementById("saveProfileButton"); const logoutButton = document.getElementById("logoutButton"); const profileMessage = document.getElementById("profileMessage");
+        const profileFieldIds = [ "client", "whatsapp", "email", "cep", "region", "address" ]; let currentUser = null; let isEditingProfile = false; onAuthStateChanged(auth, async function (user) { currentUser = user; if (!user) { window.clientProfile
+        = null; bookingForm.classList.add("hidden"); accountPanel.classList.add("hidden"); accountNotice.classList.remove("hidden"); headerButton.textContent = "Entrar / criar cadastro"; headerButton.href = "acesso.html"; return; } const profileSnapshot
+        = await getDoc( doc(db, "clientes", user.uid) ); if (!profileSnapshot.exists()) { await signOut(auth); window.location.href = "acesso.html"; return; } const profile = Object.assign({}, profileSnapshot.data(), { email: user.email || "" }); applyProfile(profile);
+        setProfileEditing(false); window.clientProfile = profile; document.getElementById("clientAccountName").textContent = profile.nome || "Cliente"; document.getElementById("clientAccountEmail").textContent = profile.email; accountNotice.classList.add("hidden");
+        accountPanel.classList.remove("hidden"); bookingForm.classList.remove("hidden"); headerButton.textContent = "Minha conta"; headerButton.href = "#clientAccountPanel"; }); editProfileButton.addEventListener("click", function () { setProfileEditing(!isEditingProfile);
+        }); saveProfileButton.addEventListener("click", async function () { if (!currentUser) return; const updatedProfile = { nome: document.getElementById("client").value.trim(), whatsapp: document.getElementById("whatsapp").value.replace(/\D/g, ""),
+        cep: document.getElementById("cep").value.trim(), regiao: document.getElementById("region").value, endereco: document.getElementById("address").value.trim(), atualizadoEm: serverTimestamp() }; if ( !updatedProfile.nome || !updatedProfile.whatsapp
+        || !updatedProfile.cep || !updatedProfile.regiao || !updatedProfile.endereco ) { showProfileMessage( "Preencha os dados do cadastro antes de salvar.", "error" ); return; } saveProfileButton.disabled = true; saveProfileButton.textContent = "Salvando...";
+        try { await updateDoc( doc(db, "clientes", currentUser.uid), updatedProfile ); const profile = Object.assign({}, updatedProfile, { email: currentUser.email || "" }); applyProfile(profile); window.clientProfile = profile; document.getElementById("clientAccountName").textContent
+        = profile.nome; setProfileEditing(false); showProfileMessage( "Cadastro atualizado com sucesso.", "success" ); } catch (error) { console.error(error); showProfileMessage( "Não foi possível salvar o cadastro agora.", "error" ); } finally { saveProfileButton.disabled
+        = false; saveProfileButton.textContent = "Salvar alterações do cadastro"; } }); logoutButton.addEventListener("click", async function () { await signOut(auth); window.location.href = "acesso.html"; }); function applyProfile(profile) { document.getElementById("client").value
+        = profile.nome || ""; document.getElementById("whatsapp").value = profile.whatsapp || ""; document.getElementById("email").value = profile.email || ""; document.getElementById("cep").value = profile.cep || ""; document.getElementById("region").value
+        = profile.regiao || ""; document.getElementById("address").value = profile.endereco || ""; } function setProfileEditing(editing) { isEditingProfile = editing; profileFieldIds.forEach(function (id) { document.getElementById(id).disabled = !editing;
+        }); document.getElementById("email").disabled = true; editProfileButton.textContent = editing ? "Cancelar edição" : "Editar cadastro"; saveProfileButton.classList.toggle("hidden", !editing); } function showProfileMessage(message, type) { profileMessage.textContent
+        = message; profileMessage.className = "form-message active"; profileMessage.style.color = type === "success" ? "#16875a" : "#b42318"; }
     </script>
 </body>
 
