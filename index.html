@@ -16,7 +16,6 @@
                 <a class="brand" href="index.html">
                     <img src="imagens/Logotipo-hub.png" alt="Hub da Diarista" />
                 </a>
-                <a class="admin-under-logo" href="admin.html">Admin</a>
             </div>
 
             <nav class="main-nav">
@@ -31,7 +30,7 @@
     </header>
 
     <main>
-        <div class="home-layout">
+        <div class="home-layout client-booking-layout">
             <div class="home-left-column">
                 <section>
                     <div class="calendar-header">
@@ -84,11 +83,14 @@
                 <h2>Solicitar agendamento</h2>
 
                 <div id="accountRequiredNotice" class="account-required-notice">
-                    <h3>Entre para agendar</h3>
-                    <p>
-                        Crie seu cadastro uma vez para continuar com os dados já preenchidos nos próximos agendamentos.
-                    </p>
-                    <a class="header-button" href="acesso.html">Entrar ou criar cadastro</a>
+                    <img src="imagens/personagem-acesso.png" alt="Profissional da Hub da Diarista" class="booking-character" />
+
+                    <h3>Pronta para agendar?</h3>
+                    <p>Entre na sua conta ou crie um cadastro para escolher suas datas.</p>
+
+                    <a class="header-button" href="acesso.html">
+                     Entrar / criar cadastro
+                      </a>
                 </div>
 
                 <div id="clientAccountPanel" class="client-account-panel hidden">
@@ -863,9 +865,9 @@ Depois das respostas, gerar o orçamento no painel admin.`;
         = profile.nome; setProfileEditing(false); showProfileMessage( "Cadastro atualizado com sucesso.", "success" ); } catch (error) { console.error(error); showProfileMessage( "Não foi possível salvar o cadastro agora.", "error" ); } finally { saveProfileButton.disabled
         = false; saveProfileButton.textContent = "Salvar alterações do cadastro"; } }); logoutButton.addEventListener("click", async function () { await signOut(auth); window.location.href = "acesso.html"; }); function applyProfile(profile) { document.getElementById("client").value
         = profile.nome || ""; document.getElementById("whatsapp").value = profile.whatsapp || ""; document.getElementById("email").value = profile.email || ""; document.getElementById("cep").value = profile.cep || ""; document.getElementById("region").value
-        = profile.regiao || ""; document.getElementById("address").value = profile.endereco || ""; } function setProfileEditing(editing) { isEditingProfile = editing; profileFieldIds.forEach(function (id) { document.getElementById(id).disabled = !editing;
-        }); document.getElementById("email").disabled = true; editProfileButton.textContent = editing ? "Cancelar edição" : "Editar cadastro"; saveProfileButton.classList.toggle("hidden", !editing); } function showProfileMessage(message, type) { profileMessage.textContent
-        = message; profileMessage.className = "form-message active"; profileMessage.style.color = type === "success" ? "#16875a" : "#b42318"; }
+        = profile.regiao || ""; document.getElementById("address").value = profile.endereco || ""; } function setProfileEditing(editing) { isEditingProfile = editing; bookingForm.classList.toggle("is-editing-profile", editing); profileFieldIds.forEach(function
+        (id) { document.getElementById(id).disabled = !editing; }); document.getElementById("email").disabled = true; editProfileButton.textContent = editing ? "Cancelar edição" : "Editar cadastro"; saveProfileButton.classList.toggle("hidden", !editing);
+        } function showProfileMessage(message, type) { profileMessage.textContent = message; profileMessage.className = "form-message active"; profileMessage.style.color = type === "success" ? "#16875a" : "#b42318"; }
     </script>
 </body>
 
