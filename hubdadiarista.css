@@ -2047,3 +2047,17 @@ button[type="submit"]:disabled,
         flex-direction: column;
     }
 }
+
+.client-booking-layout {
+    display: block !important;
+    width: min(680px, calc(100% - 32px));
+    margin: 38px auto;
+}
+
+.client-booking-layout .home-left-column {
+    display: none !important;
+}
+
+.client-booking-layout .appointment-side-panel {
+    width: 100%;
+}
