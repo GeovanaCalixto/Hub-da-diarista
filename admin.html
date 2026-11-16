@@ -41,6 +41,19 @@
         </section>
 
         <div id="adminContent" class="admin-content hidden">
+            <section>
+                <div class="admin-title-row">
+                    <div>
+                        <h2>Pagamentos recebidos para aprovar</h2>
+                        <p class="section-note">
+                            Pagamentos identificados. Revise os dados, ajuste a data se necessário e envie a confirmação para a cliente.
+                        </p>
+                    </div>
+                </div>
+
+                <div id="pendingApprovals" class="status-carousel admin-history"></div>
+            </section>
+
             <!-- GERENCIAR AGENDAMENTOS -->
             <section>
                 <div class="admin-title-row">
@@ -152,6 +165,7 @@
                             Status
                             <select id="apptStatus">
                                 <option value="Aguardando confirmação">Aguardando confirmação</option>
+                                <option value="Pagamento aprovado - aguardando aprovação">Pagamento aprovado - aguardando aprovação</option>
                                 <option value="Serviço agendado">Serviço agendado</option>
                                 <option value="Serviço em andamento">Serviço em andamento</option>
                                 <option value="Serviço concluído">Serviço concluído</option>
@@ -485,8 +499,12 @@
             document.getElementById("quoteStatus").value = selectedQuote.statusOrcamento || selectedQuote.status || "Orçamento solicitado";
             document.getElementById("discount").value = selectedQuote.desconto || 0;
             document.getElementById("budgetConditions").value = selectedQuote.condicoesOrcamento || "";
-            if (selectedQuote.metragem) document.getElementById("squareMeters").value = selectedQuote.metragem;
-            clientPreview.innerHTML = `<strong>${selectedQuote.cliente || "Cliente"}</strong><span>WhatsApp: ${selectedQuote.whatsapp || "-"}</span><span>Serviço solicitado: ${selectedQuote.servico || "-"}</span><span>Datas: ${selectedQuote.datasSolicitadas || "-"}</span><span>Endereço: ${selectedQuote.endereco || "-"}</span><span>CEP: ${selectedQuote.cep || "-"}</span><span>Região: ${selectedQuote.regiao || "-"}</span><span>Status do orçamento: ${selectedQuote.statusOrcamento || selectedQuote.status || "Aguardando orçamento"}</span><span>Observações: ${selectedQuote.observacoes || "-"}</span>`;
+            document.getElementById("squareMeters").value = selectedQuote.metragem || "";
+            document.getElementById("furnished").checked = selectedQuote.mobiliado === "Sim";
+            document.getElementById("rubble").checked = selectedQuote.entulho === "Sim";
+            document.getElementById("appliances").value = selectedQuote.qtdEletrodomesticos || 0;
+            document.getElementById("productKit").value = getProductKitValue(selectedQuote.produtos);
+            clientPreview.innerHTML = `<strong>${selectedQuote.cliente || "Cliente"}</strong><span>Ticket: ${selectedQuote.ticket || "-"}</span><span>WhatsApp: ${selectedQuote.whatsapp || "-"}</span><span>Serviço solicitado: ${selectedQuote.servico || "-"}</span><span>Datas: ${selectedQuote.datasSolicitadas || "-"}</span><span>Endereço: ${selectedQuote.endereco || "-"}</span><span>CEP: ${selectedQuote.cep || "-"}</span><span>Região: ${selectedQuote.regiao || "-"}</span><span>Metragem informada: ${selectedQuote.metragem || "-"}</span><span>Produtos: ${selectedQuote.produtos || "-"}</span><span>Imóvel mobiliado: ${selectedQuote.mobiliado || "-"}</span><span>Entulho/lixo pesado: ${selectedQuote.entulho || "-"}</span><span>Eletrodomésticos: ${selectedQuote.qtdEletrodomesticos || "0"}</span><span>Fotos ou vídeo: ${selectedQuote.fotosVideo || "-"}</span><span>Status do orçamento: ${selectedQuote.statusOrcamento || selectedQuote.status || "Aguardando orçamento"}</span><span>Observações: ${selectedQuote.observacoes || "-"}</span>`;
         }
 
         function calculateAndRenderBudget() {
@@ -606,7 +624,7 @@
             quotesHistory.innerHTML = "";
             filtered.forEach(item => {
                         const sel = item.statusOrcamento || item.status || "Aguardando orçamento";
-                        quotesHistory.innerHTML += `<article class="status-card admin-history-card"><div class="status-card-top"><span class="client-badge">${item.cliente || "Cliente"}</span><strong>${sel}</strong></div><p><b>Serviço:</b> ${item.servico || "-"}</p><p><b>Datas:</b> ${item.datasSolicitadas || "-"}</p><p><b>WhatsApp:</b> ${item.whatsapp || "-"}</p><p><b>Metragem:</b> ${item.metragem || "-"}</p><p><b>Desconto:</b> ${item.desconto ? formatCurrency(item.desconto) : "-"}</p><p><b>Valor total:</b> ${item.valorTotal ? formatCurrency(item.valorTotal) : "-"}</p><p><b>Reserva:</b> ${item.reserva ? formatCurrency(item.reserva) : "-"}</p><p><b>Condições:</b> ${item.condicoesOrcamento || "-"}</p><select class="status-select" onchange="changeCustomQuoteStatus('${item.id}',this.value)">${quoteStatusOptions.map(s => `<option value="${s}" ${sel === s ? "selected" : ""}>${s}</option>`).join("")}</select></article>`; }); }
+                        quotesHistory.innerHTML += `<article class="status-card admin-history-card"><div class="status-card-top"><span class="client-badge">${item.cliente || "Cliente"}</span><strong>${sel}</strong></div><p><b>Ticket:</b> ${item.ticket || "-"}</p><p><b>Serviço:</b> ${item.servico || "-"}</p><p><b>Datas:</b> ${item.datasSolicitadas || "-"}</p><p><b>WhatsApp:</b> ${item.whatsapp || "-"}</p><p><b>Metragem:</b> ${item.metragem || "-"}</p><p><b>Desconto:</b> ${item.desconto ? formatCurrency(item.desconto) : "-"}</p><p><b>Valor total:</b> ${item.valorTotal ? formatCurrency(item.valorTotal) : "-"}</p><p><b>Reserva:</b> ${item.reserva ? formatCurrency(item.reserva) : "-"}</p><p><b>Condições:</b> ${item.condicoesOrcamento || "-"}</p><select class="status-select" onchange="changeCustomQuoteStatus('${item.id}',this.value)">${quoteStatusOptions.map(s => `<option value="${s}" ${sel === s ? "selected" : ""}>${s}</option>`).join("")}</select><div class="card-actions"><button type="button" class="secondary" onclick="sendCustomQuoteStatus('${item.id}')">Enviar atualização</button></div></article>`; }); }
         async function changeCustomQuoteStatus(id, newStatus) {
             try {
                 await adminRequest("updateCustomQuoteStatus", {
@@ -629,8 +647,45 @@
                 alert("Não foi possível atualizar o status do orçamento.");
             }
         }
+
+        function sendCustomQuoteStatus(id) {
+            const quote = quoteRequests.find(function(item) {
+                return String(item.id) === String(id);
+            });
+
+            if (!quote) {
+                alert("Solicitação de orçamento não encontrada.");
+                return;
+            }
+
+            const phone = formatWhatsAppNumber(quote.whatsapp);
+
+            if (!phone) {
+                alert("WhatsApp da cliente não encontrado.");
+                return;
+            }
+
+            const status = quote.statusOrcamento || quote.status || "Orçamento solicitado";
+            const message = `Olá, ${quote.cliente || "cliente"}!
+
+Atualização do seu orçamento personalizado:
+
+Ticket: ${quote.ticket || "-"}
+Status: ${status}
+Serviço: ${quote.servico || "-"}
+Datas solicitadas: ${quote.datasSolicitadas || "-"}
+
+Qualquer dúvida, estamos à disposição pelo WhatsApp.`;
+
+            window.open(
+                `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
+                "_blank"
+            );
+        }
+
         function getServiceLabel(t) { return t === "posobra" ? "Limpeza Pós-Obra" : "Limpeza Residencial Personalizada"; }
         function getProductKitLabel(v) { if (Number(v) === 180) return "Kit 2 - Padrão Residencial Grande"; if (Number(v) === 300) return "Kit 1 - Padrão Pós-Obra"; return "Cliente fornece os produtos"; }
+        function getProductKitValue(value) { if (String(value || "").includes("Kit 2")) return "180"; if (String(value || "").includes("Kit 1")) return "300"; return "0"; }
         function formatWhatsAppNumber(v) { if (!v) return ""; let p = String(v).replace(/\D/g, ""); if (p.length === 10 || p.length === 11) p = "55" + p; return p; }
         function formatCurrency(v) { return Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); }
 
@@ -643,6 +698,7 @@
         const cancelAppointmentFormButton = document.getElementById("cancelAppointmentFormButton");
         const deleteAppointmentButton = document.getElementById("deleteAppointmentButton");
         const apptFormMessage = document.getElementById("apptFormMessage");
+        const pendingApprovals = document.getElementById("pendingApprovals");
         const appointmentsList = document.getElementById("appointmentsList");
         const apptSearch = document.getElementById("apptSearch");
         const apptDateFrom = document.getElementById("apptDateFrom");
@@ -673,6 +729,7 @@
 
             appointmentSearchTimer = setTimeout(function () {
                 renderAppointmentsList();
+                renderPendingApprovals();
             }, 250);
         });
 
@@ -813,6 +870,124 @@
             </article>
         `;
             });
+        }
+
+        function renderPendingApprovals() {
+            const pending = allAppointments.filter(function(appointment) {
+                return appointment.status === "Pagamento aprovado - aguardando aprovação";
+            });
+
+            if (!pending.length) {
+                pendingApprovals.innerHTML = `
+                    <article class="status-card admin-history-card">
+                        <strong>Nenhum pagamento aguardando aprovação</strong>
+                        <p>Os próximos pagamentos identificados aparecerão aqui.</p>
+                    </article>
+                `;
+                return;
+            }
+
+            pendingApprovals.innerHTML = "";
+
+            pending
+                .slice()
+                .sort(function(a, b) {
+                    return `${a.dataAgendamento}${a.horario}`.localeCompare(
+                        `${b.dataAgendamento}${b.horario}`
+                    );
+                })
+                .forEach(function(appointment) {
+                    pendingApprovals.innerHTML += `
+                        <article class="status-card admin-history-card appointment-card">
+                            <div class="status-card-top">
+                                <span class="client-badge">${appointment.cliente || "Cliente"}</span>
+                                <strong>${formatDateBR(appointment.dataAgendamento)}</strong>
+                            </div>
+
+                            <p><b>Horário:</b> ${formatTimeBR(appointment.horario)}</p>
+                            <p><b>Serviço:</b> ${appointment.servico || "-"}</p>
+                            <p><b>WhatsApp:</b> ${appointment.whatsapp || "-"}</p>
+                            <p><b>Endereço:</b> ${appointment.endereco || "-"}</p>
+                            <p><b>Pagamento:</b> ${appointment.pagamento || "Confirmado"}</p>
+
+                            <div class="card-actions">
+                                <button type="button" class="btn-edit"
+                                    onclick="openAppointmentForm('${appointment.id}')">
+                                    Revisar ou alterar
+                                </button>
+
+                                <button type="button" class="secondary"
+                                    onclick="approveAppointment('${appointment.id}')">
+                                    Aprovar e abrir mensagem
+                                </button>
+                            </div>
+                        </article>
+                    `;
+                });
+        }
+
+        async function approveAppointment(id) {
+            const appointment = allAppointments.find(function(item) {
+                return String(item.id) === String(id);
+            });
+
+            if (!appointment) {
+                alert("Agendamento não encontrado.");
+                return;
+            }
+
+            const whatsappWindow = window.open("about:blank", "_blank");
+
+            try {
+                await adminRequest("updateAppointment", {
+                    id: appointment.id,
+                    rowNumber: appointment.rowNumber,
+                    status: "Serviço agendado"
+                });
+
+                appointment.status = "Serviço agendado";
+                openAppointmentConfirmationWhatsApp(appointment, whatsappWindow);
+
+                await loadAppointmentsAdmin();
+
+                alert("Agendamento aprovado. A mensagem de confirmação está pronta no WhatsApp.");
+            } catch (error) {
+                if (whatsappWindow) whatsappWindow.close();
+                alert("Não foi possível aprovar o agendamento agora.");
+            }
+        }
+
+        function openAppointmentConfirmationWhatsApp(appointment, targetWindow) {
+            const phone = formatWhatsAppNumber(appointment.whatsapp);
+
+            if (!phone) {
+                if (targetWindow) targetWindow.close();
+                alert("O WhatsApp da cliente não foi encontrado.");
+                return;
+            }
+
+            const reference = "HD-" + String(appointment.id || "").replace(/\D/g, "").slice(-6);
+
+            const message = `Olá, ${appointment.cliente || "cliente"}!
+
+Recebemos o pagamento da sua reserva e seu agendamento foi confirmado.
+
+Referência: ${reference}
+Status: Serviço agendado
+Data: ${formatDateBR(appointment.dataAgendamento)}
+Horário: ${formatTimeBR(appointment.horario)}
+Serviço: ${appointment.servico || "-"}
+Endereço: ${appointment.endereco || "-"}
+
+Qualquer atualização será avisada por aqui. Obrigada por escolher a Hub da Diarista.`;
+
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+            if (targetWindow) {
+                targetWindow.location.href = url;
+            } else {
+                window.open(url, "_blank");
+            }
         }
 
         function clearAppointmentFilters() {
@@ -1018,6 +1193,8 @@ function formatDateBR(d) {
 
         window.openAppointmentForm = openAppointmentForm;
         window.confirmDeleteAppointment = confirmDeleteAppointment;
+        window.approveAppointment = approveAppointment;
+        window.sendCustomQuoteStatus = sendCustomQuoteStatus;
 
         calculateAndRenderBudget();
     </script>

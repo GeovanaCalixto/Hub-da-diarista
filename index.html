@@ -145,6 +145,61 @@
                         </select>
                     </label>
 
+                    <fieldset id="customQuoteDetails" hidden>
+                        <legend>Detalhes para orçamento personalizado</legend>
+                        <p class="section-note">
+                            Envie os detalhes abaixo. Seu orçamento será analisado e enviado pelo WhatsApp em até 24 horas.
+                        </p>
+
+                        <label>
+                            Metragem aproximada do local
+                            <input id="customSquareMeters" type="number" min="1" step="1" disabled />
+                        </label>
+
+                        <label>
+                            O imóvel está mobiliado?
+                            <select id="customFurnished" disabled>
+                                <option value="">Selecione</option>
+                                <option value="Sim">Sim</option>
+                                <option value="Não">Não</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Há entulho, lixo pesado ou resíduos de obra?
+                            <select id="customRubble" disabled>
+                                <option value="">Selecione</option>
+                                <option value="Sim">Sim</option>
+                                <option value="Não">Não</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Quantos eletrodomésticos precisam de limpeza interna?
+                            <input id="customAppliances" type="number" min="0" step="1" value="0" disabled />
+                        </label>
+
+                        <label>
+                            Produtos de limpeza
+                            <select id="customProducts" disabled>
+                                <option value="">Selecione</option>
+                                <option value="Cliente fornece os produtos">Cliente fornece os produtos</option>
+                                <option value="Kit 2 - Padrão Residencial Grande">Kit 2 - Padrão Residencial Grande</option>
+                                <option value="Kit 1 - Padrão Pós-Obra">Kit 1 - Padrão Pós-Obra</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Fotos ou vídeo do local
+                            <select id="customPhotosVideo" disabled>
+                                <option value="">Selecione</option>
+                                <option value="Posso enviar pelo WhatsApp">Posso enviar pelo WhatsApp</option>
+                                <option value="Preciso de orientação para enviar">Preciso de orientação para enviar</option>
+                                <option value="Não tenho fotos ou vídeo no momento">Não tenho fotos ou vídeo no momento</option>
+                            </select>
+                        </label>
+                    </fieldset>
+
                     <label class="profile-bound-field">
                         CEP do local
                         <input id="cep" type="text" placeholder="Ex: 03200-000" required />
@@ -247,6 +302,8 @@
         const statusNextButton = document.getElementById("statusNext");
         const submitButton = document.getElementById("submitButton");
         const formMessage = document.getElementById("formMessage");
+        const propertyTypeInput = document.getElementById("propertyType");
+        const customQuoteDetails = document.getElementById("customQuoteDetails");
 
         let visibleMonth = new Date();
         visibleMonth.setDate(1);
@@ -295,11 +352,14 @@
             updateSelectedDatesText();
         });
 
+        propertyTypeInput.addEventListener("change", toggleCustomQuoteDetails);
+        toggleCustomQuoteDetails();
+
         document.getElementById("refreshCalendar").addEventListener("click", loadAppointments);
 
         setInterval(loadAppointments, 30000);
 
-        form.addEventListener("submit", function(e) {
+        form.addEventListener("submit", async function(e) {
             e.preventDefault();
 
             if (!window.clientProfile) {
@@ -319,12 +379,13 @@
                 return;
             }
 
-            const selectedPropertyType = document.getElementById("propertyType").value;
+            const selectedPropertyType = propertyTypeInput.value;
             const email = document.getElementById("email").value.trim();
             const cpf = document.getElementById("cpf").value.replace(/\D/g, "");
+            const isCustomQuote = isCustomQuoteType(selectedPropertyType);
 
-            if (!isCustomQuoteType(selectedPropertyType) && (!email || cpf.length !== 11)) {
-                alert("Para gerar o pagamento Pix, informe um e-mail e um CPF válido com 11 números.");
+            if (!isCustomQuote && (!email || cpf.length !== 11)) {
+                alert("Para gerar o pagamento, informe um e-mail e um CPF válido com 11 números.");
                 return;
             }
 
@@ -341,7 +402,8 @@
                 address: document.getElementById("address").value.trim(),
                 contractType: "Datas selecionadas",
                 notes: document.getElementById("notes").value.trim(),
-                status: "Aguardando confirmação"
+                status: "Aguardando confirmação",
+                customQuote: isCustomQuote ? getCustomQuoteDetails() : null
             };
 
             const unavailableDates = selectedDates.filter(date => isDateUnavailable(date));
@@ -361,23 +423,47 @@
                     date
                 }));
 
-            if (isCustomQuoteType(baseAppointment.propertyType)) {
-                setFormLoading(true, "Enviando solicitação personalizada...");
-                saveCustomQuoteRequest(baseAppointment, generatedAppointments);
+            if (isCustomQuote) {
+                const whatsappWindow = window.open("about:blank", "_blank");
 
-                setTimeout(() => {
-                    sendCustomQuoteToWhatsApp(baseAppointment, generatedAppointments);
-                    setFormLoading(false, "");
+                setFormLoading(true, "Enviando solicitação personalizada...", "Enviando...");
+
+                try {
+                    const result = await saveCustomQuoteRequest(
+                        baseAppointment,
+                        generatedAppointments
+                    );
+
+                    sendCustomQuoteToWhatsApp(
+                        baseAppointment,
+                        generatedAppointments,
+                        result.ticket,
+                        whatsappWindow
+                    );
+
+                    formMessage.textContent =
+                        "Solicitação recebida. Seu orçamento personalizado será analisado e enviado pelo WhatsApp em até 24 horas.";
+                    formMessage.className = "form-message active";
+
                     form.reset();
                     selectedDates.length = 0;
+                    toggleCustomQuoteDetails();
                     updateSelectedDatesText();
                     renderMiniCalendar();
-                }, 700);
+                } catch (error) {
+                    if (whatsappWindow) whatsappWindow.close();
+
+                    formMessage.textContent =
+                        error.message || "Não foi possível enviar a solicitação agora.";
+                    formMessage.className = "form-message active";
+                } finally {
+                    setFormLoading(false, "");
+                }
 
                 return;
             }
 
-            setFormLoading(true, "Preparando checkout, aguarde...");
+            setFormLoading(true, "Preparando checkout, aguarde...", "Preparando checkout...");
 
             sessionStorage.setItem(
                 "pendingAppointments",
@@ -596,16 +682,18 @@
             return type === "posobra" || type === "acima150";
         }
 
-        function saveCustomQuoteRequest(base, generated) {
+        async function saveCustomQuoteRequest(base, generated) {
             const datesText = generated
                 .map(a => `${formatDate(a.date)} às ${formatTime(a.time)}`)
                 .join(", ");
 
             const datesList = generated.map(a => a.date);
 
-            fetch(apiUrl, {
+            const response = await fetch(apiUrl, {
                 method: "POST",
-                mode: "no-cors",
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
                 body: JSON.stringify({
                     action: "saveCustomQuoteRequest",
                     customQuote: true,
@@ -623,17 +711,31 @@
                     cep: base.cep,
                     regiao: getRegionLabel(base.region),
                     observacoes: base.notes,
-                    status: "Aguardando orçamento"
+                    status: "Aguardando orçamento",
+                    metragem: base.customQuote.metragem,
+                    produtos: base.customQuote.produtos,
+                    mobiliado: base.customQuote.mobiliado,
+                    entulho: base.customQuote.entulho,
+                    qtdEletrodomesticos: base.customQuote.qtdEletrodomesticos,
+                    fotosVideo: base.customQuote.fotosVideo
                 })
             });
+
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.message || "Não foi possível salvar a solicitação.");
+            }
+
+            return result;
         }
 
-        function sendCustomQuoteToWhatsApp(base, generated) {
-            const ticket = `HD-${String(generated[0].id).slice(-6)}`;
-
+        function sendCustomQuoteToWhatsApp(base, generated, ticket, targetWindow) {
             const datesText = generated
                 .map(a => `- ${formatDate(a.date)} às ${formatTime(a.time)}`)
                 .join("\n");
+
+            const details = base.customQuote;
 
             const message = `Olá! Nova solicitação de orçamento personalizado:
 
@@ -653,22 +755,52 @@ ${datesText}
 Endereço: ${base.address}
 Observações: ${base.notes || "Nenhuma"}
 
-Perguntas para fechar o orçamento:
-1. Qual a metragem aproximada do local?
-2. O imóvel está mobiliado?
-3. Há entulho, lixo pesado ou resíduo de obra?
-4. Precisa de limpeza interna de eletrodomésticos? Quantos?
-5. A cliente fornece os produtos de limpeza?
-6. Pode enviar fotos ou vídeo do local?
+Detalhes já enviados:
+- Metragem aproximada: ${details.metragem}m²
+- Imóvel mobiliado: ${details.mobiliado}
+- Entulho/lixo pesado: ${details.entulho}
+- Eletrodomésticos internos: ${details.qtdEletrodomesticos}
+- Produtos: ${details.produtos}
+- Fotos ou vídeo: ${details.fotosVideo}
 
-Depois das respostas, gerar o orçamento no painel admin.`;
+Prazo informado à cliente: até 24 horas para envio do orçamento.`;
 
-            window.open(
-                `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`,
-                "_blank"
-            );
+            const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 
-            alert("Solicitação enviada para confirmação pelo WhatsApp.");
+            if (targetWindow) {
+                targetWindow.location.href = url;
+            } else {
+                window.open(url, "_blank");
+            }
+        }
+
+        function getCustomQuoteDetails() {
+            return {
+                metragem: document.getElementById("customSquareMeters").value,
+                mobiliado: document.getElementById("customFurnished").value,
+                entulho: document.getElementById("customRubble").value,
+                qtdEletrodomesticos: document.getElementById("customAppliances").value || "0",
+                produtos: document.getElementById("customProducts").value,
+                fotosVideo: document.getElementById("customPhotosVideo").value
+            };
+        }
+
+        function toggleCustomQuoteDetails() {
+            const isCustom = isCustomQuoteType(propertyTypeInput.value);
+
+            customQuoteDetails.hidden = !isCustom;
+
+            customQuoteDetails.querySelectorAll("input, select").forEach(function(field) {
+                field.disabled = !isCustom;
+
+                if (field.id !== "customAppliances") {
+                    field.required = isCustom;
+                }
+            });
+
+            submitButton.textContent = isCustom
+                ? "Solicitar orçamento personalizado"
+                : "Ir para checkout";
         }
 
         function isWithinStatusWindow(date) {
@@ -835,11 +967,19 @@ Depois das respostas, gerar o orçamento no painel admin.`;
             return textTime;
         }
 
-        function setFormLoading(loading, message) {
+        function setFormLoading(loading, message, buttonText) {
             form.dataset.loading = loading ? "true" : "false";
             submitButton.disabled = loading;
             submitButton.classList.toggle("is-loading", loading);
-            submitButton.textContent = loading ? "Preparando checkout" : "Ir para checkout";
+
+            if (loading) {
+                submitButton.textContent = buttonText || "Carregando...";
+            } else {
+                submitButton.textContent = isCustomQuoteType(propertyTypeInput.value)
+                    ? "Solicitar orçamento personalizado"
+                    : "Ir para checkout";
+            }
+
             formMessage.textContent = message || "";
             formMessage.classList.toggle("active", Boolean(message));
         }

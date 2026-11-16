@@ -58,19 +58,14 @@
                 <div id="checkoutSummary" class="checkout-summary-list"></div>
             </aside>
 
-            <button type="button" id="confirmPaymentButton" class="confirm-payment-button" disabled hidden>
-                Confirmar agendamento no WhatsApp
-            </button>
         </section>
     </main>
 
     <script>
         const apiUrl = "https://script.google.com/macros/s/AKfycbyo-_RD8L9wT4-mpDZSV9_OB5xlAWo_qBKcTamrvGNgCaB4IF6O8k1LED24nW0B7lxh/exec";
-        const whatsappNumber = "5511932118634";
 
         const checkoutSummary = document.getElementById("checkoutSummary");
         const mercadoPagoPaymentButton = document.getElementById("mercadoPagoPaymentButton");
-        const confirmPaymentButton = document.getElementById("confirmPaymentButton");
         const pixInstructions = document.getElementById("pixInstructions");
         const paymentStatusMessage = document.getElementById("paymentStatusMessage");
         const paymentCountdown = document.getElementById("paymentCountdown");
@@ -104,7 +99,6 @@
         }
 
         mercadoPagoPaymentButton.addEventListener("click", openMercadoPagoPayment);
-        confirmPaymentButton.addEventListener("click", handleConfirmButton);
 
         async function initializeCheckout() {
             const savedPayment = getSavedPayment();
@@ -305,12 +299,18 @@
 
                     stopPaymentPolling();
 
+                    sessionStorage.removeItem("pendingAppointments");
+                    sessionStorage.removeItem("mercadoPagoPayment");
+
+                    mercadoPagoPaymentButton.disabled = true;
+                    mercadoPagoPaymentButton.textContent = "Pagamento identificado";
+
                     setPaymentMessage(
-                        "Pagamento identificado com sucesso. Seu agendamento já foi confirmado.",
+                        "Pagamento identificado com sucesso. Seu agendamento foi recebido e registrado. A confirmação dos detalhes será enviada pelo WhatsApp.",
                         "success"
                     );
 
-                    showConfirmButton();
+                    paymentCountdown.textContent = "";
                     return;
                 }
 
@@ -327,7 +327,6 @@
                         "error"
                     );
 
-                    confirmPaymentButton.disabled = true;
                     mercadoPagoPaymentButton.disabled = true;
                     return;
                 }
@@ -354,21 +353,9 @@
             }
         }
 
-        function showConfirmButton() {
-            confirmPaymentButton.hidden = false;
-            confirmPaymentButton.disabled = false;
-            confirmPaymentButton.classList.remove("is-loading");
-            confirmPaymentButton.textContent =
-                "Confirmar agendamento no WhatsApp";
-        }
+        function showConfirmButton() {}
 
-        function hideConfirmButton() {
-            confirmPaymentButton.hidden = true;
-            confirmPaymentButton.disabled = true;
-            confirmPaymentButton.classList.remove("is-loading");
-            confirmPaymentButton.textContent =
-                "Confirmar agendamento no WhatsApp";
-        }
+        function hideConfirmButton() {}
 
         function updatePaymentCountdown() {
             if (!paymentRecord || !paymentRecord.expiresAt) {
