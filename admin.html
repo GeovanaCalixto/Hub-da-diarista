@@ -44,9 +44,9 @@
             <section>
                 <div class="admin-title-row">
                     <div>
-                        <h2>Pagamentos recebidos para aprovar</h2>
+                        <h2>Acompanhamento dos agendamentos</h2>
                         <p class="section-note">
-                            Pagamentos identificados. Revise os dados, ajuste a data se necessário e envie a confirmação para a cliente.
+                            Acompanhe cada serviço desde o pagamento inicial até a quitação final.
                         </p>
                     </div>
                 </div>
@@ -170,6 +170,7 @@
                                 <option value="Serviço em andamento">Serviço em andamento</option>
                                 <option value="Serviço concluído">Serviço concluído</option>
                                 <option value="Serviço realizado — pagamento restante pendente">Serviço realizado — pagamento restante pendente</option>
+                                <option value="Pagamento completo — confirmação pendente">Pagamento completo — confirmação pendente</option>
                                 <option value="Pagamento completo">Pagamento completo</option>
                                 <option value="Pago">Pago</option>
                                 <option value="Não concluído">Não concluído</option>
@@ -885,14 +886,22 @@ Qualquer dúvida, estamos à disposição pelo WhatsApp.`;
         }
 
         function renderPendingApprovals() {
-            const pending = allAppointments.filter(function(appointment) {
-                return appointment.status === "Pagamento aprovado - aguardando aprovação";
+            const activeStatuses = [
+                "Pagamento aprovado - aguardando aprovação",
+                "Serviço agendado",
+                "Serviço em andamento",
+                "Serviço concluído",
+                "Serviço realizado — pagamento restante pendente",
+                "Pagamento completo — confirmação pendente"
+            ];
+            const activeAppointments = allAppointments.filter(function(appointment) {
+                return activeStatuses.includes(appointment.status);
             });
 
-            if (!pending.length) {
+            if (!activeAppointments.length) {
                 pendingApprovals.innerHTML = `
                     <article class="status-card admin-history-card">
-                        <strong>Nenhum pagamento aguardando aprovação</strong>
+                        <strong>Nenhum agendamento em acompanhamento</strong>
                         <p>Os próximos pagamentos identificados aparecerão aqui.</p>
                     </article>
                 `;
@@ -901,7 +910,7 @@ Qualquer dúvida, estamos à disposição pelo WhatsApp.`;
 
             pendingApprovals.innerHTML = "";
 
-            pending
+            activeAppointments
                 .slice()
                 .sort(function(a, b) {
                     return `${a.dataAgendamento}${a.horario}`.localeCompare(
@@ -909,6 +918,8 @@ Qualquer dúvida, estamos à disposição pelo WhatsApp.`;
                     );
                 })
                 .forEach(function(appointment) {
+                    const stageActions = getAppointmentWorkflowActions(appointment);
+
                     pendingApprovals.innerHTML += `
                         <article class="status-card admin-history-card appointment-card">
                             <div class="status-card-top">
@@ -916,6 +927,7 @@ Qualquer dúvida, estamos à disposição pelo WhatsApp.`;
                                 <strong>${formatDateBR(appointment.dataAgendamento)}</strong>
                             </div>
 
+                            <p><b>Status:</b> ${appointment.status || "-"}</p>
                             <p><b>Horário:</b> ${formatTimeBR(appointment.horario)}</p>
                             <p><b>Serviço:</b> ${appointment.servico || "-"}</p>
                             <p><b>WhatsApp:</b> ${appointment.whatsapp || "-"}</p>
@@ -927,15 +939,55 @@ Qualquer dúvida, estamos à disposição pelo WhatsApp.`;
                                     onclick="openAppointmentForm('${appointment.id}')">
                                     Revisar ou alterar
                                 </button>
-
-                                <button type="button" class="secondary"
-                                    onclick="approveAppointment('${appointment.id}')">
-                                    Aprovar e abrir mensagem
-                                </button>
+                                ${stageActions}
                             </div>
                         </article>
                     `;
                 });
+        }
+
+        function getAppointmentWorkflowActions(appointment) {
+            if (appointment.status === "Pagamento aprovado - aguardando aprovação") {
+                return `
+                    <button type="button" class="secondary"
+                        onclick="approveAppointment('${appointment.id}')">
+                        Aprovar e abrir mensagem
+                    </button>
+                `;
+            }
+
+            if (["Serviço agendado", "Serviço em andamento", "Serviço concluído"].includes(appointment.status)) {
+                return `
+                    <button type="button" class="secondary"
+                        onclick="sendAppointmentUpdate('${appointment.id}')">
+                        Enviar atualização
+                    </button>
+                    <button type="button" class="secondary"
+                        onclick="generateBalancePaymentForId('${appointment.id}')">
+                        Serviço realizado: cobrar saldo
+                    </button>
+                `;
+            }
+
+            if (appointment.status === "Serviço realizado — pagamento restante pendente") {
+                return `
+                    <button type="button" class="secondary"
+                        onclick="generateBalancePaymentForId('${appointment.id}')">
+                        Reenviar cobrança do saldo
+                    </button>
+                `;
+            }
+
+            if (appointment.status === "Pagamento completo — confirmação pendente") {
+                return `
+                    <button type="button" class="secondary"
+                        onclick="sendBalancePaymentConfirmationForId('${appointment.id}')">
+                        Enviar confirmação de quitação
+                    </button>
+                `;
+            }
+
+            return "";
         }
 
         async function approveAppointment(id) {
@@ -1000,6 +1052,42 @@ Qualquer atualização será avisada por aqui. Obrigada por escolher a Hub da Di
             } else {
                 window.open(url, "_blank");
             }
+        }
+
+        function sendAppointmentUpdate(id) {
+            const appointment = allAppointments.find(function(item) {
+                return String(item.id) === String(id);
+            });
+
+            if (!appointment) {
+                alert("Agendamento não encontrado.");
+                return;
+            }
+
+            const phone = formatWhatsAppNumber(appointment.whatsapp);
+            if (!phone) {
+                alert("O WhatsApp da cliente não foi encontrado.");
+                return;
+            }
+
+            const reference = "HD-" + String(appointment.id || "").replace(/\D/g, "").slice(-6);
+            const message = `Olá, ${appointment.cliente || "cliente"}!
+
+Segue a atualização do seu agendamento.
+
+Referência: ${reference}
+Status: ${appointment.status || "Serviço agendado"}
+Data: ${formatDateBR(appointment.dataAgendamento)}
+Horário: ${formatTimeBR(appointment.horario)}
+Serviço: ${appointment.servico || "-"}
+Endereço: ${appointment.endereco || "-"}
+
+Qualquer dúvida, fale conosco por aqui. Obrigada por escolher a Hub da Diarista.`;
+
+            window.open(
+                `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
+                "_blank"
+            );
         }
 
         function clearAppointmentFilters() {
@@ -1069,11 +1157,16 @@ Qualquer atualização será avisada por aqui. Obrigada por escolher a Hub da Di
 
             deleteAppointmentButton.style.display = isNew ? "none" : "inline-flex";
             const hasBalance = Number(appointment?.saldo || 0) > 0;
-            const isPaymentComplete = appointment?.status === "Pagamento completo";
-            generateBalancePaymentButton.style.display = !isNew && hasBalance && !isPaymentComplete
+            const isFinalPaymentComplete = [
+                "Pagamento completo",
+                "Pagamento completo — confirmação pendente"
+            ].includes(appointment?.status);
+            const needsFinalConfirmation =
+                appointment?.status === "Pagamento completo — confirmação pendente";
+            generateBalancePaymentButton.style.display = !isNew && hasBalance && !isFinalPaymentComplete
                 ? "inline-flex"
                 : "none";
-            sendBalancePaymentConfirmationButton.style.display = !isNew && isPaymentComplete
+            sendBalancePaymentConfirmationButton.style.display = !isNew && needsFinalConfirmation
                 ? "inline-flex"
                 : "none";
             appointmentFormPanel.style.display = "block";
@@ -1159,6 +1252,19 @@ Qualquer atualização será avisada por aqui. Obrigada por escolher a Hub da Di
                 return String(item.id) === String(id);
             });
 
+            await generateBalancePaymentForAppointment(appointment, generateBalancePaymentButton);
+        }
+
+        async function generateBalancePaymentForId(id) {
+            const appointment = allAppointments.find(function(item) {
+                return String(item.id) === String(id);
+            });
+
+            await generateBalancePaymentForAppointment(appointment);
+        }
+
+        async function generateBalancePaymentForAppointment(appointment, sourceButton) {
+
             if (!appointment) {
                 alert("Agendamento não encontrado.");
                 return;
@@ -1166,8 +1272,10 @@ Qualquer atualização será avisada por aqui. Obrigada por escolher a Hub da Di
 
             const whatsappWindow = window.open("about:blank", "_blank");
 
-            generateBalancePaymentButton.disabled = true;
-            generateBalancePaymentButton.textContent = "Gerando cobrança...";
+            if (sourceButton) {
+                sourceButton.disabled = true;
+                sourceButton.textContent = "Gerando cobrança...";
+            }
 
             try {
                 const result = await adminRequest("createRemainingBalancePayment", {
@@ -1199,8 +1307,10 @@ Este link fica disponível por 7 dias. Obrigada por escolher a Hub da Diarista.`
                 whatsappWindow.location.href =
                     `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
-                document.getElementById("apptStatus").value =
-                    "Serviço realizado — pagamento restante pendente";
+                const statusField = document.getElementById("apptStatus");
+                if (statusField) {
+                    statusField.value = "Serviço realizado — pagamento restante pendente";
+                }
 
                 await loadAppointmentsAdmin();
 
@@ -1213,16 +1323,31 @@ Este link fica disponível por 7 dias. Obrigada por escolher a Hub da Diarista.`
                 if (whatsappWindow) whatsappWindow.close();
                 alert(error.message || "Não foi possível gerar a cobrança do saldo.");
             } finally {
-                generateBalancePaymentButton.disabled = false;
-                generateBalancePaymentButton.textContent = "Gerar cobrança do saldo";
+                if (sourceButton) {
+                    sourceButton.disabled = false;
+                    sourceButton.textContent = "Gerar cobrança do saldo";
+                }
             }
         }
 
-        function sendBalancePaymentConfirmation() {
+        async function sendBalancePaymentConfirmation() {
             const id = document.getElementById("apptId").value;
             const appointment = allAppointments.find(function(item) {
                 return String(item.id) === String(id);
             });
+
+            await sendBalancePaymentConfirmationForAppointment(appointment);
+        }
+
+        async function sendBalancePaymentConfirmationForId(id) {
+            const appointment = allAppointments.find(function(item) {
+                return String(item.id) === String(id);
+            });
+
+            await sendBalancePaymentConfirmationForAppointment(appointment);
+        }
+
+        async function sendBalancePaymentConfirmationForAppointment(appointment) {
 
             if (!appointment) {
                 alert("Agendamento não encontrado.");
@@ -1248,10 +1373,26 @@ Valor total: ${appointment.valorTotal ? formatCurrency(appointment.valorTotal) :
 
 Obrigada por escolher a Hub da Diarista.`;
 
-            window.open(
-                `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
-                "_blank"
-            );
+            const whatsappWindow = window.open("about:blank", "_blank");
+
+            try {
+                await adminRequest("updateAppointment", {
+                    id: appointment.id,
+                    rowNumber: appointment.rowNumber,
+                    status: "Pagamento completo"
+                });
+
+                appointment.status = "Pagamento completo";
+                whatsappWindow.location.href =
+                    `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+                hideAppointmentForm();
+                await loadAppointmentsAdmin();
+                alert("A quitação foi registrada. A mensagem está pronta no WhatsApp.");
+            } catch (error) {
+                if (whatsappWindow) whatsappWindow.close();
+                alert("Não foi possível registrar a quitação agora.");
+            }
         }
 
         function confirmDeleteAppointment(id) {
@@ -1320,6 +1461,9 @@ function formatDateBR(d) {
         window.openAppointmentForm = openAppointmentForm;
         window.confirmDeleteAppointment = confirmDeleteAppointment;
         window.approveAppointment = approveAppointment;
+        window.sendAppointmentUpdate = sendAppointmentUpdate;
+        window.generateBalancePaymentForId = generateBalancePaymentForId;
+        window.sendBalancePaymentConfirmationForId = sendBalancePaymentConfirmationForId;
         window.sendCustomQuoteStatus = sendCustomQuoteStatus;
 
         calculateAndRenderBudget();
