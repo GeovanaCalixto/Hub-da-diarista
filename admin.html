@@ -4,706 +4,726 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Checkout - Hub da Diarista</title>
+    <title>Admin - Hub da Diarista</title>
     <link rel="icon" type="image/png" href="imagens/icon.png" />
     <link rel="stylesheet" href="hubdadiarista.css" />
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 </head>
 
-<body class="checkout-page">
-    <header class="checkout-top">
-        <div class="checkout-nav">
-            <a href="index.html">← Voltar ao agendamento</a>
-            <a href="regulamentos.html">Regulamentos</a>
+<body class="admin-page">
+    <header class="site-header">
+        <div class="header-content">
+            <a class="brand" href="index.html"><img src="imagens/Logotipo-hub.png" alt="Hub da Diarista" /></a>
+            <nav class="main-nav"><a href="index.html">Agendamento</a><a href="regulamentos.html">Regulamentos</a></nav>
+            <a class="header-button" href="#budgetForm">Gerar orçamento</a>
         </div>
     </header>
+    <main>
+        <section id="loginPanel" class="admin-login-card">
+            <h1>Painel administrativo</h1>
+            <p class="section-note">Acesso restrito para gerenciamento de agendamentos e orçamentos.</p>
 
-    <main class="checkout-main">
-        <div class="checkout-title">
-            <h1>Checkout do Agendamento</h1>
-            <p>Finalize a reserva com o pagamento antecipado de 40%.</p>
-        </div>
+            <form id="loginForm">
+                <label>
+                    E-mail
+                    <input id="adminEmail" type="email" autocomplete="username" placeholder="nome@email.com" required />
+                </label>
 
-        <section class="checkout-box">
-            <div class="checkout-left">
-                <div class="checkout-card pix-card">
-                    <h2>Pagamento seguro pelo Mercado Pago</h2>
-                    <p id="pixInstructions">Estamos preparando seu link de pagamento. Aguarde um instante.</p>
+                <label>
+                    Senha
+                    <input id="adminPassword" type="password" autocomplete="current-password" required />
+                </label>
 
-                    <button type="button" id="mercadoPagoPaymentButton" class="copy-pix-button" disabled>
-                        Preparando pagamento...
-                    </button>
-
-                    <p id="paymentStatusMessage" class="form-message active" aria-live="polite">
-                        Criando cobrança segura...
-                    </p>
-
-                    <p id="paymentCountdown" class="payment-countdown" aria-live="polite"></p>
-                </div>
-
-                <div class="checkout-benefits">
-                    <span>Profissionais verificadas</span>
-                    <span>Agendamento seguro</span>
-                    <span>Pagamento protegido</span>
-                </div>
-
-                <div class="checkout-policy">
-                    <strong>Regras de cancelamento</strong>
-                    <p>Cancelamentos realizados até 3 dias antes da data agendada terão o valor antecipado reembolsado.</p>
-                    <p>Após esse prazo, o valor antecipado será mantido como garantia do serviço reservado e não será reembolsado.</p>
-                </div>
-            </div>
-
-            <aside class="checkout-summary-card">
-                <h2>Resumo do pagamento</h2>
-                <div id="checkoutSummary" class="checkout-summary-list"></div>
-            </aside>
-
+                <button type="submit">Entrar</button>
+                <p id="loginMessage" class="form-message" aria-live="polite"></p>
+            </form>
         </section>
+
+        <div id="adminContent" class="admin-content hidden">
+            <section>
+                <div class="admin-title-row">
+                    <div>
+                        <h2>Acompanhamento dos agendamentos</h2>
+                        <p class="section-note">
+                            Acompanhe cada serviço desde o pagamento inicial até a quitação final.
+                        </p>
+                    </div>
+                </div>
+
+                <div id="pendingApprovals" class="status-carousel admin-history"></div>
+            </section>
+
+            <!-- GERENCIAR AGENDAMENTOS -->
+            <section>
+                <div class="admin-title-row">
+                    <div>
+                        <h2>Gerenciar agendamentos</h2>
+                        <p class="section-note">
+                            Adicione, edite, exclua ou bloqueie datas. As alterações sincronizam com o calendário e a planilha.
+                        </p>
+                    </div>
+
+                    <div class="admin-title-actions">
+                        <button type="button" id="blockDateButton" class="secondary">
+                            Bloquear data
+                        </button>
+
+                        <button type="button" id="reloadAppointmentsButton">
+                            Atualizar lista
+                        </button>
+                    </div>
+                </div>
+
+                <div id="appointmentFormPanel" class="admin-client-preview" style="display:none;">
+                    <h3 id="appointmentFormTitle">Novo agendamento</h3>
+
+                    <form id="appointmentFormAdmin">
+                        <input type="hidden" id="apptId" />
+                        <input type="hidden" id="apptRowNumber" />
+                        <input type="hidden" id="apptOriginalDate" />
+                        <input type="hidden" id="apptOriginalTime" />
+
+                        <label>
+                            Cliente
+                            <input id="apptClient" type="text" placeholder="Nome da cliente" required />
+                        </label>
+
+                        <label>
+                            WhatsApp
+                            <input id="apptWhatsapp" type="tel" placeholder="Ex: 11999999999" required />
+                        </label>
+
+                        <label>
+                            Serviço
+                            <select id="apptService" required>
+                                <option value="">Selecione</option>
+                                <option value="Apto/Casa até 40m²">Apto/Casa até 40m²</option>
+                                <option value="Apto/Casa de 40m² até 55m²">Apto/Casa de 40m² até 55m²</option>
+                                <option value="Apto/Casa de 55m² até 90m²">Apto/Casa de 55m² até 90m²</option>
+                                <option value="Apto/Casa de 90m² até 100m²">Apto/Casa de 90m² até 100m²</option>
+                                <option value="Apto/Casa acima de 150m²">Apto/Casa acima de 150m²</option>
+                                <option value="Pós-obras">Pós-obras</option>
+                                <option value="Orçamento personalizado">Orçamento personalizado</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Data do agendamento
+                            <input id="apptDate" type="date" required />
+                        </label>
+
+                        <label>
+                            Horário
+                            <select id="apptTime" required>
+                                <option value="">Selecione</option>
+                                <option value="06:00">06:00</option>
+                                <option value="07:00">07:00</option>
+                                <option value="08:00">08:00</option>
+                                <option value="dia-inteiro">Dia inteiro (bloqueio)</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Endereço
+                            <input id="apptAddress" type="text" placeholder="Rua, número e bairro" required />
+                        </label>
+
+                        <label>
+                            CEP
+                            <input id="apptCep" type="text" placeholder="Ex: 03200-000" />
+                        </label>
+
+                        <label>
+                            Região
+                            <select id="apptRegion">
+                                <option value="">Selecione</option>
+                                <option value="proxima">Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente
+                                </option>
+                                <option value="distante">Diadema, Santo Amaro ou Zona Sul</option>
+                                <option value="custom">Outra região</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Frequência / Tipo
+                            <select id="apptFrequency">
+                                <option value="Datas selecionadas">Datas selecionadas</option>
+                                <option value="Semanal">Semanal</option>
+                                <option value="Quinzenal">Quinzenal</option>
+                                <option value="Mensal">Mensal</option>
+                                <option value="Orçamento personalizado">Orçamento personalizado</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Observações
+                            <textarea id="apptNotes" placeholder="Ex: tenho pets, preferência de acesso..."></textarea>
+                        </label>
+
+                        <label>
+                            Status
+                            <select id="apptStatus">
+                                <option value="Aguardando confirmação">Aguardando confirmação</option>
+                                <option value="Pagamento aprovado - aguardando aprovação">Pagamento aprovado - aguardando aprovação</option>
+                                <option value="Serviço agendado">Serviço agendado</option>
+                                <option value="Serviço em andamento">Serviço em andamento</option>
+                                <option value="Serviço concluído">Serviço concluído</option>
+                                <option value="Serviço realizado — pagamento restante pendente">Serviço realizado — pagamento restante pendente</option>
+                                <option value="Pagamento completo — confirmação pendente">Pagamento completo — confirmação pendente</option>
+                                <option value="Pagamento completo">Pagamento completo</option>
+                                <option value="Pago">Pago</option>
+                                <option value="Não concluído">Não concluído</option>
+                                <option value="Indisponível">Indisponível (bloqueio)</option>
+                                <option value="Cancelado">Cancelado</option>
+                            </select>
+                        </label>
+
+                        <div class="admin-actions">
+                            <button type="submit" id="saveAppointmentButton">Salvar agendamento</button>
+                            <button type="button" id="generateBalancePaymentButton" class="secondary" style="display:none;">
+                                Gerar cobrança do saldo
+                            </button>
+                            <button type="button" id="sendBalancePaymentConfirmationButton" class="secondary" style="display:none;">
+                                Enviar confirmação de quitação
+                            </button>
+                            <button type="button" id="cancelAppointmentFormButton" class="secondary">Cancelar</button>
+                            <button type="button" id="deleteAppointmentButton" class="danger" style="display:none;">
+                                Excluir agendamento
+                            </button>
+                        </div>
+
+                        <p id="apptFormMessage" class="form-message" aria-live="polite"></p>
+                    </form>
+                </div>
+
+                <div class="status-header">
+                    <div>
+                        <h3>Agendamentos existentes</h3>
+                        <p class="section-note">
+                            Edite, exclua ou filtre os registros sem precisar entrar na planilha.
+                        </p>
+                    </div>
+
+                    <div class="status-controls">
+                        <button type="button" id="apptListPrev">&lsaquo;</button>
+                        <button type="button" id="apptListNext">&rsaquo;</button>
+                    </div>
+                </div>
+
+                <div class="appointment-filters">
+                    <label class="search-box">
+                        Buscar por nome ou informação
+                        <input id="apptSearch" type="search" placeholder="Nome, serviço, status ou endereço" />
+                    </label>
+
+                    <label>
+                        Data de
+                        <input id="apptDateFrom" type="date" />
+                    </label>
+
+                    <label>
+                        Data até
+                        <input id="apptDateTo" type="date" />
+                    </label>
+
+                    <button type="button" id="clearAppointmentFilters" class="secondary">
+                        Limpar filtros
+                    </button>
+                </div>
+
+                <div id="appointmentsList" class="status-carousel admin-history"></div>
+            </section>
+
+            <!-- ORÇAMENTOS PERSONALIZADOS (ORIGINAL) -->
+            <section>
+                <div class="admin-title-row">
+                    <div>
+                        <h1>Orçamentos personalizados</h1>
+                        <p class="section-note">Selecione uma solicitação, preencha os detalhes e gere o orçamento.</p>
+                    </div><button type="button" id="reloadRequestsButton">Atualizar lista</button>
+                </div>
+                <label>Solicitação da cliente<select id="quoteRequestSelect">
+                        <option value="">Carregando solicitações...</option>
+                    </select></label>
+                <div id="clientPreview" class="admin-client-preview">Nenhuma solicitação selecionada.</div>
+            </section>
+
+            <section>
+                <h2>Gerador de orçamento</h2>
+                <form id="budgetForm" class="admin-grid-form">
+                    <label>Tipo de serviço base<select id="budgetServiceType" required>
+                            <option value="residencial">Limpeza Residencial Personalizada</option>
+                            <option value="posobra">Limpeza Pós-Obra</option>
+                        </select></label>
+                    <label>Tamanho do local em m²<input id="squareMeters" type="number" min="1" step="1"
+                            placeholder="Ex: 120" required /></label>
+                    <label>Logística de produtos<select id="productKit" required>
+                            <option value="0">Cliente fornece os produtos - R$ 0,00</option>
+                            <option value="180">Kit 2 - Padrão Residencial Grande - R$ 180,00</option>
+                            <option value="300">Kit 1 - Padrão Pós-Obra - R$ 300,00</option>
+                        </select></label>
+                    <label>Quantidade de eletrodomésticos internos<input id="appliances" type="number" min="0" step="1"
+                            value="0" /></label>
+                    <label>Desconto em R$<input id="discount" type="number" min="0" step="0.01" value="0" /></label>
+                    <label>Status do orçamento<select id="quoteStatus" required>
+                            <option>Orçamento solicitado</option>
+                            <option>Orçamento em análise</option>
+                            <option>Orçamento enviado para cliente</option>
+                            <option>Orçamento enviado - aguardando pagamento</option>
+                            <option>Aguardando retorno da cliente</option>
+                            <option>Aguardando confirmação do orçamento</option>
+                            <option>Orçamento aprovado</option>
+                            <option>Orçamento recusado</option>
+                            <option>Serviço agendado</option>
+                            <option>Serviço finalizado</option>
+                            <option>Pagamento realizado</option>
+                        </select></label>
+                    <label class="admin-check"><input id="furnished" type="checkbox" /> Imóvel mobiliado/com móveis
+                        (+15%)</label>
+                    <label class="admin-check"><input id="rubble" type="checkbox" /> Presença de entulho/lixo pesado
+                        (+R$ 80,00)</label>
+                    <label class="admin-full">Observações do orçamento<textarea id="budgetNotes"
+                            placeholder="Ex: detalhes combinados com a cliente..."></textarea></label>
+                    <label class="admin-full">Condições do orçamento<textarea id="budgetConditions"
+                            placeholder="Ex: orçamento válido por 7 dias. Reserva de 40% para confirmação. Saldo no dia do serviço."></textarea></label>
+                </form>
+            </section>
+
+            <section class="admin-budget-layout">
+                <div class="checkout-card pix-card">
+                    <h2>Pagamento da reserva</h2>
+                    <p>Depois de salvar o orçamento, gere uma cobrança individual do Mercado Pago para a cliente.</p>
+                    <p id="quotePaymentMessage" class="form-message active">A cobrança será vinculada a este orçamento e à reserva de 40%.</p>
+                </div>
+                <aside class="checkout-summary-card admin-summary">
+                    <h2>Resumo do orçamento</h2>
+                    <div id="budgetSummary" class="checkout-summary-list"></div><button type="button" id="saveBudgetButton">Salvar orçamento</button><button type="button" id="sendBudgetButton">Gerar link e abrir WhatsApp</button><button type="button" id="printBudgetButton">Gerar PDF / imprimir</button>
+                </aside>
+            </section>
+
+            <section>
+                <div class="status-header">
+                    <div>
+                        <h2>Histórico de orçamentos personalizados</h2>
+                        <p class="section-note">Use a busca para encontrar orçamento por cliente, serviço, data, status ou valor.</p>
+                    </div>
+                    <div class="status-controls"><button type="button" id="historyPrev">&lsaquo;</button><button type="button" id="historyNext">&rsaquo;</button></div>
+                </div>
+                <label class="search-box">Buscar orçamento<input id="historySearch" type="search"
+                        placeholder="Digite nome, serviço, data, status ou valor" /></label>
+                <div id="quotesHistory" class="status-carousel admin-history"></div>
+            </section>
+        </div>
     </main>
 
     <script>
         const apiUrl = "https://script.google.com/macros/s/AKfycbyo-_RD8L9wT4-mpDZSV9_OB5xlAWo_qBKcTamrvGNgCaB4IF6O8k1LED24nW0B7lxh/exec";
 
-        const checkoutSummary = document.getElementById("checkoutSummary");
-        const mercadoPagoPaymentButton = document.getElementById("mercadoPagoPaymentButton");
-        const pixInstructions = document.getElementById("pixInstructions");
-        const paymentStatusMessage = document.getElementById("paymentStatusMessage");
-        const paymentCountdown = document.getElementById("paymentCountdown");
+        const firebaseConfig = {
+            apiKey: "AIzaSyCan31dyjIwP4ni22IDOqC0VD5jiW2vnwk",
+            authDomain: "hub-da-diarista.firebaseapp.com",
+            projectId: "hub-da-diarista",
+            storageBucket: "hub-da-diarista.firebasestorage.app",
+            messagingSenderId: "262676996933",
+            appId: "1:262676996933:web:265d1b4f99e08392f5542c"
+        };
 
-        const pendingAppointments = JSON.parse(
-            sessionStorage.getItem("pendingAppointments") || "[]"
-        );
+        firebase.initializeApp(firebaseConfig);
 
-        const paymentFingerprint = pendingAppointments
-            .map(function(appointment) {
-                return `${appointment.id}-${appointment.date}`;
-            })
-            .join("|");
+        const firebaseAuth = firebase.auth();
 
-        let paymentRecord = null;
-        let paymentInterval = null;
-        let countdownInterval = null;
+        const quoteStatusOptions = [
+            "Orçamento solicitado",
+            "Orçamento em análise",
+            "Orçamento enviado para cliente",
+            "Orçamento enviado - aguardando pagamento",
+            "Aguardando retorno da cliente",
+            "Aguardando confirmação do orçamento",
+            "Orçamento aprovado",
+            "Orçamento recusado",
+            "Serviço agendado",
+            "Serviço finalizado",
+            "Pagamento realizado"
+        ];
 
-        if (pendingAppointments.length === 0) {
-            checkoutSummary.innerHTML = `
-                <p>Nenhum agendamento pendente encontrado.</p>
-                <p>Volte para a página de agendamento e escolha as datas novamente.</p>
-            `;
+        const loginPanel = document.getElementById("loginPanel");
+        const adminContent = document.getElementById("adminContent");
+        const loginForm = document.getElementById("loginForm");
+        const loginMessage = document.getElementById("loginMessage");
 
-            setPaymentMessage(
-                "Nenhum agendamento pendente foi encontrado.",
-                "error"
-            );
-        } else {
-            initializeCheckout();
-        }
+        let adminStarted = false;
 
-        mercadoPagoPaymentButton.addEventListener("click", openMercadoPagoPayment);
+        loginForm.addEventListener("submit", async function(event) {
+            event.preventDefault();
 
-        async function initializeCheckout() {
-            const savedPayment = getSavedPayment();
+            const email = document.getElementById("adminEmail").value.trim();
+            const password = document.getElementById("adminPassword").value;
 
-            if (
-                savedPayment &&
-                savedPayment.fingerprint === paymentFingerprint &&
-                savedPayment.expiresAt &&
-                new Date(savedPayment.expiresAt).getTime() > Date.now()
-            ) {
-                paymentRecord = savedPayment;
-                renderCheckout(paymentRecord.payment);
-                showMercadoPagoPayment();
-                checkPaymentStatus(false);
-                startPaymentPolling();
-                return;
-            }
-
-            await createMercadoPagoPayment();
-        }
-
-        async function createMercadoPagoPayment() {
-            mercadoPagoPaymentButton.disabled = true;
-            mercadoPagoPaymentButton.textContent = "Preparando pagamento...";
-
-            setPaymentMessage(
-                "Criando uma reserva temporária para suas datas.",
-                "loading"
-            );
+            loginMessage.textContent = "Verificando acesso...";
+            loginMessage.className = "form-message active";
 
             try {
-                const firstAppointment = pendingAppointments[0];
-
-                const response = await fetch(apiUrl, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "text/plain;charset=utf-8"
-                    },
-                    body: JSON.stringify({
-                        action: "createMercadoPagoPayment",
-                        appointments: pendingAppointments,
-                        customer: {
-                            name: firstAppointment.client,
-                            whatsapp: firstAppointment.whatsapp,
-                            email: firstAppointment.email,
-                            cpf: firstAppointment.cpf
-                        }
-                    })
-                });
-
-                const data = await response.json();
-
-                if (!data.success) {
-                    throw new Error(
-                        data.message || "Não foi possível criar o pagamento."
-                    );
-                }
-
-                paymentRecord = {
-                    fingerprint: paymentFingerprint,
-                    ticket: data.ticket,
-                    paymentLink: data.paymentLink,
-                    expiresAt: data.expiresAt,
-                    payment: data.payment,
-                    paid: false
-                };
-
-                sessionStorage.setItem(
-                    "mercadoPagoPayment",
-                    JSON.stringify(paymentRecord)
-                );
-
-                renderCheckout(paymentRecord.payment);
-                showMercadoPagoPayment();
-
-                setPaymentMessage(
-                    "Link criado. Sua reserva fica separada por 1 hora enquanto aguardamos o pagamento.",
-                    "success"
-                );
-
-                hideConfirmButton();
-                startPaymentPolling();
+                await firebaseAuth.signInWithEmailAndPassword(email, password);
             } catch (error) {
-                console.error(error);
-
-                setPaymentMessage(
-                    error.message || "Não foi possível criar o pagamento. Tente novamente.",
-                    "error"
-                );
-
-                mercadoPagoPaymentButton.disabled = false;
-                mercadoPagoPaymentButton.textContent = "Tentar gerar pagamento";
+                loginMessage.textContent = "E-mail ou senha inválidos.";
+                loginMessage.className = "form-message active";
             }
-        }
+        });
 
-        function getSavedPayment() {
-            try {
-                return JSON.parse(
-                    sessionStorage.getItem("mercadoPagoPayment") || "null"
-                );
-            } catch (error) {
-                return null;
-            }
-        }
-
-        function showMercadoPagoPayment() {
-            if (!paymentRecord) {
-                return;
-            }
-
-            pixInstructions.textContent =
-                "Clique abaixo para pagar pelo checkout seguro do Mercado Pago. Aceita Pix, cartão e os meios disponíveis no Mercado Pago.";
-
-            mercadoPagoPaymentButton.disabled = !paymentRecord.paymentLink;
-            mercadoPagoPaymentButton.textContent = "Ir para pagamento seguro";
-        }
-
-        function renderCheckout(payment) {
-            const firstAppointment = pendingAppointments[0];
-
-            checkoutSummary.innerHTML = `
-                <p><b>Cliente:</b> ${firstAppointment.client}</p>
-                <p><b>WhatsApp:</b> ${firstAppointment.whatsapp}</p>
-                <p><b>Serviço:</b> ${getPropertyLabel(firstAppointment.propertyType)}</p>
-                <p><b>Quantidade de data(s):</b> ${payment.quantity}</p>
-                <p><b>Transporte estimado:</b> ${formatCurrency(payment.transportTotal)}</p>
-
-                <hr>
-
-                <p class="summary-line">
-                    <span>Valor total:</span>
-                    <strong>${formatCurrency(payment.total)}</strong>
-                </p>
-
-                <p class="summary-line reserve">
-                    <span>40% antecipado:</span>
-                    <strong>${formatCurrency(payment.reservation)}</strong>
-                </p>
-
-                <p class="summary-line pay-now">
-                    <span>Valor a pagar agora:</span>
-                    <strong>${formatCurrency(payment.reservation)}</strong>
-                </p>
-
-                <p class="summary-balance">
-                    Após o serviço integralmente realizado, pagar:<br>
-                    <strong>${formatCurrency(payment.balance)}</strong>
-                </p>
-
-                <hr>
-
-                <p>
-                    <b>Datas:</b><br>
-                    ${pendingAppointments.map(function (appointment) {
-                        return `• ${formatDate(appointment.date)} às ${formatTime(appointment.time)}`;
-                    }).join("<br>")}
-                </p>
-            `;
-        }
-
-        async function handleConfirmButton() {
-            if (!paymentRecord) {
-                await createMercadoPagoPayment();
-                return;
-            }
-
-            if (paymentRecord.paid) {
-                completeConfirmedBooking();
-                return;
-            }
-
-            setButtonLoading(true, "Verificando pagamento...");
-            await checkPaymentStatus(true);
-        }
-
-        async function checkPaymentStatus(showWaitingMessage) {
-            if (!paymentRecord || !paymentRecord.ticket) {
+        firebaseAuth.onAuthStateChanged(async function(user) {
+            if (!user) {
+                adminContent.classList.add("hidden");
+                loginPanel.classList.remove("hidden");
                 return;
             }
 
             try {
-                const response = await fetch(
-                    `${apiUrl}?action=getPaymentStatus&ticket=${encodeURIComponent(paymentRecord.ticket)}&t=${Date.now()}`,
-                    {
-                        cache: "no-store"
-                    }
-                );
+                await adminRequest("getAdminAppointments");
 
-                const data = await response.json();
+                loginPanel.classList.add("hidden");
+                adminContent.classList.remove("hidden");
 
-                if (data.paid || data.status === "Pago") {
-                    paymentRecord.paid = true;
-
-                    sessionStorage.setItem(
-                        "mercadoPagoPayment",
-                        JSON.stringify(paymentRecord)
-                    );
-
-                    stopPaymentPolling();
-
-                    sessionStorage.removeItem("pendingAppointments");
-                    sessionStorage.removeItem("mercadoPagoPayment");
-
-                    mercadoPagoPaymentButton.disabled = true;
-                    mercadoPagoPaymentButton.textContent = "Pagamento identificado";
-
-                    setPaymentMessage(
-                        "Pagamento identificado com sucesso. Seu agendamento foi recebido e registrado. A confirmação dos detalhes será enviada pelo WhatsApp.",
-                        "success"
-                    );
-
-                    paymentCountdown.textContent = "";
-                    return;
+                if (!adminStarted) {
+                    adminStarted = true;
+                    loadCustomQuoteRequests();
+                    loadAppointmentsAdmin();
                 }
-
-                if (
-                    data.status === "Expirado" ||
-                    data.status === "Cancelado" ||
-                    data.status === "Conflito de agenda"
-                ) {
-                    stopPaymentPolling();
-
-                    setPaymentMessage(
-                        data.message ||
-                        `Esta reserva está com o status: ${data.status}. Volte e escolha suas datas novamente.`,
-                        "error"
-                    );
-
-                    mercadoPagoPaymentButton.disabled = true;
-                    return;
-                }
-
-                if (showWaitingMessage) {
-                    setPaymentMessage(
-                        "O pagamento ainda não foi identificado. Após pagar, aguarde alguns segundos.",
-                        "loading"
-                    );
-                }
-
-                hideConfirmButton();
             } catch (error) {
-                console.error(error);
+                await firebaseAuth.signOut();
 
-                if (showWaitingMessage) {
-                    setPaymentMessage(
-                        "Não foi possível consultar o pagamento agora. Aguarde alguns segundos.",
-                        "error"
-                    );
-                }
-
-                hideConfirmButton();
+                loginMessage.textContent =
+                    "Este e-mail não possui autorização para acessar o painel.";
+                loginMessage.className = "form-message active";
             }
-        }
+        });
 
-        function showConfirmButton() {}
+        async function adminRequest(action, payload = {}) {
+            const user = firebaseAuth.currentUser;
 
-        function hideConfirmButton() {}
-
-        function updatePaymentCountdown() {
-            if (!paymentRecord || !paymentRecord.expiresAt) {
-                paymentCountdown.textContent = "";
-                return;
+            if (!user) {
+                throw new Error("Faça login para continuar.");
             }
 
-            const remaining =
-                new Date(paymentRecord.expiresAt).getTime() - Date.now();
+            const adminToken = await user.getIdToken();
 
-            if (remaining <= 0) {
-                paymentCountdown.textContent =
-                    "Este link de pagamento expirou.";
-
-                setPaymentMessage(
-                    "O prazo de pagamento terminou e a reserva foi liberada.",
-                    "error"
-                );
-
-                sessionStorage.removeItem("mercadoPagoPayment");
-                hideConfirmButton();
-                mercadoPagoPaymentButton.disabled = true;
-                stopPaymentPolling();
-                return;
-            }
-
-            const minutes = Math.floor(remaining / 60000);
-            const seconds = Math.floor((remaining % 60000) / 1000);
-
-            paymentCountdown.textContent =
-                `Esta reserva vence em ${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.`;
-        }
-
-        function startPaymentPolling() {
-            stopPaymentPolling();
-
-            paymentInterval = setInterval(function () {
-                checkPaymentStatus(false);
-            }, 10000);
-
-            updatePaymentCountdown();
-
-            countdownInterval = setInterval(function () {
-                updatePaymentCountdown();
-            }, 1000);
-        }
-
-        function stopPaymentPolling() {
-            if (paymentInterval) {
-                clearInterval(paymentInterval);
-                paymentInterval = null;
-            }
-
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-                countdownInterval = null;
-            }
-        }
-
-        function completeConfirmedBooking() {
-            if (!paymentRecord || !paymentRecord.paid) {
-                return;
-            }
-
-            const firstAppointment = pendingAppointments[0];
-            const payment = paymentRecord.payment;
-            const ticket = paymentRecord.ticket;
-
-            const datesText = pendingAppointments
-                .map(function (appointment) {
-                    return `- ${formatDate(appointment.date)} às ${formatTime(appointment.time)}`;
+            const response = await fetch(apiUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
+                body: JSON.stringify({
+                    ...payload,
+                    action: action,
+                    adminToken: adminToken
                 })
-                .join("\n");
+            });
 
-            const message = `
-Olá! Pagamento Mercado Pago identificado e agendamento confirmado:
+            const data = await response.json();
 
-Ticket: ${ticket}
-Status: Serviço agendado
+            if (!data.success) {
+                throw new Error(data.message || "Ação não autorizada.");
+            }
 
-Cliente: ${firstAppointment.client}
-WhatsApp da cliente: ${firstAppointment.whatsapp}
-Serviço: ${firstAppointment.service}
-CEP: ${firstAppointment.cep}
-Região: ${getRegionLabel(firstAppointment.region)}
-
-Datas confirmadas:
-${datesText}
-
-Endereço: ${firstAppointment.address}
-Observações: ${firstAppointment.notes || "Nenhuma"}
-
-Valor total: ${formatCurrency(payment.total)}
-Reserva de 40% confirmada: ${formatCurrency(payment.reservation)}
-Saldo no dia: ${formatCurrency(payment.balance)}
-Transporte estimado: ${formatCurrency(payment.transportTotal)}
-            `;
-
-            window.open(
-                `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`,
-                "_blank"
-            );
-
-            sessionStorage.removeItem("pendingAppointments");
-            sessionStorage.removeItem("mercadoPagoPayment");
-
-            alert("Agendamento confirmado com sucesso.");
-            window.location.href = "index.html";
+            return data;
         }
 
-        function openMercadoPagoPayment() {
-            if (!paymentRecord || !paymentRecord.paymentLink) {
-                createMercadoPagoPayment();
+        // ORÇAMENTOS (ORIGINAL)
+        const quoteRequestSelect = document.getElementById("quoteRequestSelect"),
+            clientPreview = document.getElementById("clientPreview"),
+            budgetSummary = document.getElementById("budgetSummary"),
+            quotesHistory = document.getElementById("quotesHistory"),
+            historySearchInput = document.getElementById("historySearch"),
+            historyPrevButton = document.getElementById("historyPrev"),
+            historyNextButton = document.getElementById("historyNext"),
+            reloadRequestsButton = document.getElementById("reloadRequestsButton"),
+            quotePaymentMessage = document.getElementById("quotePaymentMessage"),
+            saveBudgetButton = document.getElementById("saveBudgetButton"),
+            sendBudgetButton = document.getElementById("sendBudgetButton"),
+            printBudgetButton = document.getElementById("printBudgetButton"),
+            budgetInputs = ["budgetServiceType", "squareMeters", "productKit", "appliances", "discount", "quoteStatus", "furnished", "rubble", "budgetNotes", "budgetConditions"];
+        let quoteRequests = [],
+            selectedQuote = null,
+            currentBudget = null;
+        reloadRequestsButton.addEventListener("click", loadCustomQuoteRequests);
+        historySearchInput.addEventListener("input", renderHistory);
+        historyPrevButton.addEventListener("click", () => quotesHistory.scrollBy({
+            left: -320,
+            behavior: "smooth"
+        }));
+        historyNextButton.addEventListener("click", () => quotesHistory.scrollBy({
+            left: 320,
+            behavior: "smooth"
+        }));
+        quoteRequestSelect.addEventListener("change", () => {
+            selectedQuote = quoteRequests.find(i => String(i.id) === String(quoteRequestSelect.value)) || null;
+            fillSelectedQuote();
+            calculateAndRenderBudget();
+        });
+        budgetInputs.forEach(id => {
+            const el = document.getElementById(id);
+            el.addEventListener("input", calculateAndRenderBudget);
+            el.addEventListener("change", calculateAndRenderBudget);
+        });
+        saveBudgetButton.addEventListener("click", saveBudget);
+        sendBudgetButton.addEventListener("click", sendBudgetToWhatsApp);
+        printBudgetButton.addEventListener("click", printCustomQuote);
+
+        async function loadCustomQuoteRequests() {
+            quoteRequestSelect.innerHTML =
+                `<option value="">Carregando solicitações...</option>`;
+
+            try {
+                const data = await adminRequest("getCustomQuoteRequests");
+
+                quoteRequests = data.requests || [];
+                renderQuoteOptions();
+                renderHistory();
+            } catch (error) {
+                quoteRequestSelect.innerHTML =
+                    `<option value="">Não foi possível carregar solicitações.</option>`;
+            }
+        }
+
+        function renderQuoteOptions() {
+            if (!quoteRequests.length) {
+                quoteRequestSelect.innerHTML = `<option value="">Nenhuma solicitação encontrada.</option>`;
                 return;
             }
-
-            window.open(paymentRecord.paymentLink, "_blank", "noopener");
-
-            setPaymentMessage(
-                "Pagamento aberto em uma nova aba. Depois de pagar, volte aqui: a confirmação acontece automaticamente.",
-                "loading"
-            );
-        }
-
-        function setButtonLoading(loading, text) {
-            confirmPaymentButton.disabled = loading;
-            confirmPaymentButton.classList.toggle("is-loading", loading);
-            confirmPaymentButton.textContent = text;
-        }
-
-        function setPaymentMessage(message, type) {
-            paymentStatusMessage.textContent = message;
-            paymentStatusMessage.className = "form-message active";
-
-            if (type === "success") {
-                paymentStatusMessage.style.color = "#16875a";
-            } else if (type === "error") {
-                paymentStatusMessage.style.color = "#b42318";
-            } else {
-                paymentStatusMessage.style.color = "";
-            }
-        }
-
-        function getPropertyLabel(propertyType) {
-            if (propertyType === "ate40") return "Apto/Casa até 40m²";
-            if (propertyType === "ate55") return "Apto/Casa de 40m² até 55m²";
-            if (propertyType === "ate90") return "Apto/Casa de 55m² até 90m²";
-            if (propertyType === "ate100") return "Apto/Casa de 90m² até 100m²";
-            if (propertyType === "acima150") return "Apto/Casa acima de 150m²";
-            if (propertyType === "posobra") return "Pós-obras";
-
-            return "Não informado";
-        }
-
-        function getRegionLabel(region) {
-            if (region === "proxima") {
-                return "Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente";
-            }
-
-            if (region === "distante") {
-                return "Diadema, Santo Amaro ou Zona Sul";
-            }
-
-            return "Outra região - confirmar pelo WhatsApp";
-        }
-
-        function formatDate(date) {
-            if (!date) return "";
-
-            const textDate = String(date);
-            const onlyDate = textDate.includes("T")
-                ? textDate.split("T")[0]
-                : textDate;
-
-            const parsedDate = new Date(onlyDate + "T00:00:00");
-
-            return isNaN(parsedDate.getTime())
-                ? textDate
-                : parsedDate.toLocaleDateString("pt-BR");
-        }
-
-        function formatTime(time) {
-            if (!time) return "";
-
-            const textTime = String(time).trim();
-
-            return textTime.includes(":")
-                ? textTime.slice(0, 5)
-                : textTime;
-        }
-
-        function formatCurrency(value) {
-            return Number(value || 0).toLocaleString("pt-BR", {
-                style: "currency",
-                currency: "BRL"
+            quoteRequestSelect.innerHTML = `<option value="">Selecione uma cliente</option>`;
+            quoteRequests.slice().reverse().forEach(item => {
+                quoteRequestSelect.innerHTML += `<option value="${item.id}">${item.cliente || "Cliente"} - ${item.servico || "Serviço"} - ${item.statusOrcamento || item.status || "Aguardando orçamento"}</option>`;
             });
         }
-    </script>
-</body>
 
-</html> balance: bal, statusOrcamento: statusOrc, conditions: cond }; } async function saveBudget(options = {}) { if (!selectedQuote) { alert("Selecione uma solicitação antes de salvar."); return; } calculateAndRenderBudget(); try { await adminRequest("saveCustomQuoteResult",
-{ id: selectedQuote.id, status: currentBudget.statusOrcamento, statusOrcamento: currentBudget.statusOrcamento, metragem: currentBudget.squareMeters, produtos: getProductKitLabel(currentBudget.productKit), mobiliado: currentBudget.furnished ? "Sim" : "Não",
-entulho: currentBudget.rubble ? "Sim" : "Não", qtdEletrodomesticos: currentBudget.appliances, valorBruto: currentBudget.grossValue, acrescimos: currentBudget.additions, desconto: currentBudget.discount, valorTotal: currentBudget.total, reserva: currentBudget.reservation,
-saldo: currentBudget.balance, condicoesOrcamento: currentBudget.conditions, dataOrcamento: new Date().toLocaleString("pt-BR") }); selectedQuote.status = currentBudget.statusOrcamento; selectedQuote.statusOrcamento = currentBudget.statusOrcamento; selectedQuote.desconto
-= currentBudget.discount; selectedQuote.condicoesOrcamento = currentBudget.conditions; selectedQuote.valorTotal = currentBudget.total; selectedQuote.reserva = currentBudget.reservation; selectedQuote.saldo = currentBudget.balance; renderHistory(); if
-(!options.silent) { alert("Orçamento salvo na planilha."); } return true; } catch (error) { alert("Não foi possível salvar o orçamento. Faça login novamente e tente."); return false; } } async function sendBudgetToWhatsApp() { if (!selectedQuote || !currentBudget)
-{ alert("Selecione uma solicitação e gere o orçamento primeiro."); return; } const phone = formatWhatsAppNumber(selectedQuote.whatsapp); if (!phone) { alert("WhatsApp da cliente não encontrado."); return; } const whatsappWindow = window.open("about:blank",
-"_blank"); sendBudgetButton.disabled = true; sendBudgetButton.textContent = "Gerando link..."; try { const wasSaved = await saveBudget({ silent: true }); if (!wasSaved) { if (whatsappWindow) whatsappWindow.close(); return; } const result = await adminRequest("createCustomQuoteMercadoPagoPayment",
-{ id: selectedQuote.id }); const discountText = currentBudget.discount > 0 ? `Desconto aplicado: ${formatCurrency(currentBudget.discount)}\n` : ""; const conditionsText = currentBudget.conditions ? `\nCondições do orçamento:\n${currentBudget.conditions}\n`
-: ""; const message = `Olá, ${selectedQuote.cliente}! Segue o orçamento personalizado:\n\nServiço: ${getServiceLabel(currentBudget.serviceType)}\nDatas solicitadas: ${selectedQuote.datasSolicitadas || "-"}\nMetragem considerada: ${currentBudget.squareMeters}m²\n\nValor
-antes do desconto: ${formatCurrency(currentBudget.totalBeforeDiscount)}\n${discountText}Valor total: ${formatCurrency(currentBudget.total)}\nReserva de 40%: ${formatCurrency(currentBudget.reservation)}\nSaldo após conclusão do serviço: ${formatCurrency(currentBudget.balance)}\n\nDetalhes:\n-
-Produtos: ${getProductKitLabel(currentBudget.productKit)}\n- Imóvel mobiliado: ${currentBudget.furnished ? "Sim" : "Não"}\n- Entulho/lixo pesado: ${currentBudget.rubble ? "Sim" : "Não"}\n- Eletrodomésticos internos: ${currentBudget.appliances}${conditionsText}\nPague
-a reserva com segurança pelo Mercado Pago:\n${result.paymentLink}\n\nEste link fica disponível por 7 dias. Após a confirmação do pagamento, o agendamento seguirá para aprovação.`; selectedQuote.status = "Orçamento enviado - aguardando pagamento"; selectedQuote.statusOrcamento
-= "Orçamento enviado - aguardando pagamento"; document.getElementById("quoteStatus").value = selectedQuote.statusOrcamento; quotePaymentMessage.textContent = result.reused ? "A cobrança anterior ainda está válida. A mensagem foi aberta novamente." : "Cobrança
-Mercado Pago criada e vinculada ao orçamento."; renderHistory(); whatsappWindow.location.href = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`; } catch (error) { if (whatsappWindow) whatsappWindow.close(); alert(error.message || "Não foi
-possível criar a cobrança do orçamento."); } finally { sendBudgetButton.disabled = false; sendBudgetButton.textContent = "Gerar link e abrir WhatsApp"; } } function printCustomQuote() { if (!selectedQuote || !currentBudget) { alert("Selecione uma solicitação
-e gere o orçamento antes de imprimir."); return; } const printWindow = window.open("", "_blank"); if (!printWindow) { alert("O navegador bloqueou a janela de impressão. Permita pop-ups e tente novamente."); return; } const escapeHtml = function(value)
-{ return String(value || "-") .replace(/&/g, "&amp;") .replace(/
-</g, "&lt;") .replace(/>/g, "&gt;") .replace(/\"/g, "&quot;") .replace(/'/g, "&#039;"); }; const formatMultiline = function(value) { return escapeHtml(value).replace(/\n/g, "<br>"); }; const issueDate = new Date().toLocaleDateString("pt-BR"); const discountLine = currentBudget.discount
-> 0 ? `
-<tr>
-    <td>Desconto</td>
-    <td>- ${formatCurrency(currentBudget.discount)}</td>
-</tr>` : ""; printWindow.document.write(`
+        function fillSelectedQuote() {
+            if (!selectedQuote) {
+                clientPreview.innerHTML = "Nenhuma solicitação selecionada.";
+                return;
+            }
+            const st = String(selectedQuote.servico || "").toLowerCase().includes("pós") ? "posobra" : "residencial";
+            document.getElementById("budgetServiceType").value = st;
+            document.getElementById("quoteStatus").value = selectedQuote.statusOrcamento || selectedQuote.status || "Orçamento solicitado";
+            document.getElementById("discount").value = selectedQuote.desconto || 0;
+            document.getElementById("budgetConditions").value = selectedQuote.condicoesOrcamento || "";
+            document.getElementById("squareMeters").value = selectedQuote.metragem || "";
+            document.getElementById("furnished").checked = selectedQuote.mobiliado === "Sim";
+            document.getElementById("rubble").checked = selectedQuote.entulho === "Sim";
+            document.getElementById("appliances").value = selectedQuote.qtdEletrodomesticos || 0;
+            document.getElementById("productKit").value = getProductKitValue(selectedQuote.produtos);
+            clientPreview.innerHTML = `<strong>${selectedQuote.cliente || "Cliente"}</strong><span>Ticket: ${selectedQuote.ticket || "-"}</span><span>WhatsApp: ${selectedQuote.whatsapp || "-"}</span><span>Serviço solicitado: ${selectedQuote.servico || "-"}</span><span>Datas: ${selectedQuote.datasSolicitadas || "-"}</span><span>Endereço: ${selectedQuote.endereco || "-"}</span><span>CEP: ${selectedQuote.cep || "-"}</span><span>Região: ${selectedQuote.regiao || "-"}</span><span>Metragem informada: ${selectedQuote.metragem || "-"}</span><span>Produtos: ${selectedQuote.produtos || "-"}</span><span>Imóvel mobiliado: ${selectedQuote.mobiliado || "-"}</span><span>Entulho/lixo pesado: ${selectedQuote.entulho || "-"}</span><span>Eletrodomésticos: ${selectedQuote.qtdEletrodomesticos || "0"}</span><span>Fotos ou vídeo: ${selectedQuote.fotosVideo || "-"}</span><span>Status do orçamento: ${selectedQuote.statusOrcamento || selectedQuote.status || "Aguardando orçamento"}</span><span>Observações: ${selectedQuote.observacoes || "-"}</span>`;
+        }
 
-<!DOCTYPE html>
+        function calculateAndRenderBudget() {
+            const r = calculateBudget();
+            currentBudget = r;
+            budgetSummary.innerHTML = `<p><b>Tipo:</b> ${getServiceLabel(r.serviceType)}</p><p><b>Metragem:</b> ${r.squareMeters}m²</p><p><b>Valor por m²:</b> ${formatCurrency(r.pricePerMeter)}</p><p><b>Status:</b> ${r.statusOrcamento}</p><hr><p class="summary-line"><span>Valor bruto:</span> <strong>${formatCurrency(r.grossValue)}</strong></p><p class="summary-line"><span>Acréscimo mobiliado:</span> <strong>${formatCurrency(r.furnishedFee)}</strong></p><p class="summary-line"><span>Entulho/lixo pesado:</span> <strong>${formatCurrency(r.rubbleFee)}</strong></p><p class="summary-line"><span>Eletrodomésticos:</span> <strong>${formatCurrency(r.appliancesFee)}</strong></p><p class="summary-line"><span>Produtos:</span> <strong>${formatCurrency(r.productKit)}</strong></p><p class="summary-line"><span>Desconto:</span> <strong>${formatCurrency(r.discount)}</strong></p><hr><p class="summary-line"><span>Valor antes do desconto:</span> <strong>${formatCurrency(r.totalBeforeDiscount)}</strong></p><p class="summary-line"><span>Valor total:</span> <strong>${formatCurrency(r.total)}</strong></p><p class="summary-line reserve"><span>40% antecipado:</span> <strong>${formatCurrency(r.reservation)}</strong></p><p class="summary-line pay-now"><span>Valor para reserva:</span> <strong>${formatCurrency(r.reservation)}</strong></p><p class="summary-balance">Saldo após conclusão:<br><strong>${formatCurrency(r.balance)}</strong></p><hr><p><b>Condições:</b><br>${r.conditions || "-"}</p>`;
+        }
+
+        function calculateBudget() {
+            const st = document.getElementById("budgetServiceType").value,
+                sm = Number(document.getElementById("squareMeters").value || 0),
+                pk = Number(document.getElementById("productKit").value || 0),
+                furn = document.getElementById("furnished").checked,
+                rub = document.getElementById("rubble").checked,
+                app = Number(document.getElementById("appliances").value || 0),
+                disc = Math.max(Number(document.getElementById("discount").value || 0), 0),
+                statusOrc = document.getElementById("quoteStatus").value,
+                cond = document.getElementById("budgetConditions").value.trim(),
+                ppm = st === "posobra" ? 15.50 : 8.50,
+                gv = sm * ppm,
+                ff = furn ? gv * 0.15 : 0,
+                rf = rub ? 80 : 0,
+                af = app * 30,
+                add = ff + rf + af + pk,
+                tbd = gv + add,
+                tot = Math.max(tbd - disc, 0),
+                res = tot * 0.4,
+                bal = tot - res;
+            return {
+                serviceType: st,
+                squareMeters: sm,
+                pricePerMeter: ppm,
+                productKit: pk,
+                furnished: furn,
+                rubble: rub,
+                appliances: app,
+                grossValue: gv,
+                furnishedFee: ff,
+                rubbleFee: rf,
+                appliancesFee: af,
+                additions: add,
+                discount: disc,
+                totalBeforeDiscount: tbd,
+                total: tot,
+                reservation: res,
+                balance: bal,
+                statusOrcamento: statusOrc,
+                conditions: cond
+            };
+        }
+        async function saveBudget(options = {}) {
+            if (!selectedQuote) {
+                alert("Selecione uma solicitação antes de salvar.");
+                return;
+            }
+
+            calculateAndRenderBudget();
+
+            try {
+                await adminRequest("saveCustomQuoteResult", {
+                    id: selectedQuote.id,
+                    status: currentBudget.statusOrcamento,
+                    statusOrcamento: currentBudget.statusOrcamento,
+                    metragem: currentBudget.squareMeters,
+                    produtos: getProductKitLabel(currentBudget.productKit),
+                    mobiliado: currentBudget.furnished ? "Sim" : "Não",
+                    entulho: currentBudget.rubble ? "Sim" : "Não",
+                    qtdEletrodomesticos: currentBudget.appliances,
+                    valorBruto: currentBudget.grossValue,
+                    acrescimos: currentBudget.additions,
+                    desconto: currentBudget.discount,
+                    valorTotal: currentBudget.total,
+                    reserva: currentBudget.reservation,
+                    saldo: currentBudget.balance,
+                    condicoesOrcamento: currentBudget.conditions,
+                    dataOrcamento: new Date().toLocaleString("pt-BR")
+                });
+
+                selectedQuote.status = currentBudget.statusOrcamento;
+                selectedQuote.statusOrcamento = currentBudget.statusOrcamento;
+                selectedQuote.desconto = currentBudget.discount;
+                selectedQuote.condicoesOrcamento = currentBudget.conditions;
+                selectedQuote.valorTotal = currentBudget.total;
+                selectedQuote.reserva = currentBudget.reservation;
+                selectedQuote.saldo = currentBudget.balance;
+
+                renderHistory();
+                if (!options.silent) {
+                    alert("Orçamento salvo na planilha.");
+                }
+
+                return true;
+            } catch (error) {
+                alert("Não foi possível salvar o orçamento. Faça login novamente e tente.");
+                return false;
+            }
+        }
+
+        async function sendBudgetToWhatsApp() {
+            if (!selectedQuote || !currentBudget) {
+                alert("Selecione uma solicitação e gere o orçamento primeiro.");
+                return;
+            }
+
+            const phone = formatWhatsAppNumber(selectedQuote.whatsapp);
+
+            if (!phone) {
+                alert("WhatsApp da cliente não encontrado.");
+                return;
+            }
+
+            const whatsappWindow = window.open("about:blank", "_blank");
+            sendBudgetButton.disabled = true;
+            sendBudgetButton.textContent = "Gerando link...";
+
+            try {
+                const wasSaved = await saveBudget({
+                    silent: true
+                });
+
+                if (!wasSaved) {
+                    if (whatsappWindow) whatsappWindow.close();
+                    return;
+                }
+
+                const result = await adminRequest("createCustomQuoteMercadoPagoPayment", {
+                    id: selectedQuote.id
+                });
+                const discountText = currentBudget.discount > 0 ?
+                    `Desconto aplicado: ${formatCurrency(currentBudget.discount)}\n` :
+                    "";
+                const conditionsText = currentBudget.conditions ?
+                    `\nCondições do orçamento:\n${currentBudget.conditions}\n` :
+                    "";
+                const message = `Olá, ${selectedQuote.cliente}! Segue o orçamento personalizado:\n\nServiço: ${getServiceLabel(currentBudget.serviceType)}\nDatas solicitadas: ${selectedQuote.datasSolicitadas || "-"}\nMetragem considerada: ${currentBudget.squareMeters}m²\n\nValor antes do desconto: ${formatCurrency(currentBudget.totalBeforeDiscount)}\n${discountText}Valor total: ${formatCurrency(currentBudget.total)}\nReserva de 40%: ${formatCurrency(currentBudget.reservation)}\nSaldo após conclusão do serviço: ${formatCurrency(currentBudget.balance)}\n\nDetalhes:\n- Produtos: ${getProductKitLabel(currentBudget.productKit)}\n- Imóvel mobiliado: ${currentBudget.furnished ? "Sim" : "Não"}\n- Entulho/lixo pesado: ${currentBudget.rubble ? "Sim" : "Não"}\n- Eletrodomésticos internos: ${currentBudget.appliances}${conditionsText}\nPague a reserva com segurança pelo Mercado Pago:\n${result.paymentLink}\n\nEste link fica disponível por 7 dias. Após a confirmação do pagamento, o agendamento seguirá para aprovação.`;
+
+                selectedQuote.status = "Orçamento enviado - aguardando pagamento";
+                selectedQuote.statusOrcamento = "Orçamento enviado - aguardando pagamento";
+                document.getElementById("quoteStatus").value = selectedQuote.statusOrcamento;
+                quotePaymentMessage.textContent = result.reused ?
+                    "A cobrança anterior ainda está válida. A mensagem foi aberta novamente." :
+                    "Cobrança Mercado Pago criada e vinculada ao orçamento.";
+                renderHistory();
+
+                whatsappWindow.location.href =
+                    `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+            } catch (error) {
+                if (whatsappWindow) whatsappWindow.close();
+                alert(error.message || "Não foi possível criar a cobrança do orçamento.");
+            } finally {
+                sendBudgetButton.disabled = false;
+                sendBudgetButton.textContent = "Gerar link e abrir WhatsApp";
+            }
+        }
+
+        function printCustomQuote() {
+            if (!selectedQuote || !currentBudget) {
+                alert("Selecione uma solicitação e gere o orçamento antes de imprimir.");
+                return;
+            }
+
+            const printWindow = window.open("", "_blank");
+
+            if (!printWindow) {
+                alert("O navegador bloqueou a janela de impressão. Permita pop-ups e tente novamente.");
+                return;
+            }
+
+            const escapeHtml = function(value) {
+                return String(value || "-")
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/\"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            };
+            const formatMultiline = function(value) {
+                return escapeHtml(value).replace(/\n/g, "<br>");
+            };
+            const issueDate = new Date().toLocaleDateString("pt-BR");
+            const discountLine = currentBudget.discount > 0 ?
+                `<tr><td>Desconto</td><td>- ${formatCurrency(currentBudget.discount)}</td></tr>` :
+                "";
+
+            printWindow.document.write(`<!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Orçamento ${escapeHtml(selectedQuote.ticket || "Hub da Diarista")}</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
-        
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            color: #102237;
-            background: #fff;
-        }
-        
-        main {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 42px;
-        }
-        
-        .header {
-            display: flex;
-            justify-content: space-between;
-            gap: 24px;
-            border-bottom: 3px solid #e8a7ae;
-            padding-bottom: 22px;
-        }
-        
-        .brand {
-            color: #e27787;
-            font-size: 14px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        h1 {
-            margin: 8px 0 0;
-            font-size: 30px;
-        }
-        
-        .ticket {
-            text-align: right;
-            line-height: 1.6;
-            font-size: 14px;
-        }
-        
-        h2 {
-            margin: 30px 0 12px;
-            font-size: 18px;
-        }
-        
-        .details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px 28px;
-        }
-        
-        .detail {
-            border-bottom: 1px solid #eedde0;
-            padding-bottom: 8px;
-            font-size: 14px;
-        }
-        
-        .detail strong {
-            display: block;
-            margin-bottom: 3px;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 8px;
-        }
-        
-        td {
-            padding: 11px 12px;
-            border-bottom: 1px solid #eedde0;
-            font-size: 14px;
-        }
-        
-        td:last-child {
-            text-align: right;
-            font-weight: 700;
-        }
-        
-        .total td {
-            font-size: 17px;
-        }
-        
-        .reserve td {
-            background: #fff0f2;
-            color: #a64352;
-        }
-        
-        .conditions {
-            padding: 16px;
-            background: #fff7f8;
-            border-left: 4px solid #e8a7ae;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        
-        .footer {
-            margin-top: 30px;
-            font-size: 12px;
-            color: #5b6775;
-            line-height: 1.5;
-        }
-        
-        @media print {
-            main {
-                padding: 22px;
-            }
-        }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Arial, sans-serif; color: #102237; background: #fff; }
+        main { max-width: 800px; margin: 0 auto; padding: 42px; }
+        .header { display: flex; justify-content: space-between; gap: 24px; border-bottom: 3px solid #e8a7ae; padding-bottom: 22px; }
+        .brand { color: #e27787; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        h1 { margin: 8px 0 0; font-size: 30px; }
+        .ticket { text-align: right; line-height: 1.6; font-size: 14px; }
+        h2 { margin: 30px 0 12px; font-size: 18px; }
+        .details { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 28px; }
+        .detail { border-bottom: 1px solid #eedde0; padding-bottom: 8px; font-size: 14px; }
+        .detail strong { display: block; margin-bottom: 3px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        td { padding: 11px 12px; border-bottom: 1px solid #eedde0; font-size: 14px; }
+        td:last-child { text-align: right; font-weight: 700; }
+        .total td { font-size: 17px; }
+        .reserve td { background: #fff0f2; color: #a64352; }
+        .conditions { padding: 16px; background: #fff7f8; border-left: 4px solid #e8a7ae; font-size: 14px; line-height: 1.5; }
+        .footer { margin-top: 30px; font-size: 12px; color: #5b6775; line-height: 1.5; }
+        @media print { main { padding: 22px; } }
     </style>
 </head>
-
 <body>
     <main>
         <header class="header">
@@ -712,7 +732,8 @@ e gere o orçamento antes de imprimir."); return; } const printWindow = window.o
                 <h1>Orçamento personalizado</h1>
             </div>
             <div class="ticket">
-                <strong>Ticket: ${escapeHtml(selectedQuote.ticket || "-")}</strong><br> Emitido em: ${escapeHtml(issueDate)}
+                <strong>Ticket: ${escapeHtml(selectedQuote.ticket || "-")}</strong><br>
+                Emitido em: ${escapeHtml(issueDate)}
             </div>
         </header>
 
@@ -734,27 +755,12 @@ e gere o orçamento antes de imprimir."); return; } const printWindow = window.o
 
         <h2>Resumo financeiro</h2>
         <table>
-            <tr>
-                <td>Valor do serviço</td>
-                <td>${formatCurrency(currentBudget.grossValue)}</td>
-            </tr>
-            <tr>
-                <td>Acréscimos</td>
-                <td>${formatCurrency(currentBudget.additions)}</td>
-            </tr>
+            <tr><td>Valor do serviço</td><td>${formatCurrency(currentBudget.grossValue)}</td></tr>
+            <tr><td>Acréscimos</td><td>${formatCurrency(currentBudget.additions)}</td></tr>
             ${discountLine}
-            <tr class="total">
-                <td>Valor total</td>
-                <td>${formatCurrency(currentBudget.total)}</td>
-            </tr>
-            <tr class="reserve">
-                <td>Reserva antecipada de 40%</td>
-                <td>${formatCurrency(currentBudget.reservation)}</td>
-            </tr>
-            <tr>
-                <td>Saldo após a realização do serviço</td>
-                <td>${formatCurrency(currentBudget.balance)}</td>
-            </tr>
+            <tr class="total"><td>Valor total</td><td>${formatCurrency(currentBudget.total)}</td></tr>
+            <tr class="reserve"><td>Reserva antecipada de 40%</td><td>${formatCurrency(currentBudget.reservation)}</td></tr>
+            <tr><td>Saldo após a realização do serviço</td><td>${formatCurrency(currentBudget.balance)}</td></tr>
         </table>
 
         <h2>Condições do orçamento</h2>
@@ -765,191 +771,865 @@ e gere o orçamento antes de imprimir."); return; } const printWindow = window.o
         </footer>
     </main>
 </body>
+</html>`);
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(function() {
+                printWindow.print();
+            }, 250);
+        }
 
-</html>`); printWindow.document.close(); printWindow.focus(); setTimeout(function() { printWindow.print(); }, 250); } function renderHistory() { const term = historySearchInput.value.trim().toLowerCase(); const filtered = quoteRequests.filter(item => !term ||
-[item.cliente, item.whatsapp, item.servico, item.tipoImovel, item.datasSolicitadas, item.horario, item.endereco, item.cep, item.regiao, item.observacoes, item.status, item.statusOrcamento, item.metragem, item.desconto, item.valorTotal, item.reserva, item.saldo,
-item.condicoesOrcamento, item.dataOrcamento].join(" ").toLowerCase().includes(term)).slice().reverse(); if (!filtered.length) { quotesHistory.innerHTML = `
-<article class="status-card admin-history-card"><strong>Nenhum orçamento encontrado</strong>
-    <p>Tente buscar por outro nome, serviço, data ou status.</p>
-</article>`; return; } quotesHistory.innerHTML = ""; filtered.forEach(item => { const sel = item.statusOrcamento || item.status || "Aguardando orçamento"; quotesHistory.innerHTML += `
-<article class="status-card admin-history-card">
-    <div class="status-card-top"><span class="client-badge">${item.cliente || "Cliente"}</span><strong>${sel}</strong></div>
-    <p><b>Ticket:</b> ${item.ticket || "-"}</p>
-    <p><b>Serviço:</b> ${item.servico || "-"}</p>
-    <p><b>Datas:</b> ${item.datasSolicitadas || "-"}</p>
-    <p><b>WhatsApp:</b> ${item.whatsapp || "-"}</p>
-    <p><b>Metragem:</b> ${item.metragem || "-"}</p>
-    <p><b>Desconto:</b> ${item.desconto ? formatCurrency(item.desconto) : "-"}</p>
-    <p><b>Valor total:</b> ${item.valorTotal ? formatCurrency(item.valorTotal) : "-"}</p>
-    <p><b>Reserva:</b> ${item.reserva ? formatCurrency(item.reserva) : "-"}</p>
-    <p><b>Condições:</b> ${item.condicoesOrcamento || "-"}</p><select class="status-select" onchange="changeCustomQuoteStatus('${item.id}',this.value)">${quoteStatusOptions.map(s => `<option value="${s}" ${sel === s ? "selected" : ""}>${s}</option>`).join("")}</select>
-    <div
-        class="card-actions"><button type="button" class="secondary" onclick="sendCustomQuoteStatus('${item.id}')">Enviar atualização</button></div>
-</article>`; }); } async function changeCustomQuoteStatus(id, newStatus) { try { await adminRequest("updateCustomQuoteStatus", { id: id, status: newStatus, statusOrcamento: newStatus }); const quote = quoteRequests.find(function (item) { return String(item.id)
-=== String(id); }); if (quote) { quote.status = newStatus; quote.statusOrcamento = newStatus; } renderHistory(); } catch (error) { alert("Não foi possível atualizar o status do orçamento."); } } function sendCustomQuoteStatus(id) { const quote = quoteRequests.find(function(item)
-{ return String(item.id) === String(id); }); if (!quote) { alert("Solicitação de orçamento não encontrada."); return; } const phone = formatWhatsAppNumber(quote.whatsapp); if (!phone) { alert("WhatsApp da cliente não encontrado."); return; } const status
-= quote.statusOrcamento || quote.status || "Orçamento solicitado"; const message = `Olá, ${quote.cliente || "cliente"}! Atualização do seu orçamento personalizado: Ticket: ${quote.ticket || "-"} Status: ${status} Serviço: ${quote.servico || "-"} Datas
-solicitadas: ${quote.datasSolicitadas || "-"} Qualquer dúvida, estamos à disposição pelo WhatsApp.`; window.open( `https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank" ); } function getServiceLabel(t) { return t === "posobra" ? "Limpeza
-Pós-Obra" : "Limpeza Residencial Personalizada"; } function getProductKitLabel(v) { if (Number(v) === 180) return "Kit 2 - Padrão Residencial Grande"; if (Number(v) === 300) return "Kit 1 - Padrão Pós-Obra"; return "Cliente fornece os produtos"; } function
-getProductKitValue(value) { if (String(value || "").includes("Kit 2")) return "180"; if (String(value || "").includes("Kit 1")) return "300"; return "0"; } function formatWhatsAppNumber(v) { if (!v) return ""; let p = String(v).replace(/\D/g, ""); if
-(p.length === 10 || p.length === 11) p = "55" + p; return p; } function formatCurrency(v) { return Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); } // GERENCIAR AGENDAMENTOS const reloadAppointmentsButton = document.getElementById("reloadAppointmentsButton");
-const blockDateButton = document.getElementById("blockDateButton"); const appointmentFormPanel = document.getElementById("appointmentFormPanel"); const appointmentFormTitle = document.getElementById("appointmentFormTitle"); const appointmentFormAdmin
-= document.getElementById("appointmentFormAdmin"); const cancelAppointmentFormButton = document.getElementById("cancelAppointmentFormButton"); const deleteAppointmentButton = document.getElementById("deleteAppointmentButton"); const generateBalancePaymentButton
-= document.getElementById("generateBalancePaymentButton"); const sendBalancePaymentConfirmationButton = document.getElementById("sendBalancePaymentConfirmationButton"); const apptFormMessage = document.getElementById("apptFormMessage"); const pendingApprovals
-= document.getElementById("pendingApprovals"); const appointmentsList = document.getElementById("appointmentsList"); const apptSearch = document.getElementById("apptSearch"); const apptDateFrom = document.getElementById("apptDateFrom"); const apptDateTo
-= document.getElementById("apptDateTo"); const clearAppointmentFiltersButton = document.getElementById("clearAppointmentFilters"); const apptListPrev = document.getElementById("apptListPrev"); const apptListNext = document.getElementById("apptListNext");
-let allAppointments = []; let appointmentSearchTimer; reloadAppointmentsButton.addEventListener("click", loadAppointmentsAdmin); blockDateButton.addEventListener("click", openDateBlockForm); cancelAppointmentFormButton.addEventListener("click", hideAppointmentForm);
-deleteAppointmentButton.addEventListener("click", deleteAppointmentAdmin); generateBalancePaymentButton.addEventListener("click", generateBalancePayment); sendBalancePaymentConfirmationButton.addEventListener("click", sendBalancePaymentConfirmation);
-appointmentFormAdmin.addEventListener("submit", saveAppointmentAdmin); apptListPrev.addEventListener("click", function () { appointmentsList.scrollBy({ left: -320, behavior: "smooth" }); }); apptListNext.addEventListener("click", function () { appointmentsList.scrollBy({
-left: 320, behavior: "smooth" }); }); apptSearch.addEventListener("input", function () { clearTimeout(appointmentSearchTimer); appointmentSearchTimer = setTimeout(function () { renderAppointmentsList(); renderPendingApprovals(); }, 250); }); apptDateFrom.addEventListener("change",
-renderAppointmentsList); apptDateTo.addEventListener("change", renderAppointmentsList); clearAppointmentFiltersButton.addEventListener("click", clearAppointmentFilters); async function loadAppointmentsAdmin() { reloadAppointmentsButton.disabled = true;
-reloadAppointmentsButton.textContent = "Carregando..."; appointmentsList.innerHTML = `
-<article class="status-card admin-history-card appointment-card">
-    <p>Carregando agendamentos...</p>
-</article>
-`; try { const data = await adminRequest("getAdminAppointments"); allAppointments = (data.appointments || []).map(function (row) { return { id: row.id, rowNumber: row.rowNumber, dataEnvio: row.dataEnvio, cliente: row.cliente, servico: row.servico, dataAgendamento:
-row.dataAgendamento, horario: row.horario, endereco: row.endereco, frequencia: row.frequencia, observacoes: row.observacoes, whatsapp: row.whatsapp || "", status: row.status || "Aguardando confirmação", tipoImovel: row.tipoImovel || "", cep: row.cep ||
-"", regiao: row.regiao || "", transporte: row.transporte || "", valorTotal: row.valorTotal || "", reserva: row.reserva || "", saldo: row.saldo || "", pagamento: row.pagamento || "" }; }); renderAppointmentsList(); renderPendingApprovals(); } catch (error)
-{ appointmentsList.innerHTML = `
-<article class="status-card admin-history-card appointment-card">
-    <strong>Não foi possível carregar</strong>
-    <p>Faça login novamente ou tente atualizar a lista.</p>
-</article>
-`; } finally { reloadAppointmentsButton.disabled = false; reloadAppointmentsButton.textContent = "Atualizar lista"; } } function renderAppointmentsList() { const term = apptSearch.value.trim().toLowerCase(); const dateFrom = apptDateFrom.value; const
-dateTo = apptDateTo.value; const filtered = allAppointments .filter(function (appointment) { const appointmentDate = String( appointment.dataAgendamento || "" ).slice(0, 10); if (dateFrom && (!appointmentDate || appointmentDate
-< dateFrom)) { return false;
-    } if (dateTo && (!appointmentDate || appointmentDate> dateTo)) { return false; } if (!term) { return true; } return [ appointment.cliente, appointment.servico, formatDateBR(appointment.dataAgendamento), appointment.horario, appointment.status, appointment.endereco, appointment.whatsapp ].join(" ").toLowerCase().includes(term);
-    }) .sort(function (a, b) { return `${a.dataAgendamento}${a.horario}`.localeCompare( `${b.dataAgendamento}${b.horario}` ); }); if (!filtered.length) { appointmentsList.innerHTML = `
-    <article class="status-card admin-history-card appointment-card">
-        <strong>Nenhum agendamento</strong>
-        <p>Use a busca ou ajuste o período selecionado.</p>
-    </article>
-    `; return; } appointmentsList.innerHTML = ""; filtered.forEach(function (appointment) { const formattedDate = formatDateBR(appointment.dataAgendamento); appointmentsList.innerHTML += `
-    <article class="status-card admin-history-card appointment-card">
-        <div class="status-card-top">
-            <span class="client-badge">${appointment.cliente || "Cliente"}</span>
-            <strong>${formattedDate}</strong>
-        </div>
+        function renderHistory() {
+            const term = historySearchInput.value.trim().toLowerCase();
+            const filtered = quoteRequests.filter(item => !term || [item.cliente, item.whatsapp, item.servico, item.tipoImovel, item.datasSolicitadas, item.horario, item.endereco, item.cep, item.regiao, item.observacoes, item.status, item.statusOrcamento, item.metragem, item.desconto, item.valorTotal, item.reserva, item.saldo, item.condicoesOrcamento, item.dataOrcamento].join(" ").toLowerCase().includes(term)).slice().reverse();
+            if (!filtered.length) {
+                quotesHistory.innerHTML = `<article class="status-card admin-history-card"><strong>Nenhum orçamento encontrado</strong><p>Tente buscar por outro nome, serviço, data ou status.</p></article>`;
+                return;
+            }
+            quotesHistory.innerHTML = "";
+            filtered.forEach(item => {
+                        const sel = item.statusOrcamento || item.status || "Aguardando orçamento";
+                        quotesHistory.innerHTML += `<article class="status-card admin-history-card"><div class="status-card-top"><span class="client-badge">${item.cliente || "Cliente"}</span><strong>${sel}</strong></div><p><b>Ticket:</b> ${item.ticket || "-"}</p><p><b>Serviço:</b> ${item.servico || "-"}</p><p><b>Datas:</b> ${item.datasSolicitadas || "-"}</p><p><b>WhatsApp:</b> ${item.whatsapp || "-"}</p><p><b>Metragem:</b> ${item.metragem || "-"}</p><p><b>Desconto:</b> ${item.desconto ? formatCurrency(item.desconto) : "-"}</p><p><b>Valor total:</b> ${item.valorTotal ? formatCurrency(item.valorTotal) : "-"}</p><p><b>Reserva:</b> ${item.reserva ? formatCurrency(item.reserva) : "-"}</p><p><b>Condições:</b> ${item.condicoesOrcamento || "-"}</p><select class="status-select" onchange="changeCustomQuoteStatus('${item.id}',this.value)">${quoteStatusOptions.map(s => `<option value="${s}" ${sel === s ? "selected" : ""}>${s}</option>`).join("")}</select><div class="card-actions"><button type="button" class="secondary" onclick="sendCustomQuoteStatus('${item.id}')">Enviar atualização</button></div></article>`; }); }
+        async function changeCustomQuoteStatus(id, newStatus) {
+            try {
+                await adminRequest("updateCustomQuoteStatus", {
+                    id: id,
+                    status: newStatus,
+                    statusOrcamento: newStatus
+                });
 
-        <p><b>Horário:</b> ${formatTimeBR(appointment.horario)}</p>
-        <p><b>Serviço:</b> ${appointment.servico || "-"}</p>
-        <p><b>Status:</b> <span class="slot-badge">${appointment.status}</span></p>
-        <p><b>Endereço:</b> ${appointment.endereco || "-"}</p>
-        <p><b>WhatsApp:</b> ${appointment.whatsapp || "-"}</p>
-        <p><b>Obs:</b> ${appointment.observacoes || "-"}</p>
+                const quote = quoteRequests.find(function (item) {
+                    return String(item.id) === String(id);
+                });
 
-        <div class="card-actions">
-            <button class="btn-edit" onclick="openAppointmentForm('${appointment.id}')">
+                if (quote) {
+                    quote.status = newStatus;
+                    quote.statusOrcamento = newStatus;
+                }
+
+                renderHistory();
+            } catch (error) {
+                alert("Não foi possível atualizar o status do orçamento.");
+            }
+        }
+
+        function sendCustomQuoteStatus(id) {
+            const quote = quoteRequests.find(function(item) {
+                return String(item.id) === String(id);
+            });
+
+            if (!quote) {
+                alert("Solicitação de orçamento não encontrada.");
+                return;
+            }
+
+            const phone = formatWhatsAppNumber(quote.whatsapp);
+
+            if (!phone) {
+                alert("WhatsApp da cliente não encontrado.");
+                return;
+            }
+
+            const status = quote.statusOrcamento || quote.status || "Orçamento solicitado";
+            const message = `Olá, ${quote.cliente || "cliente"}!
+
+Atualização do seu orçamento personalizado:
+
+Ticket: ${quote.ticket || "-"}
+Status: ${status}
+Serviço: ${quote.servico || "-"}
+Datas solicitadas: ${quote.datasSolicitadas || "-"}
+
+Qualquer dúvida, estamos à disposição pelo WhatsApp.`;
+
+            window.open(
+                `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
+                "_blank"
+            );
+        }
+
+        function getServiceLabel(t) { return t === "posobra" ? "Limpeza Pós-Obra" : "Limpeza Residencial Personalizada"; }
+        function getProductKitLabel(v) { if (Number(v) === 180) return "Kit 2 - Padrão Residencial Grande"; if (Number(v) === 300) return "Kit 1 - Padrão Pós-Obra"; return "Cliente fornece os produtos"; }
+        function getProductKitValue(value) { if (String(value || "").includes("Kit 2")) return "180"; if (String(value || "").includes("Kit 1")) return "300"; return "0"; }
+        function formatWhatsAppNumber(v) { if (!v) return ""; let p = String(v).replace(/\D/g, ""); if (p.length === 10 || p.length === 11) p = "55" + p; return p; }
+        function formatCurrency(v) { return Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); }
+
+        // GERENCIAR AGENDAMENTOS
+        const reloadAppointmentsButton = document.getElementById("reloadAppointmentsButton");
+        const blockDateButton = document.getElementById("blockDateButton");
+        const appointmentFormPanel = document.getElementById("appointmentFormPanel");
+        const appointmentFormTitle = document.getElementById("appointmentFormTitle");
+        const appointmentFormAdmin = document.getElementById("appointmentFormAdmin");
+        const cancelAppointmentFormButton = document.getElementById("cancelAppointmentFormButton");
+        const deleteAppointmentButton = document.getElementById("deleteAppointmentButton");
+        const generateBalancePaymentButton = document.getElementById("generateBalancePaymentButton");
+        const sendBalancePaymentConfirmationButton = document.getElementById("sendBalancePaymentConfirmationButton");
+        const apptFormMessage = document.getElementById("apptFormMessage");
+        const pendingApprovals = document.getElementById("pendingApprovals");
+        const appointmentsList = document.getElementById("appointmentsList");
+        const apptSearch = document.getElementById("apptSearch");
+        const apptDateFrom = document.getElementById("apptDateFrom");
+        const apptDateTo = document.getElementById("apptDateTo");
+        const clearAppointmentFiltersButton = document.getElementById("clearAppointmentFilters");
+        const apptListPrev = document.getElementById("apptListPrev");
+        const apptListNext = document.getElementById("apptListNext");
+
+        let allAppointments = [];
+        let appointmentSearchTimer;
+
+        reloadAppointmentsButton.addEventListener("click", loadAppointmentsAdmin);
+        blockDateButton.addEventListener("click", openDateBlockForm);
+        cancelAppointmentFormButton.addEventListener("click", hideAppointmentForm);
+        deleteAppointmentButton.addEventListener("click", deleteAppointmentAdmin);
+        generateBalancePaymentButton.addEventListener("click", generateBalancePayment);
+        sendBalancePaymentConfirmationButton.addEventListener("click", sendBalancePaymentConfirmation);
+        appointmentFormAdmin.addEventListener("submit", saveAppointmentAdmin);
+
+        apptListPrev.addEventListener("click", function () {
+            appointmentsList.scrollBy({ left: -320, behavior: "smooth" });
+        });
+
+        apptListNext.addEventListener("click", function () {
+            appointmentsList.scrollBy({ left: 320, behavior: "smooth" });
+        });
+
+        apptSearch.addEventListener("input", function () {
+            clearTimeout(appointmentSearchTimer);
+
+            appointmentSearchTimer = setTimeout(function () {
+                renderAppointmentsList();
+                renderPendingApprovals();
+            }, 250);
+        });
+
+        apptDateFrom.addEventListener("change", renderAppointmentsList);
+        apptDateTo.addEventListener("change", renderAppointmentsList);
+
+        clearAppointmentFiltersButton.addEventListener("click", clearAppointmentFilters);
+
+        async function loadAppointmentsAdmin() {
+            reloadAppointmentsButton.disabled = true;
+            reloadAppointmentsButton.textContent = "Carregando...";
+
+            appointmentsList.innerHTML = `
+        <article class="status-card admin-history-card appointment-card">
+            <p>Carregando agendamentos...</p>
+        </article>
+    `;
+
+            try {
+                const data = await adminRequest("getAdminAppointments");
+
+                allAppointments = (data.appointments || []).map(function (row) {
+                    return {
+                        id: row.id,
+                        rowNumber: row.rowNumber,
+                        dataEnvio: row.dataEnvio,
+                        cliente: row.cliente,
+                        servico: row.servico,
+                        dataAgendamento: row.dataAgendamento,
+                        horario: row.horario,
+                        endereco: row.endereco,
+                        frequencia: row.frequencia,
+                        observacoes: row.observacoes,
+                        whatsapp: row.whatsapp || "",
+                        status: row.status || "Aguardando confirmação",
+                        tipoImovel: row.tipoImovel || "",
+                        cep: row.cep || "",
+                        regiao: row.regiao || "",
+                        transporte: row.transporte || "",
+                        valorTotal: row.valorTotal || "",
+                        reserva: row.reserva || "",
+                        saldo: row.saldo || "",
+                        pagamento: row.pagamento || ""
+                    };
+                });
+
+                renderAppointmentsList();
+                renderPendingApprovals();
+            } catch (error) {
+                appointmentsList.innerHTML = `
+            <article class="status-card admin-history-card appointment-card">
+                <strong>Não foi possível carregar</strong>
+                <p>Faça login novamente ou tente atualizar a lista.</p>
+            </article>
+        `;
+            } finally {
+                reloadAppointmentsButton.disabled = false;
+                reloadAppointmentsButton.textContent = "Atualizar lista";
+            }
+        }
+
+        function renderAppointmentsList() {
+            const term = apptSearch.value.trim().toLowerCase();
+            const dateFrom = apptDateFrom.value;
+            const dateTo = apptDateTo.value;
+
+            const filtered = allAppointments
+                .filter(function (appointment) {
+                    const appointmentDate = String(
+                        appointment.dataAgendamento || ""
+                    ).slice(0, 10);
+
+                    if (dateFrom && (!appointmentDate || appointmentDate < dateFrom)) {
+                        return false;
+                    }
+
+                    if (dateTo && (!appointmentDate || appointmentDate > dateTo)) {
+                        return false;
+                    }
+
+                    if (!term) {
+                        return true;
+                    }
+
+                    return [
+                        appointment.cliente,
+                        appointment.servico,
+                        formatDateBR(appointment.dataAgendamento),
+                        appointment.horario,
+                        appointment.status,
+                        appointment.endereco,
+                        appointment.whatsapp
+                    ].join(" ").toLowerCase().includes(term);
+                })
+                .sort(function (a, b) {
+                    return `${a.dataAgendamento}${a.horario}`.localeCompare(
+                        `${b.dataAgendamento}${b.horario}`
+                    );
+                });
+
+            if (!filtered.length) {
+                appointmentsList.innerHTML = `
+            <article class="status-card admin-history-card appointment-card">
+                <strong>Nenhum agendamento</strong>
+                <p>Use a busca ou ajuste o período selecionado.</p>
+            </article>
+        `;
+                return;
+            }
+
+            appointmentsList.innerHTML = "";
+
+            filtered.forEach(function (appointment) {
+                const formattedDate = formatDateBR(appointment.dataAgendamento);
+
+                appointmentsList.innerHTML += `
+            <article class="status-card admin-history-card appointment-card">
+                <div class="status-card-top">
+                    <span class="client-badge">${appointment.cliente || "Cliente"}</span>
+                    <strong>${formattedDate}</strong>
+                </div>
+
+                <p><b>Horário:</b> ${formatTimeBR(appointment.horario)}</p>
+                <p><b>Serviço:</b> ${appointment.servico || "-"}</p>
+                <p><b>Status:</b> <span class="slot-badge">${appointment.status}</span></p>
+                <p><b>Endereço:</b> ${appointment.endereco || "-"}</p>
+                <p><b>WhatsApp:</b> ${appointment.whatsapp || "-"}</p>
+                <p><b>Obs:</b> ${appointment.observacoes || "-"}</p>
+
+                <div class="card-actions">
+                    <button class="btn-edit" onclick="openAppointmentForm('${appointment.id}')">
                         Editar
                     </button>
 
-            <button class="btn-delete" onclick="confirmDeleteAppointment('${appointment.id}')">
+                    <button class="btn-delete" onclick="confirmDeleteAppointment('${appointment.id}')">
                         Excluir
                     </button>
-        </div>
-    </article>
-    `; }); } function renderPendingApprovals() { const activeStatuses = [ "Pagamento aprovado - aguardando aprovação", "Serviço agendado", "Serviço em andamento", "Serviço concluído", "Serviço realizado — pagamento restante pendente", "Pagamento completo
-    — confirmação pendente" ]; const activeAppointments = allAppointments.filter(function(appointment) { const payment = String(appointment.pagamento || "").toLowerCase(); const hasConfirmedMercadoPagoPayment = payment.includes("mercado pago confirmado");
-    return activeStatuses.includes(appointment.status) && hasConfirmedMercadoPagoPayment; }); if (!activeAppointments.length) { pendingApprovals.innerHTML = `
-    <article class="status-card admin-history-card">
-        <strong>Nenhum agendamento em acompanhamento</strong>
-        <p>Os próximos pagamentos identificados aparecerão aqui.</p>
-    </article>
-    `; return; } pendingApprovals.innerHTML = ""; activeAppointments .slice() .sort(function(a, b) { return `${a.dataAgendamento}${a.horario}`.localeCompare( `${b.dataAgendamento}${b.horario}` ); }) .forEach(function(appointment) { const stageActions = getAppointmentWorkflowActions(appointment);
-    pendingApprovals.innerHTML += `
-    <article class="status-card admin-history-card appointment-card">
-        <div class="status-card-top">
-            <span class="client-badge">${appointment.cliente || "Cliente"}</span>
-            <strong>${formatDateBR(appointment.dataAgendamento)}</strong>
-        </div>
+                </div>
+            </article>
+        `;
+            });
+        }
 
-        <p><b>Status:</b> ${appointment.status || "-"}</p>
-        <p><b>Horário:</b> ${formatTimeBR(appointment.horario)}</p>
-        <p><b>Serviço:</b> ${appointment.servico || "-"}</p>
-        <p><b>WhatsApp:</b> ${appointment.whatsapp || "-"}</p>
-        <p><b>Endereço:</b> ${appointment.endereco || "-"}</p>
-        <p><b>Pagamento:</b> ${appointment.pagamento || "Confirmado"}</p>
+        function renderPendingApprovals() {
+            const activeStatuses = [
+                "Pagamento aprovado - aguardando aprovação",
+                "Serviço agendado",
+                "Serviço em andamento",
+                "Serviço concluído",
+                "Serviço realizado — pagamento restante pendente",
+                "Pagamento completo — confirmação pendente"
+            ];
+            const activeAppointments = allAppointments.filter(function(appointment) {
+                const payment = String(appointment.pagamento || "").toLowerCase();
+                const hasConfirmedMercadoPagoPayment =
+                    payment.includes("mercado pago confirmado");
 
-        <div class="card-actions">
-            <button type="button" class="btn-edit" onclick="openAppointmentForm('${appointment.id}')">
+                return activeStatuses.includes(appointment.status) &&
+                    hasConfirmedMercadoPagoPayment;
+            });
+
+            if (!activeAppointments.length) {
+                pendingApprovals.innerHTML = `
+                    <article class="status-card admin-history-card">
+                        <strong>Nenhum agendamento em acompanhamento</strong>
+                        <p>Os próximos pagamentos identificados aparecerão aqui.</p>
+                    </article>
+                `;
+                return;
+            }
+
+            pendingApprovals.innerHTML = "";
+
+            activeAppointments
+                .slice()
+                .sort(function(a, b) {
+                    return `${a.dataAgendamento}${a.horario}`.localeCompare(
+                        `${b.dataAgendamento}${b.horario}`
+                    );
+                })
+                .forEach(function(appointment) {
+                    const stageActions = getAppointmentWorkflowActions(appointment);
+
+                    pendingApprovals.innerHTML += `
+                        <article class="status-card admin-history-card appointment-card">
+                            <div class="status-card-top">
+                                <span class="client-badge">${appointment.cliente || "Cliente"}</span>
+                                <strong>${formatDateBR(appointment.dataAgendamento)}</strong>
+                            </div>
+
+                            <p><b>Status:</b> ${appointment.status || "-"}</p>
+                            <p><b>Horário:</b> ${formatTimeBR(appointment.horario)}</p>
+                            <p><b>Serviço:</b> ${appointment.servico || "-"}</p>
+                            <p><b>WhatsApp:</b> ${appointment.whatsapp || "-"}</p>
+                            <p><b>Endereço:</b> ${appointment.endereco || "-"}</p>
+                            <p><b>Pagamento:</b> ${appointment.pagamento || "Confirmado"}</p>
+
+                            <div class="card-actions">
+                                <button type="button" class="btn-edit"
+                                    onclick="openAppointmentForm('${appointment.id}')">
                                     Revisar ou alterar
-                                </button> ${stageActions}
-        </div>
-    </article>
-    `; }); } function getAppointmentWorkflowActions(appointment) { if (appointment.status === "Pagamento aprovado - aguardando aprovação") { return `
-    <button type="button" class="secondary" onclick="approveAppointment('${appointment.id}')">
+                                </button>
+                                ${stageActions}
+                            </div>
+                        </article>
+                    `;
+                });
+        }
+
+        function getAppointmentWorkflowActions(appointment) {
+            if (appointment.status === "Pagamento aprovado - aguardando aprovação") {
+                return `
+                    <button type="button" class="secondary"
+                        onclick="approveAppointment('${appointment.id}')">
                         Aprovar e abrir mensagem
-                    </button> `; } if (["Serviço agendado", "Serviço em andamento", "Serviço concluído"].includes(appointment.status)) { return `
-    <button type="button" class="secondary" onclick="sendAppointmentUpdate('${appointment.id}')">
+                    </button>
+                `;
+            }
+
+            if (["Serviço agendado", "Serviço em andamento", "Serviço concluído"].includes(appointment.status)) {
+                return `
+                    <button type="button" class="secondary"
+                        onclick="sendAppointmentUpdate('${appointment.id}')">
                         Enviar atualização
                     </button>
-    <button type="button" class="secondary" onclick="generateBalancePaymentForId('${appointment.id}')">
+                    <button type="button" class="secondary"
+                        onclick="generateBalancePaymentForId('${appointment.id}')">
                         Serviço realizado: cobrar saldo
-                    </button> `; } if (appointment.status === "Serviço realizado — pagamento restante pendente") { return `
-    <button type="button" class="secondary" onclick="generateBalancePaymentForId('${appointment.id}')">
-                        Reenviar cobrança do saldo
-                    </button> `; } if (appointment.status === "Pagamento completo — confirmação pendente") { return `
-    <button type="button" class="secondary" onclick="sendBalancePaymentConfirmationForId('${appointment.id}')">
-                        Enviar confirmação de quitação
-                    </button> `; } return ""; } async function approveAppointment(id) { const appointment = allAppointments.find(function(item) { return String(item.id) === String(id); }); if (!appointment) { alert("Agendamento não encontrado.");
-    return; } const whatsappWindow = window.open("about:blank", "_blank"); try { await adminRequest("updateAppointment", { id: appointment.id, rowNumber: appointment.rowNumber, status: "Serviço agendado" }); appointment.status = "Serviço agendado"; openAppointmentConfirmationWhatsApp(appointment,
-    whatsappWindow); await loadAppointmentsAdmin(); alert("Agendamento aprovado. A mensagem de confirmação está pronta no WhatsApp."); } catch (error) { if (whatsappWindow) whatsappWindow.close(); alert("Não foi possível aprovar o agendamento agora.");
-    } } function openAppointmentConfirmationWhatsApp(appointment, targetWindow) { const phone = formatWhatsAppNumber(appointment.whatsapp); if (!phone) { if (targetWindow) targetWindow.close(); alert("O WhatsApp da cliente não foi encontrado."); return;
-    } const reference = "HD-" + String(appointment.id || "").replace(/\D/g, "").slice(-6); const message = `Olá, ${appointment.cliente || "cliente"}! Recebemos o pagamento da sua reserva e seu agendamento foi confirmado. Referência: ${reference} Status:
-    Serviço agendado Data: ${formatDateBR(appointment.dataAgendamento)} Horário: ${formatTimeBR(appointment.horario)} Serviço: ${appointment.servico || "-"} Endereço: ${appointment.endereco || "-"} Qualquer atualização será avisada por aqui. Obrigada
-    por escolher a Hub da Diarista.`; const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`; if (targetWindow) { targetWindow.location.href = url; } else { window.open(url, "_blank"); } } function sendAppointmentUpdate(id) { const appointment
-    = allAppointments.find(function(item) { return String(item.id) === String(id); }); if (!appointment) { alert("Agendamento não encontrado."); return; } const phone = formatWhatsAppNumber(appointment.whatsapp); if (!phone) { alert("O WhatsApp da cliente
-    não foi encontrado."); return; } const reference = "HD-" + String(appointment.id || "").replace(/\D/g, "").slice(-6); const message = `Olá, ${appointment.cliente || "cliente"}! Segue a atualização do seu agendamento. Referência: ${reference} Status:
-    ${appointment.status || "Serviço agendado"} Data: ${formatDateBR(appointment.dataAgendamento)} Horário: ${formatTimeBR(appointment.horario)} Serviço: ${appointment.servico || "-"} Endereço: ${appointment.endereco || "-"} Qualquer dúvida, fale conosco
-    por aqui. Obrigada por escolher a Hub da Diarista.`; window.open( `https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank" ); } function clearAppointmentFilters() { apptSearch.value = ""; apptDateFrom.value = ""; apptDateTo.value = "";
-    renderAppointmentsList(); } function openDateBlockForm() { openAppointmentForm(""); appointmentFormTitle.textContent = "Bloquear data para agendamento"; document.getElementById("apptClient").value = "Bloqueio administrativo"; document.getElementById("apptWhatsapp").value
-    = "00000000000"; document.getElementById("apptService").value = "Orçamento personalizado"; document.getElementById("apptTime").value = "dia-inteiro"; document.getElementById("apptAddress").value = "Indisponibilidade administrativa"; document.getElementById("apptFrequency").value
-    = "Datas selecionadas"; document.getElementById("apptNotes").value = "Dia bloqueado pela administração."; document.getElementById("apptStatus").value = "Indisponível"; document.getElementById("apptDate").focus(); } function openAppointmentForm(id)
-    { const appointment = allAppointments.find(function (item) { return String(item.id) === String(id); }); const isNew = !appointment; appointmentFormTitle.textContent = isNew ? "Novo agendamento" : "Editar agendamento"; document.getElementById("apptId").value
-    = appointment?.id ? String(appointment.id) : ""; document.getElementById("apptRowNumber").value = appointment?.rowNumber ? String(appointment.rowNumber) : ""; document.getElementById("apptOriginalDate").value = appointment?.dataAgendamento || "";
-    document.getElementById("apptOriginalTime").value = appointment?.horario || ""; document.getElementById("apptClient").value = appointment?.cliente || ""; document.getElementById("apptWhatsapp").value = appointment?.whatsapp || ""; document.getElementById("apptService").value
-    = appointment?.servico || ""; document.getElementById("apptDate").value = appointment?.dataAgendamento || ""; document.getElementById("apptTime").value = appointment?.horario || ""; document.getElementById("apptAddress").value = appointment?.endereco
-    || ""; document.getElementById("apptCep").value = appointment?.cep || ""; const regionValues = { proxima: "proxima", distante: "distante", custom: "custom", "Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente": "proxima", "Diadema, Santo
-    Amaro ou Zona Sul": "distante", "Outra região - confirmar pelo WhatsApp": "custom" }; document.getElementById("apptRegion").value = regionValues[appointment?.regiao] || ""; document.getElementById("apptFrequency").value = appointment?.frequencia ||
-    "Datas selecionadas"; document.getElementById("apptNotes").value = appointment?.observacoes || ""; document.getElementById("apptStatus").value = appointment?.status || "Aguardando confirmação"; deleteAppointmentButton.style.display = isNew ? "none"
-    : "inline-flex"; const hasBalance = Number(appointment?.saldo || 0) > 0; const isFinalPaymentComplete = [ "Pagamento completo", "Pagamento completo — confirmação pendente" ].includes(appointment?.status); const needsFinalConfirmation = appointment?.status
-    === "Pagamento completo — confirmação pendente"; generateBalancePaymentButton.style.display = !isNew && hasBalance && !isFinalPaymentComplete ? "inline-flex" : "none"; sendBalancePaymentConfirmationButton.style.display = !isNew && needsFinalConfirmation
-    ? "inline-flex" : "none"; appointmentFormPanel.style.display = "block"; appointmentFormPanel.scrollIntoView({ behavior: "smooth" }); apptFormMessage.textContent = ""; apptFormMessage.className = "form-message"; } function hideAppointmentForm() { appointmentFormPanel.style.display
-    = "none"; appointmentFormAdmin.reset(); document.getElementById("apptId").value = ""; document.getElementById("apptRowNumber").value = ""; document.getElementById("apptOriginalDate").value = ""; document.getElementById("apptOriginalTime").value =
-    ""; deleteAppointmentButton.style.display = "none"; generateBalancePaymentButton.style.display = "none"; sendBalancePaymentConfirmationButton.style.display = "none"; } async function saveAppointmentAdmin(event) { event.preventDefault(); const id =
-    document.getElementById("apptId").value; const rowNumber = document.getElementById("apptRowNumber").value; const isNew = !id || id === "0"; const currentAppointment = allAppointments.find(function(item) { return String(item.id) === String(id); });
-    const payload = { action: isNew ? "saveAppointment" : "updateAppointment", id: isNew ? undefined : String(id), rowNumber: isNew ? undefined : String(rowNumber), dataEnvio: isNew ? new Date().toLocaleString("pt-BR") : undefined, cliente: document.getElementById("apptClient").value.trim(),
-    whatsapp: document.getElementById("apptWhatsapp").value.trim(), servico: document.getElementById("apptService").value, dataAgendamento: document.getElementById("apptDate").value, horario: document.getElementById("apptTime").value, endereco: document.getElementById("apptAddress").value.trim(),
-    frequencia: document.getElementById("apptFrequency").value, observacoes: document.getElementById("apptNotes").value.trim(), status: document.getElementById("apptStatus").value, tipoImovel: document.getElementById("apptService").value, cep: document.getElementById("apptCep").value.trim(),
-    regiao: getRegionLabelAdmin(document.getElementById("apptRegion").value), transporte: isNew ? "" : currentAppointment?.transporte || "", valorTotal: isNew ? "" : currentAppointment?.valorTotal || "", reserva: isNew ? "" : currentAppointment?.reserva
-    || "", saldo: isNew ? "" : currentAppointment?.saldo || "", pagamento: isNew ? "" : currentAppointment?.pagamento || "" }; const button = document.getElementById("saveAppointmentButton"); button.disabled = true; button.textContent = "Salvando...";
-    try { await adminRequest(payload.action, payload); hideAppointmentForm(); await loadAppointmentsAdmin(); alert("Agendamento salvo. Calendário e planilha atualizados."); } catch (error) { apptFormMessage.textContent = "Não foi possível salvar. Faça
-    login novamente e tente."; apptFormMessage.className = "form-message active"; } finally { button.disabled = false; button.textContent = "Salvar agendamento"; } } async function generateBalancePayment() { const id = document.getElementById("apptId").value;
-    const appointment = allAppointments.find(function(item) { return String(item.id) === String(id); }); await generateBalancePaymentForAppointment(appointment, generateBalancePaymentButton); } async function generateBalancePaymentForId(id) { const appointment
-    = allAppointments.find(function(item) { return String(item.id) === String(id); }); await generateBalancePaymentForAppointment(appointment); } async function generateBalancePaymentForAppointment(appointment, sourceButton) { if (!appointment) { alert("Agendamento
-    não encontrado."); return; } const whatsappWindow = window.open("about:blank", "_blank"); if (sourceButton) { sourceButton.disabled = true; sourceButton.textContent = "Gerando cobrança..."; } try { const result = await adminRequest("createRemainingBalancePayment",
-    { id: appointment.id, rowNumber: appointment.rowNumber }); const message = `Olá, ${appointment.cliente || "cliente"}! O serviço foi realizado e o saldo restante do seu agendamento está disponível para pagamento. Referência: ${result.ticket} Serviço:
-    ${appointment.servico || "-"} Data: ${formatDateBR(appointment.dataAgendamento)} Valor do saldo: ${formatCurrency(result.amount)} Pague com segurança pelo link abaixo: ${result.paymentLink} Este link fica disponível por 7 dias. Obrigada por escolher
-    a Hub da Diarista.`; const phone = formatWhatsAppNumber(appointment.whatsapp); if (!phone) { if (whatsappWindow) whatsappWindow.close(); throw new Error("WhatsApp da cliente não encontrado."); } whatsappWindow.location.href = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-    const statusField = document.getElementById("apptStatus"); if (statusField) { statusField.value = "Serviço realizado — pagamento restante pendente"; } await loadAppointmentsAdmin(); alert( result.reused ? "A cobrança anterior ainda está válida. A
-    mensagem foi aberta novamente." : "Cobrança final criada. A mensagem está pronta no WhatsApp." ); } catch (error) { if (whatsappWindow) whatsappWindow.close(); alert(error.message || "Não foi possível gerar a cobrança do saldo."); } finally { if (sourceButton)
-    { sourceButton.disabled = false; sourceButton.textContent = "Gerar cobrança do saldo"; } } } async function sendBalancePaymentConfirmation() { const id = document.getElementById("apptId").value; const appointment = allAppointments.find(function(item)
-    { return String(item.id) === String(id); }); await sendBalancePaymentConfirmationForAppointment(appointment); } async function sendBalancePaymentConfirmationForId(id) { const appointment = allAppointments.find(function(item) { return String(item.id)
-    === String(id); }); await sendBalancePaymentConfirmationForAppointment(appointment); } async function sendBalancePaymentConfirmationForAppointment(appointment) { if (!appointment) { alert("Agendamento não encontrado."); return; } const phone = formatWhatsAppNumber(appointment.whatsapp);
-    if (!phone) { alert("WhatsApp da cliente não encontrado."); return; } const reference = "HD-" + String(appointment.id || "").replace(/\D/g, "").slice(-6); const message = `Olá, ${appointment.cliente || "cliente"}! Confirmamos o pagamento completo
-    do seu agendamento. Referência: ${reference} Serviço: ${appointment.servico || "-"} Data: ${formatDateBR(appointment.dataAgendamento)} Valor total: ${appointment.valorTotal ? formatCurrency(appointment.valorTotal) : "-"} Obrigada por escolher a Hub
-    da Diarista.`; const whatsappWindow = window.open("about:blank", "_blank"); try { await adminRequest("updateAppointment", { id: appointment.id, rowNumber: appointment.rowNumber, status: "Pagamento completo" }); appointment.status = "Pagamento completo";
-    whatsappWindow.location.href = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`; hideAppointmentForm(); await loadAppointmentsAdmin(); alert("A quitação foi registrada. A mensagem está pronta no WhatsApp."); } catch (error) { if (whatsappWindow)
-    whatsappWindow.close(); alert("Não foi possível registrar a quitação agora."); } } function confirmDeleteAppointment(id) { if (!confirm("Tem certeza que deseja excluir este agendamento? A data voltará a ficar disponível.")) { return; } deleteAppointmentAdmin(id);
-    } async function deleteAppointmentAdmin(id) { const appointment = allAppointments.find(function (item) { return String(item.id) === String(id); }); if (!appointment) { alert("Agendamento não encontrado na lista."); return; } try { await adminRequest("deleteAppointment",
-    { id: appointment.id, rowNumber: appointment.rowNumber }); hideAppointmentForm(); await loadAppointmentsAdmin(); alert("Agendamento excluído. A data foi liberada no calendário."); } catch (error) { alert("Não foi possível excluir o agendamento. Faça
-    login novamente e tente."); } } function getRegionLabelAdmin(value) { if (value === "proxima") { return "Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente"; } if (value === "distante") { return "Diadema, Santo Amaro ou Zona Sul"; } return
-    "Outra região - confirmar pelo WhatsApp"; } function formatDateBR(d) { if (!d) return "-"; const value = String(d).trim(); const dateOnly = value.includes("T") ? value.split("T")[0] : value; if (/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) { const parts
-    = dateOnly.split("-"); return `${parts[2]}/${parts[1]}/${parts[0]}`; } if (value.includes("/")) { return value; } return value; } function formatTimeBR(t) { if (!t) return "-"; const s = String(t).trim(); if (s === "dia-inteiro") return "Dia inteiro";
-    const dt = new Date(s); if (!isNaN(dt.getTime())) { const h = String(dt.getHours()).padStart(2, '0'), m = String(dt.getMinutes()).padStart(2, '0'); return `${h}:${m}`; } if (s.includes(":")) return s.slice(0, 5); return s; } window.openAppointmentForm
-    = openAppointmentForm; window.confirmDeleteAppointment = confirmDeleteAppointment; window.approveAppointment = approveAppointment; window.sendAppointmentUpdate = sendAppointmentUpdate; window.generateBalancePaymentForId = generateBalancePaymentForId;
-    window.sendBalancePaymentConfirmationForId = sendBalancePaymentConfirmationForId; window.sendCustomQuoteStatus = sendCustomQuoteStatus; calculateAndRenderBudget();
-    </script>
-    </body>
+                    </button>
+                `;
+            }
 
-    </html>
+            if (appointment.status === "Serviço realizado — pagamento restante pendente") {
+                return `
+                    <button type="button" class="secondary"
+                        onclick="generateBalancePaymentForId('${appointment.id}')">
+                        Reenviar cobrança do saldo
+                    </button>
+                `;
+            }
+
+            if (appointment.status === "Pagamento completo — confirmação pendente") {
+                return `
+                    <button type="button" class="secondary"
+                        onclick="sendBalancePaymentConfirmationForId('${appointment.id}')">
+                        Enviar confirmação de quitação
+                    </button>
+                `;
+            }
+
+            return "";
+        }
+
+        async function approveAppointment(id) {
+            const appointment = allAppointments.find(function(item) {
+                return String(item.id) === String(id);
+            });
+
+            if (!appointment) {
+                alert("Agendamento não encontrado.");
+                return;
+            }
+
+            const whatsappWindow = window.open("about:blank", "_blank");
+
+            try {
+                await adminRequest("updateAppointment", {
+                    id: appointment.id,
+                    rowNumber: appointment.rowNumber,
+                    status: "Serviço agendado"
+                });
+
+                appointment.status = "Serviço agendado";
+                openAppointmentConfirmationWhatsApp(appointment, whatsappWindow);
+
+                await loadAppointmentsAdmin();
+
+                alert("Agendamento aprovado. A mensagem de confirmação está pronta no WhatsApp.");
+            } catch (error) {
+                if (whatsappWindow) whatsappWindow.close();
+                alert("Não foi possível aprovar o agendamento agora.");
+            }
+        }
+
+        function openAppointmentConfirmationWhatsApp(appointment, targetWindow) {
+            const phone = formatWhatsAppNumber(appointment.whatsapp);
+
+            if (!phone) {
+                if (targetWindow) targetWindow.close();
+                alert("O WhatsApp da cliente não foi encontrado.");
+                return;
+            }
+
+            const reference = "HD-" + String(appointment.id || "").replace(/\D/g, "").slice(-6);
+
+            const message = `Olá, ${appointment.cliente || "cliente"}!
+
+Recebemos o pagamento da sua reserva e seu agendamento foi confirmado.
+
+Referência: ${reference}
+Status: Serviço agendado
+Data: ${formatDateBR(appointment.dataAgendamento)}
+Horário: ${formatTimeBR(appointment.horario)}
+Serviço: ${appointment.servico || "-"}
+Endereço: ${appointment.endereco || "-"}
+
+Qualquer atualização será avisada por aqui. Obrigada por escolher a Hub da Diarista.`;
+
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+            if (targetWindow) {
+                targetWindow.location.href = url;
+            } else {
+                window.open(url, "_blank");
+            }
+        }
+
+        function sendAppointmentUpdate(id) {
+            const appointment = allAppointments.find(function(item) {
+                return String(item.id) === String(id);
+            });
+
+            if (!appointment) {
+                alert("Agendamento não encontrado.");
+                return;
+            }
+
+            const phone = formatWhatsAppNumber(appointment.whatsapp);
+            if (!phone) {
+                alert("O WhatsApp da cliente não foi encontrado.");
+                return;
+            }
+
+            const reference = "HD-" + String(appointment.id || "").replace(/\D/g, "").slice(-6);
+            const message = `Olá, ${appointment.cliente || "cliente"}!
+
+Segue a atualização do seu agendamento.
+
+Referência: ${reference}
+Status: ${appointment.status || "Serviço agendado"}
+Data: ${formatDateBR(appointment.dataAgendamento)}
+Horário: ${formatTimeBR(appointment.horario)}
+Serviço: ${appointment.servico || "-"}
+Endereço: ${appointment.endereco || "-"}
+
+Qualquer dúvida, fale conosco por aqui. Obrigada por escolher a Hub da Diarista.`;
+
+            window.open(
+                `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
+                "_blank"
+            );
+        }
+
+        function clearAppointmentFilters() {
+            apptSearch.value = "";
+            apptDateFrom.value = "";
+            apptDateTo.value = "";
+
+            renderAppointmentsList();
+        }
+
+        function openDateBlockForm() {
+            openAppointmentForm("");
+
+            appointmentFormTitle.textContent = "Bloquear data para agendamento";
+
+            document.getElementById("apptClient").value = "Bloqueio administrativo";
+            document.getElementById("apptWhatsapp").value = "00000000000";
+            document.getElementById("apptService").value = "Orçamento personalizado";
+            document.getElementById("apptTime").value = "dia-inteiro";
+            document.getElementById("apptAddress").value = "Indisponibilidade administrativa";
+            document.getElementById("apptFrequency").value = "Datas selecionadas";
+            document.getElementById("apptNotes").value = "Dia bloqueado pela administração.";
+            document.getElementById("apptStatus").value = "Indisponível";
+
+            document.getElementById("apptDate").focus();
+        }
+
+        function openAppointmentForm(id) {
+            const appointment = allAppointments.find(function (item) {
+                return String(item.id) === String(id);
+            });
+
+            const isNew = !appointment;
+
+            appointmentFormTitle.textContent = isNew
+                ? "Novo agendamento"
+                : "Editar agendamento";
+
+            document.getElementById("apptId").value = appointment?.id ? String(appointment.id) : "";
+            document.getElementById("apptRowNumber").value = appointment?.rowNumber ? String(appointment.rowNumber) : "";
+            document.getElementById("apptOriginalDate").value = appointment?.dataAgendamento || "";
+            document.getElementById("apptOriginalTime").value = appointment?.horario || "";
+            document.getElementById("apptClient").value = appointment?.cliente || "";
+            document.getElementById("apptWhatsapp").value = appointment?.whatsapp || "";
+            document.getElementById("apptService").value = appointment?.servico || "";
+            document.getElementById("apptDate").value = appointment?.dataAgendamento || "";
+            document.getElementById("apptTime").value = appointment?.horario || "";
+            document.getElementById("apptAddress").value = appointment?.endereco || "";
+            document.getElementById("apptCep").value = appointment?.cep || "";
+
+            const regionValues = {
+                proxima: "proxima",
+                distante: "distante",
+                custom: "custom",
+                "Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente": "proxima",
+                "Diadema, Santo Amaro ou Zona Sul": "distante",
+                "Outra região - confirmar pelo WhatsApp": "custom"
+            };
+
+            document.getElementById("apptRegion").value =
+                regionValues[appointment?.regiao] || "";
+
+            document.getElementById("apptFrequency").value =
+                appointment?.frequencia || "Datas selecionadas";
+            document.getElementById("apptNotes").value = appointment?.observacoes || "";
+            document.getElementById("apptStatus").value = appointment?.status || "Aguardando confirmação";
+
+            deleteAppointmentButton.style.display = isNew ? "none" : "inline-flex";
+            const hasBalance = Number(appointment?.saldo || 0) > 0;
+            const isFinalPaymentComplete = [
+                "Pagamento completo",
+                "Pagamento completo — confirmação pendente"
+            ].includes(appointment?.status);
+            const needsFinalConfirmation =
+                appointment?.status === "Pagamento completo — confirmação pendente";
+            generateBalancePaymentButton.style.display = !isNew && hasBalance && !isFinalPaymentComplete
+                ? "inline-flex"
+                : "none";
+            sendBalancePaymentConfirmationButton.style.display = !isNew && needsFinalConfirmation
+                ? "inline-flex"
+                : "none";
+            appointmentFormPanel.style.display = "block";
+            appointmentFormPanel.scrollIntoView({ behavior: "smooth" });
+
+            apptFormMessage.textContent = "";
+            apptFormMessage.className = "form-message";
+        }
+
+        function hideAppointmentForm() {
+            appointmentFormPanel.style.display = "none";
+            appointmentFormAdmin.reset();
+
+            document.getElementById("apptId").value = "";
+            document.getElementById("apptRowNumber").value = "";
+            document.getElementById("apptOriginalDate").value = "";
+            document.getElementById("apptOriginalTime").value = "";
+
+            deleteAppointmentButton.style.display = "none";
+            generateBalancePaymentButton.style.display = "none";
+            sendBalancePaymentConfirmationButton.style.display = "none";
+        }
+
+        async function saveAppointmentAdmin(event) {
+            event.preventDefault();
+
+            const id = document.getElementById("apptId").value;
+            const rowNumber = document.getElementById("apptRowNumber").value;
+            const isNew = !id || id === "0";
+            const currentAppointment = allAppointments.find(function(item) {
+                return String(item.id) === String(id);
+            });
+
+            const payload = {
+                action: isNew ? "saveAppointment" : "updateAppointment",
+                id: isNew ? undefined : String(id),
+                rowNumber: isNew ? undefined : String(rowNumber),
+                dataEnvio: isNew ? new Date().toLocaleString("pt-BR") : undefined,
+                cliente: document.getElementById("apptClient").value.trim(),
+                whatsapp: document.getElementById("apptWhatsapp").value.trim(),
+                servico: document.getElementById("apptService").value,
+                dataAgendamento: document.getElementById("apptDate").value,
+                horario: document.getElementById("apptTime").value,
+                endereco: document.getElementById("apptAddress").value.trim(),
+                frequencia: document.getElementById("apptFrequency").value,
+                observacoes: document.getElementById("apptNotes").value.trim(),
+                status: document.getElementById("apptStatus").value,
+                tipoImovel: document.getElementById("apptService").value,
+                cep: document.getElementById("apptCep").value.trim(),
+                regiao: getRegionLabelAdmin(document.getElementById("apptRegion").value),
+                transporte: isNew ? "" : currentAppointment?.transporte || "",
+                valorTotal: isNew ? "" : currentAppointment?.valorTotal || "",
+                reserva: isNew ? "" : currentAppointment?.reserva || "",
+                saldo: isNew ? "" : currentAppointment?.saldo || "",
+                pagamento: isNew ? "" : currentAppointment?.pagamento || ""
+            };
+
+            const button = document.getElementById("saveAppointmentButton");
+
+            button.disabled = true;
+            button.textContent = "Salvando...";
+
+            try {
+                await adminRequest(payload.action, payload);
+
+                hideAppointmentForm();
+                await loadAppointmentsAdmin();
+
+                alert("Agendamento salvo. Calendário e planilha atualizados.");
+            } catch (error) {
+                apptFormMessage.textContent =
+                    "Não foi possível salvar. Faça login novamente e tente.";
+                apptFormMessage.className = "form-message active";
+            } finally {
+                button.disabled = false;
+                button.textContent = "Salvar agendamento";
+            }
+        }
+
+        async function generateBalancePayment() {
+            const id = document.getElementById("apptId").value;
+            const appointment = allAppointments.find(function(item) {
+                return String(item.id) === String(id);
+            });
+
+            await generateBalancePaymentForAppointment(appointment, generateBalancePaymentButton);
+        }
+
+        async function generateBalancePaymentForId(id) {
+            const appointment = allAppointments.find(function(item) {
+                return String(item.id) === String(id);
+            });
+
+            await generateBalancePaymentForAppointment(appointment);
+        }
+
+        async function generateBalancePaymentForAppointment(appointment, sourceButton) {
+
+            if (!appointment) {
+                alert("Agendamento não encontrado.");
+                return;
+            }
+
+            const whatsappWindow = window.open("about:blank", "_blank");
+
+            if (sourceButton) {
+                sourceButton.disabled = true;
+                sourceButton.textContent = "Gerando cobrança...";
+            }
+
+            try {
+                const result = await adminRequest("createRemainingBalancePayment", {
+                    id: appointment.id,
+                    rowNumber: appointment.rowNumber
+                });
+
+                const message = `Olá, ${appointment.cliente || "cliente"}!
+
+O serviço foi realizado e o saldo restante do seu agendamento está disponível para pagamento.
+
+Referência: ${result.ticket}
+Serviço: ${appointment.servico || "-"}
+Data: ${formatDateBR(appointment.dataAgendamento)}
+Valor do saldo: ${formatCurrency(result.amount)}
+
+Pague com segurança pelo link abaixo:
+${result.paymentLink}
+
+Este link fica disponível por 7 dias. Obrigada por escolher a Hub da Diarista.`;
+
+                const phone = formatWhatsAppNumber(appointment.whatsapp);
+
+                if (!phone) {
+                    if (whatsappWindow) whatsappWindow.close();
+                    throw new Error("WhatsApp da cliente não encontrado.");
+                }
+
+                whatsappWindow.location.href =
+                    `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+                const statusField = document.getElementById("apptStatus");
+                if (statusField) {
+                    statusField.value = "Serviço realizado — pagamento restante pendente";
+                }
+
+                await loadAppointmentsAdmin();
+
+                alert(
+                    result.reused
+                        ? "A cobrança anterior ainda está válida. A mensagem foi aberta novamente."
+                        : "Cobrança final criada. A mensagem está pronta no WhatsApp."
+                );
+            } catch (error) {
+                if (whatsappWindow) whatsappWindow.close();
+                alert(error.message || "Não foi possível gerar a cobrança do saldo.");
+            } finally {
+                if (sourceButton) {
+                    sourceButton.disabled = false;
+                    sourceButton.textContent = "Gerar cobrança do saldo";
+                }
+            }
+        }
+
+        async function sendBalancePaymentConfirmation() {
+            const id = document.getElementById("apptId").value;
+            const appointment = allAppointments.find(function(item) {
+                return String(item.id) === String(id);
+            });
+
+            await sendBalancePaymentConfirmationForAppointment(appointment);
+        }
+
+        async function sendBalancePaymentConfirmationForId(id) {
+            const appointment = allAppointments.find(function(item) {
+                return String(item.id) === String(id);
+            });
+
+            await sendBalancePaymentConfirmationForAppointment(appointment);
+        }
+
+        async function sendBalancePaymentConfirmationForAppointment(appointment) {
+
+            if (!appointment) {
+                alert("Agendamento não encontrado.");
+                return;
+            }
+
+            const phone = formatWhatsAppNumber(appointment.whatsapp);
+
+            if (!phone) {
+                alert("WhatsApp da cliente não encontrado.");
+                return;
+            }
+
+            const reference = "HD-" + String(appointment.id || "").replace(/\D/g, "").slice(-6);
+            const message = `Olá, ${appointment.cliente || "cliente"}!
+
+Confirmamos o pagamento completo do seu agendamento.
+
+Referência: ${reference}
+Serviço: ${appointment.servico || "-"}
+Data: ${formatDateBR(appointment.dataAgendamento)}
+Valor total: ${appointment.valorTotal ? formatCurrency(appointment.valorTotal) : "-"}
+
+Obrigada por escolher a Hub da Diarista.`;
+
+            const whatsappWindow = window.open("about:blank", "_blank");
+
+            try {
+                await adminRequest("updateAppointment", {
+                    id: appointment.id,
+                    rowNumber: appointment.rowNumber,
+                    status: "Pagamento completo"
+                });
+
+                appointment.status = "Pagamento completo";
+                whatsappWindow.location.href =
+                    `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+                hideAppointmentForm();
+                await loadAppointmentsAdmin();
+                alert("A quitação foi registrada. A mensagem está pronta no WhatsApp.");
+            } catch (error) {
+                if (whatsappWindow) whatsappWindow.close();
+                alert("Não foi possível registrar a quitação agora.");
+            }
+        }
+
+        function confirmDeleteAppointment(id) {
+            if (!confirm("Tem certeza que deseja excluir este agendamento? A data voltará a ficar disponível.")) {
+                return;
+            }
+
+            deleteAppointmentAdmin(id);
+        }
+
+        async function deleteAppointmentAdmin(id) {
+            const appointment = allAppointments.find(function (item) {
+                return String(item.id) === String(id);
+            });
+
+            if (!appointment) {
+                alert("Agendamento não encontrado na lista.");
+                return;
+            }
+
+            try {
+                await adminRequest("deleteAppointment", {
+                    id: appointment.id,
+                    rowNumber: appointment.rowNumber
+                });
+
+                hideAppointmentForm();
+                await loadAppointmentsAdmin();
+
+                alert("Agendamento excluído. A data foi liberada no calendário.");
+            } catch (error) {
+                alert("Não foi possível excluir o agendamento. Faça login novamente e tente.");
+            }
+        }
+
+        function getRegionLabelAdmin(value) {
+            if (value === "proxima") {
+                return "Vila Tolstoi, Vila Ema, Sapopemba, Ana Rosa ou Vila Prudente";
+            }
+
+            if (value === "distante") {
+                return "Diadema, Santo Amaro ou Zona Sul";
+            }
+
+            return "Outra região - confirmar pelo WhatsApp";
+        }
+
+function formatDateBR(d) {
+    if (!d) return "-";
+
+    const value = String(d).trim();
+    const dateOnly = value.includes("T") ? value.split("T")[0] : value;
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
+        const parts = dateOnly.split("-");
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    if (value.includes("/")) {
+        return value;
+    }
+
+    return value;
+}        function formatTimeBR(t) { if (!t) return "-"; const s = String(t).trim(); if (s === "dia-inteiro") return "Dia inteiro"; const dt = new Date(s); if (!isNaN(dt.getTime())) { const h = String(dt.getHours()).padStart(2, '0'), m = String(dt.getMinutes()).padStart(2, '0'); return `${h}:${m}`; } if (s.includes(":")) return s.slice(0, 5); return s; }
+
+        window.openAppointmentForm = openAppointmentForm;
+        window.confirmDeleteAppointment = confirmDeleteAppointment;
+        window.approveAppointment = approveAppointment;
+        window.sendAppointmentUpdate = sendAppointmentUpdate;
+        window.generateBalancePaymentForId = generateBalancePaymentForId;
+        window.sendBalancePaymentConfirmationForId = sendBalancePaymentConfirmationForId;
+        window.sendCustomQuoteStatus = sendCustomQuoteStatus;
+
+        calculateAndRenderBudget();
+    </script>
+</body>
+
+</html>
