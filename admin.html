@@ -270,6 +270,7 @@
                             <option>Orçamento solicitado</option>
                             <option>Orçamento em análise</option>
                             <option>Orçamento enviado para cliente</option>
+                            <option>Orçamento enviado - aguardando pagamento</option>
                             <option>Aguardando retorno da cliente</option>
                             <option>Aguardando confirmação do orçamento</option>
                             <option>Orçamento aprovado</option>
@@ -291,16 +292,13 @@
 
             <section class="admin-budget-layout">
                 <div class="checkout-card pix-card">
-                    <h2>Pagamento Pix</h2>
-                    <p>Use o QR Code ou o código Pix para enviar junto com o orçamento.</p>
-                    <div class="pix-area"><img src="imagens/pix-qrcode.jpeg" alt="QR Code Pix" class="pix-qrcode" /><label>Pix copia e cola<textarea id="pixCode"
-                                readonly>00020126580014br.gov.bcb.pix013633d462cf-81ab-47a7-a90a-9e598856f43b27600016BR.COM.PAGSEGURO013653F9B06E-05AA-4633-BDD1-E37F75A9ECE35204549953039865802BR5925FRANCISCA ELIEUDA CALIXTO6009Sao Paulo62290525PAGS00000000026062911297163041922</textarea></label>
-                    </div>
-                    <button type="button" id="copyPixButton" class="copy-pix-button">Copiar código Pix</button>
+                    <h2>Pagamento da reserva</h2>
+                    <p>Depois de salvar o orçamento, gere uma cobrança individual do Mercado Pago para a cliente.</p>
+                    <p id="quotePaymentMessage" class="form-message active">A cobrança será vinculada a este orçamento e à reserva de 40%.</p>
                 </div>
                 <aside class="checkout-summary-card admin-summary">
                     <h2>Resumo do orçamento</h2>
-                    <div id="budgetSummary" class="checkout-summary-list"></div><button type="button" id="saveBudgetButton">Salvar orçamento</button><button type="button" id="sendBudgetButton">Enviar pelo WhatsApp</button><button type="button" id="printBudgetButton">Gerar PDF / imprimir</button>
+                    <div id="budgetSummary" class="checkout-summary-list"></div><button type="button" id="saveBudgetButton">Salvar orçamento</button><button type="button" id="sendBudgetButton">Gerar link e abrir WhatsApp</button><button type="button" id="printBudgetButton">Gerar PDF / imprimir</button>
                 </aside>
             </section>
 
@@ -339,6 +337,7 @@
             "Orçamento solicitado",
             "Orçamento em análise",
             "Orçamento enviado para cliente",
+            "Orçamento enviado - aguardando pagamento",
             "Aguardando retorno da cliente",
             "Aguardando confirmação do orçamento",
             "Orçamento aprovado",
@@ -438,7 +437,7 @@
             historyPrevButton = document.getElementById("historyPrev"),
             historyNextButton = document.getElementById("historyNext"),
             reloadRequestsButton = document.getElementById("reloadRequestsButton"),
-            copyPixButton = document.getElementById("copyPixButton"),
+            quotePaymentMessage = document.getElementById("quotePaymentMessage"),
             saveBudgetButton = document.getElementById("saveBudgetButton"),
             sendBudgetButton = document.getElementById("sendBudgetButton"),
             printBudgetButton = document.getElementById("printBudgetButton"),
@@ -466,7 +465,6 @@
             el.addEventListener("input", calculateAndRenderBudget);
             el.addEventListener("change", calculateAndRenderBudget);
         });
-        copyPixButton.addEventListener("click", () => navigator.clipboard.writeText(document.getElementById("pixCode").value).then(() => alert("Código Pix copiado!")));
         saveBudgetButton.addEventListener("click", saveBudget);
         sendBudgetButton.addEventListener("click", sendBudgetToWhatsApp);
         printBudgetButton.addEventListener("click", () => window.print());
@@ -564,7 +562,7 @@
                 conditions: cond
             };
         }
-        async function saveBudget() {
+        async function saveBudget(options = {}) {
             if (!selectedQuote) {
                 alert("Selecione uma solicitação antes de salvar.");
                 return;
@@ -601,26 +599,72 @@
                 selectedQuote.saldo = currentBudget.balance;
 
                 renderHistory();
-                alert("Orçamento salvo na planilha.");
+                if (!options.silent) {
+                    alert("Orçamento salvo na planilha.");
+                }
+
+                return true;
             } catch (error) {
                 alert("Não foi possível salvar o orçamento. Faça login novamente e tente.");
+                return false;
             }
         }
 
-        function sendBudgetToWhatsApp() {
+        async function sendBudgetToWhatsApp() {
             if (!selectedQuote || !currentBudget) {
                 alert("Selecione uma solicitação e gere o orçamento primeiro.");
                 return;
             }
+
             const phone = formatWhatsAppNumber(selectedQuote.whatsapp);
+
             if (!phone) {
                 alert("WhatsApp da cliente não encontrado.");
                 return;
             }
-            const dt = currentBudget.discount > 0 ? `Desconto aplicado: ${formatCurrency(currentBudget.discount)}\n` : "",
-                ct = currentBudget.conditions ? `\nCondições do orçamento:\n${currentBudget.conditions}\n` : "",
-                msg = `Olá, ${selectedQuote.cliente}! Segue o orçamento personalizado:\n\nServiço: ${getServiceLabel(currentBudget.serviceType)}\nDatas solicitadas: ${selectedQuote.datasSolicitadas || "-"}\nMetragem considerada: ${currentBudget.squareMeters}m²\n\nValor antes do desconto: ${formatCurrency(currentBudget.totalBeforeDiscount)}${dt}Valor total: ${formatCurrency(currentBudget.total)}\nReserva de 40%: ${formatCurrency(currentBudget.reservation)}\nSaldo após conclusão do serviço: ${formatCurrency(currentBudget.balance)}\n\nStatus do orçamento: ${currentBudget.statusOrcamento}\n\nDetalhes:\n- Produtos: ${getProductKitLabel(currentBudget.productKit)}\n- Imóvel mobiliado: ${currentBudget.furnished ? "Sim" : "Não"}\n- Entulho/lixo pesado: ${currentBudget.rubble ? "Sim" : "Não"}\n- Eletrodomésticos internos: ${currentBudget.appliances}${ct}Pix copia e cola:\n${document.getElementById("pixCode").value}\n\nApós o pagamento da reserva, o agendamento fica pendente de confirmação.`;
-            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
+
+            const whatsappWindow = window.open("about:blank", "_blank");
+            sendBudgetButton.disabled = true;
+            sendBudgetButton.textContent = "Gerando link...";
+
+            try {
+                const wasSaved = await saveBudget({
+                    silent: true
+                });
+
+                if (!wasSaved) {
+                    if (whatsappWindow) whatsappWindow.close();
+                    return;
+                }
+
+                const result = await adminRequest("createCustomQuoteMercadoPagoPayment", {
+                    id: selectedQuote.id
+                });
+                const discountText = currentBudget.discount > 0 ?
+                    `Desconto aplicado: ${formatCurrency(currentBudget.discount)}\n` :
+                    "";
+                const conditionsText = currentBudget.conditions ?
+                    `\nCondições do orçamento:\n${currentBudget.conditions}\n` :
+                    "";
+                const message = `Olá, ${selectedQuote.cliente}! Segue o orçamento personalizado:\n\nServiço: ${getServiceLabel(currentBudget.serviceType)}\nDatas solicitadas: ${selectedQuote.datasSolicitadas || "-"}\nMetragem considerada: ${currentBudget.squareMeters}m²\n\nValor antes do desconto: ${formatCurrency(currentBudget.totalBeforeDiscount)}\n${discountText}Valor total: ${formatCurrency(currentBudget.total)}\nReserva de 40%: ${formatCurrency(currentBudget.reservation)}\nSaldo após conclusão do serviço: ${formatCurrency(currentBudget.balance)}\n\nDetalhes:\n- Produtos: ${getProductKitLabel(currentBudget.productKit)}\n- Imóvel mobiliado: ${currentBudget.furnished ? "Sim" : "Não"}\n- Entulho/lixo pesado: ${currentBudget.rubble ? "Sim" : "Não"}\n- Eletrodomésticos internos: ${currentBudget.appliances}${conditionsText}\nPague a reserva com segurança pelo Mercado Pago:\n${result.paymentLink}\n\nEste link fica disponível por 7 dias. Após a confirmação do pagamento, o agendamento seguirá para aprovação.`;
+
+                selectedQuote.status = "Orçamento enviado - aguardando pagamento";
+                selectedQuote.statusOrcamento = "Orçamento enviado - aguardando pagamento";
+                document.getElementById("quoteStatus").value = selectedQuote.statusOrcamento;
+                quotePaymentMessage.textContent = result.reused ?
+                    "A cobrança anterior ainda está válida. A mensagem foi aberta novamente." :
+                    "Cobrança Mercado Pago criada e vinculada ao orçamento.";
+                renderHistory();
+
+                whatsappWindow.location.href =
+                    `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+            } catch (error) {
+                if (whatsappWindow) whatsappWindow.close();
+                alert(error.message || "Não foi possível criar a cobrança do orçamento.");
+            } finally {
+                sendBudgetButton.disabled = false;
+                sendBudgetButton.textContent = "Gerar link e abrir WhatsApp";
+            }
         }
 
         function renderHistory() {
