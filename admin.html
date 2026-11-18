@@ -467,7 +467,7 @@
         });
         saveBudgetButton.addEventListener("click", saveBudget);
         sendBudgetButton.addEventListener("click", sendBudgetToWhatsApp);
-        printBudgetButton.addEventListener("click", () => window.print());
+        printBudgetButton.addEventListener("click", printCustomQuote);
 
         async function loadCustomQuoteRequests() {
             quoteRequestSelect.innerHTML =
@@ -665,6 +665,118 @@
                 sendBudgetButton.disabled = false;
                 sendBudgetButton.textContent = "Gerar link e abrir WhatsApp";
             }
+        }
+
+        function printCustomQuote() {
+            if (!selectedQuote || !currentBudget) {
+                alert("Selecione uma solicitação e gere o orçamento antes de imprimir.");
+                return;
+            }
+
+            const printWindow = window.open("", "_blank");
+
+            if (!printWindow) {
+                alert("O navegador bloqueou a janela de impressão. Permita pop-ups e tente novamente.");
+                return;
+            }
+
+            const escapeHtml = function(value) {
+                return String(value || "-")
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/\"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            };
+            const formatMultiline = function(value) {
+                return escapeHtml(value).replace(/\n/g, "<br>");
+            };
+            const issueDate = new Date().toLocaleDateString("pt-BR");
+            const discountLine = currentBudget.discount > 0 ?
+                `<tr><td>Desconto</td><td>- ${formatCurrency(currentBudget.discount)}</td></tr>` :
+                "";
+
+            printWindow.document.write(`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Orçamento ${escapeHtml(selectedQuote.ticket || "Hub da Diarista")}</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Arial, sans-serif; color: #102237; background: #fff; }
+        main { max-width: 800px; margin: 0 auto; padding: 42px; }
+        .header { display: flex; justify-content: space-between; gap: 24px; border-bottom: 3px solid #e8a7ae; padding-bottom: 22px; }
+        .brand { color: #e27787; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        h1 { margin: 8px 0 0; font-size: 30px; }
+        .ticket { text-align: right; line-height: 1.6; font-size: 14px; }
+        h2 { margin: 30px 0 12px; font-size: 18px; }
+        .details { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 28px; }
+        .detail { border-bottom: 1px solid #eedde0; padding-bottom: 8px; font-size: 14px; }
+        .detail strong { display: block; margin-bottom: 3px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        td { padding: 11px 12px; border-bottom: 1px solid #eedde0; font-size: 14px; }
+        td:last-child { text-align: right; font-weight: 700; }
+        .total td { font-size: 17px; }
+        .reserve td { background: #fff0f2; color: #a64352; }
+        .conditions { padding: 16px; background: #fff7f8; border-left: 4px solid #e8a7ae; font-size: 14px; line-height: 1.5; }
+        .footer { margin-top: 30px; font-size: 12px; color: #5b6775; line-height: 1.5; }
+        @media print { main { padding: 22px; } }
+    </style>
+</head>
+<body>
+    <main>
+        <header class="header">
+            <div>
+                <div class="brand">Hub da Diarista</div>
+                <h1>Orçamento personalizado</h1>
+            </div>
+            <div class="ticket">
+                <strong>Ticket: ${escapeHtml(selectedQuote.ticket || "-")}</strong><br>
+                Emitido em: ${escapeHtml(issueDate)}
+            </div>
+        </header>
+
+        <h2>Dados da cliente</h2>
+        <section class="details">
+            <div class="detail"><strong>Cliente</strong>${escapeHtml(selectedQuote.cliente)}</div>
+            <div class="detail"><strong>WhatsApp</strong>${escapeHtml(selectedQuote.whatsapp)}</div>
+            <div class="detail"><strong>Endereço</strong>${escapeHtml(selectedQuote.endereco)}</div>
+            <div class="detail"><strong>CEP / Região</strong>${escapeHtml(selectedQuote.cep)}${selectedQuote.regiao ? " - " + escapeHtml(selectedQuote.regiao) : ""}</div>
+        </section>
+
+        <h2>Serviço solicitado</h2>
+        <section class="details">
+            <div class="detail"><strong>Serviço</strong>${escapeHtml(getServiceLabel(currentBudget.serviceType))}</div>
+            <div class="detail"><strong>Datas solicitadas</strong>${formatMultiline(selectedQuote.datasSolicitadas)}</div>
+            <div class="detail"><strong>Horário</strong>${escapeHtml(selectedQuote.horario)}</div>
+            <div class="detail"><strong>Metragem considerada</strong>${escapeHtml(currentBudget.squareMeters)}m²</div>
+        </section>
+
+        <h2>Resumo financeiro</h2>
+        <table>
+            <tr><td>Valor do serviço</td><td>${formatCurrency(currentBudget.grossValue)}</td></tr>
+            <tr><td>Acréscimos</td><td>${formatCurrency(currentBudget.additions)}</td></tr>
+            ${discountLine}
+            <tr class="total"><td>Valor total</td><td>${formatCurrency(currentBudget.total)}</td></tr>
+            <tr class="reserve"><td>Reserva antecipada de 40%</td><td>${formatCurrency(currentBudget.reservation)}</td></tr>
+            <tr><td>Saldo após a realização do serviço</td><td>${formatCurrency(currentBudget.balance)}</td></tr>
+        </table>
+
+        <h2>Condições do orçamento</h2>
+        <div class="conditions">${formatMultiline(currentBudget.conditions || "Condições a confirmar com a administração.")}</div>
+
+        <footer class="footer">
+            O pagamento da reserva é enviado em link individual do Mercado Pago. Após a confirmação, o agendamento seguirá para aprovação pela administração.
+        </footer>
+    </main>
+</body>
+</html>`);
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(function() {
+                printWindow.print();
+            }, 250);
         }
 
         function renderHistory() {
