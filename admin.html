@@ -790,6 +790,7 @@ Qualquer dúvida, estamos à disposição pelo WhatsApp.`;
                 });
 
                 renderAppointmentsList();
+                renderPendingApprovals();
             } catch (error) {
                 appointmentsList.innerHTML = `
             <article class="status-card admin-history-card appointment-card">
@@ -895,7 +896,12 @@ Qualquer dúvida, estamos à disposição pelo WhatsApp.`;
                 "Pagamento completo — confirmação pendente"
             ];
             const activeAppointments = allAppointments.filter(function(appointment) {
-                return activeStatuses.includes(appointment.status);
+                const payment = String(appointment.pagamento || "").toLowerCase();
+                const hasConfirmedMercadoPagoPayment =
+                    payment.includes("mercado pago confirmado");
+
+                return activeStatuses.includes(appointment.status) &&
+                    hasConfirmedMercadoPagoPayment;
             });
 
             if (!activeAppointments.length) {
